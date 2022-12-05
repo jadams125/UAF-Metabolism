@@ -1,0 +1,355 @@
+---
+title: "FinalFrench_Run"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+#2019
+
+```{r data}
+setwd(here())
+FRCH.comb.in <- read.csv(here("outputs", "frch.comb.csv"))
+
+#Set year of 2019
+FRCH.comb.in <- FRCH.comb.in %>% filter(datetimeAK >= "2019-04-29 14:30:00" & datetimeAK < "2019-10-09 23:45:00")
+
+
+anyNA(FRCH.comb.in, recursive = TRUE)
+lapply(FRCH.comb.in, summary)
+
+FRCH.comb.in <- FRCH.comb.in %>%
+  mutate(across(c(temp.water, ODO.Psat, ODO.Ploc, DO.obs, DO.sat.EXO, DO.sat),
+                ~ifelse(datetimeAK == "2019-06-27 14:15:00", NA, .)))
+
+FRCH.comb.in <- FRCH.comb.in %>%
+  mutate(across(c(temp.water, ODO.Psat, ODO.Ploc, DO.obs, DO.sat.EXO, DO.sat),
+                ~ifelse(datetimeAK == "2019-07-19 10:15:00", NA, .)))
+
+FRCH.comb.in <- FRCH.comb.in %>%
+  mutate(across(c(temp.water, ODO.Psat, ODO.Ploc, DO.obs, DO.sat.EXO, DO.sat),
+                ~ifelse(datetimeAK == "2019-07-26 13:45:00", NA, .)))
+
+FRCH.comb.in <- FRCH.comb.in %>%
+  mutate(across(c(temp.water, ODO.Psat, ODO.Ploc, DO.obs, DO.sat.EXO, DO.sat),
+                ~ifelse(datetimeAK == "2019-07-26 14:00:00", NA, .)))
+
+
+FRCH.comb.in <- FRCH.comb.in %>%
+  mutate(across(c(temp.water, ODO.Psat, ODO.Ploc, DO.obs, DO.sat.EXO, DO.sat),
+                ~ifelse(datetimeAK == "2019-06-13 14:00:00", NA, .)))
+
+
+FRCH.comb.in <- FRCH.comb.in %>%
+  mutate(across(c(temp.water, ODO.Psat, ODO.Ploc, DO.obs, DO.sat.EXO, DO.sat),
+                ~ifelse(datetimeAK == "2019-06-13 13:45:00", NA, .)))
+
+
+
+FRCH.comb.in <- FRCH.comb.in %>%
+  mutate(across(c(temp.water, ODO.Psat, ODO.Ploc, DO.obs, DO.sat.EXO, DO.sat),
+                ~ifelse(datetimeAK == "2019-06-13 14:00:00", NA, .)))
+
+
+FRCH.comb.in <- FRCH.comb.in %>%
+  mutate(across(c(temp.water, ODO.Psat, ODO.Ploc, DO.obs, DO.sat.EXO, DO.sat),
+                ~ifelse(datetimeAK == "2019-07-12 09:45:00", NA, .)))
+
+
+FRCH.comb.in <- FRCH.comb.in %>%
+  mutate(across(c(temp.water, ODO.Psat, ODO.Ploc, DO.obs, DO.sat.EXO, DO.sat),
+                ~ifelse(datetimeAK == "2019-09-26 13:00:00", NA, .)))
+
+#NA FILL OUT OF WATER and Other small gaps
+FRCH.comb.in$temp.water <- na_kalman(FRCH.comb.in$temp.water)
+FRCH.comb.in$ODO.Psat <- na_kalman(FRCH.comb.in$ODO.Psat)
+FRCH.comb.in$DO.obs <- na_kalman(FRCH.comb.in$DO.obs, type = "level")
+FRCH.comb.in$DO.sat <- na_kalman(FRCH.comb.in$DO.sat, type = "level")
+FRCH.comb.in$DO.sat.EXO <- na_kalman(FRCH.comb.in$DO.sat.EXO, type = "level")
+FRCH.comb.in$depth <- na_kalman(FRCH.comb.in$depth, type = "level")
+FRCH.comb.in$discharge <- na_kalman(FRCH.comb.in$discharge, type = "level")
+
+
+
+#Set time of run
+# FRCH.comb <- FRCH.comb.in %>% filter(solar.time >= "2019-04-28 04:13:57" & solar.time < "2019-06-16 04:13:57")
+
+
+
+anyNA(FRCH.comb.in, recursive = TRUE)
+lapply(FRCH.comb.in, summary)
+
+FRCH.comb<- FRCH.comb.in
+
+FRCH.comb$datetimeAK <- force_tz(as.POSIXct(FRCH.comb$datetimeAK), "America/Anchorage")
+
+FRCH.comb$solar.time <- calc_solar_time(as.POSIXct(FRCH.comb$datetimeAK), longitude = -146.916364)
+
+
+#DO sat is DO sat EXO, duplicate cols
+data.frch.mm.2019 <- FRCH.comb %>%
+  select(datetimeAK, solar.time, depth, DO.obs, DO.sat, temp.water, light, discharge)
+
+anyNA(data.frch.mm.2019, recursive = TRUE)
+lapply(data.frch.mm.2019, summary)
+
+
+
+#Data after AUG 1 is bad: 
+data.frch.mm.2019 <- data.frch.mm.2019 %>% filter(solar.time < "2019-08-01  04:13:57")
+
+
+
+```
+
+
+#2020
+``` {r}
+setwd(here())
+FRCH.comb.in <- read.csv(here("outputs", "frch.comb.csv"))
+
+FRCH.comb.in2020.1 <- FRCH.comb.in %>% filter(datetimeAK >= "2020-06-11 14:00:00" & datetimeAK < "2020-06-13 18:00:00")
+
+
+FRCH.comb.in2020.2 <- FRCH.comb.in %>% filter(datetimeAK >= "2020-08-25 11:15:00" & datetimeAK < "2020-10-13 23:45:00")
+
+
+FRCH.comb.in2020 <- rbind(FRCH.comb.in2020.1,FRCH.comb.in2020.2)
+
+anyNA(FRCH.comb.in2020, recursive = TRUE)
+lapply(FRCH.comb.in2020, summary)
+
+#NA FILL OUT OF WATER and Other small gaps
+FRCH.comb.in2020$temp.water <- na_kalman(FRCH.comb.in2020$temp.water, type = "level")
+FRCH.comb.in2020$ODO.Psat <- na_kalman(FRCH.comb.in2020$ODO.Psat)
+FRCH.comb.in2020$DO.obs <- na_kalman(FRCH.comb.in2020$DO.obs, type = "level")
+FRCH.comb.in2020$DO.sat <- na_kalman(FRCH.comb.in2020$DO.sat, type = "level")
+FRCH.comb.in2020$DO.sat.EXO <- na_kalman(FRCH.comb.in2020$DO.sat.EXO, type = "level")
+FRCH.comb.in2020$depth <- na_kalman(FRCH.comb.in2020$depth, type = "level")
+FRCH.comb.in2020$discharge <- na_kalman(FRCH.comb.in2020$discharge, type = "level")
+
+
+anyNA(FRCH.comb.in2020, recursive = TRUE)
+lapply(FRCH.comb.in2020, summary)
+
+FRCH.comb.in2020$datetimeAK <- force_tz(as.POSIXct(FRCH.comb.in2020$datetimeAK), "America/Anchorage")
+
+FRCH.comb.in2020$solar.time <- calc_solar_time(as.POSIXct(FRCH.comb.in2020$datetimeAK), longitude = -146.916364)
+
+
+#DO sat is DO sat EXO, duplicate cols
+data.frch.mm.2020 <- FRCH.comb.in2020 %>%
+  select(datetimeAK, solar.time, depth, DO.obs, DO.sat, temp.water, light, discharge)
+
+anyNA(data.frch.mm.2020, recursive = TRUE)
+lapply(data.frch.mm.2020, summary)
+
+
+
+```
+
+
+
+#2021
+``` {r}
+setwd(here())
+FRCH.comb.in <- read.csv(here("outputs", "frch.comb.csv"))
+
+#Q data bad until 6/30, No EXO data after 7/12
+FRCH.comb.in2021.1 <- FRCH.comb.in %>% filter(datetimeAK >= "2021-06-30 03:00:00")
+
+FRCH.comb.in2021.1 <- FRCH.comb.in2021.1 %>% filter(datetimeAK < "2021-07-12 10:00:00")
+
+#EXO back on 7/26, until end of season.
+FRCH.comb.in2021.2 <- FRCH.comb.in %>% filter(datetimeAK >= "2021-07-26 12:00:00")
+
+FRCH.comb.in2021.2 <- FRCH.comb.in2021.2 %>% filter(datetimeAK < "2021-09-26 23:45:00")
+
+
+FRCH.comb.in2021 <- rbind(FRCH.comb.in2021.1,FRCH.comb.in2021.2)
+
+anyNA(FRCH.comb.in2021, recursive = TRUE)
+lapply(FRCH.comb.in2021, summary)
+
+
+#NA FILL OUT OF WATER and Other small gaps
+FRCH.comb.in2021$temp.water <- na_kalman(FRCH.comb.in2021$temp.water, type = "level")
+FRCH.comb.in2021$ODO.Psat <- na_kalman(FRCH.comb.in2021$ODO.Psat)
+FRCH.comb.in2021$DO.obs <- na_kalman(FRCH.comb.in2021$DO.obs, type = "level")
+FRCH.comb.in2021$DO.sat <- na_kalman(FRCH.comb.in2021$DO.sat, type = "level")
+FRCH.comb.in2021$DO.sat.EXO <- na_kalman(FRCH.comb.in2021$DO.sat.EXO, type = "level")
+FRCH.comb.in2021$depth <- na_kalman(FRCH.comb.in2021$depth, type = "level")
+FRCH.comb.in2021$discharge <- na_kalman(FRCH.comb.in2021$discharge, type = "level")
+
+
+anyNA(FRCH.comb.in2021, recursive = TRUE)
+lapply(FRCH.comb.in2021, summary)
+
+
+FRCH.comb.in2021$datetimeAK <- force_tz(as.POSIXct(FRCH.comb.in2021$datetimeAK), "America/Anchorage")
+
+FRCH.comb.in2021$solar.time <- calc_solar_time(as.POSIXct(FRCH.comb.in2021$datetimeAK), longitude = -146.916364)
+
+
+#DO sat is DO sat EXO, duplicate cols
+data.frch.mm.2021 <- FRCH.comb.in2021 %>%
+  select(datetimeAK, solar.time, depth, DO.obs, DO.sat, temp.water, light, discharge)
+
+anyNA(data.frch.mm.2021, recursive = TRUE)
+lapply(data.frch.mm.2021, summary)
+
+
+
+```
+
+Met tower Light, then Combine years and save
+
+``` {r}
+
+anyNA(data.frch.mm.all, recursive = TRUE)
+lapply(data.frch.mm.all, summary)
+
+
+CRREL <- read.csv(here("MetTowerData.csv"), skip = 5)
+
+CRREL$datetimeAK <- as.POSIXct(CRREL$Time, tz = "America/Anchorage")
+
+CRREL <- CRREL %>% rename(ParWm2 = CPCRW.CRREL.Main.Met.Station..PAR_Den_AVG.W.m2.)
+
+
+#2019
+CRREL_FRCH.2019 <- left_join(data.frch.mm.2019,CRREL, by = "datetimeAK")
+
+CRREL_FRCH.2019$ParWm2 <- na_kalman(CRREL_FRCH.2019$ParWm2)
+
+
+
+#### POKE 2019 ####
+PAR.2019.url <- "https://drive.google.com/drive/u/1/folders/11kWuwCF6pTXYolwYnxcsX6OcYyQeF35z"
+PAR_19.prt1 <- drive_get(as_id(PAR.2019.url))
+poke_par_glist <- drive_ls(PAR_19.prt1, pattern = "191017_11619_POKE.CSV")
+walk(poke_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+poke.par.2019.Data <- read.csv("191017_11619_POKE.CSV",
+                               skip = 8, header = FALSE)
+poke.par.2019.Data <- poke.par.2019.Data %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+#Fix Date Time
+poke.par.2019.Data$DateTime <- paste(poke.par.2019.Data$Date, poke.par.2019.Data$Time, sep="")
+
+poke.par.2019.Data$DateTime <-  dmy_hms(poke.par.2019.Data$DateTime)
+poke.par.2019.Data$DateTime <- force_tz(poke.par.2019.Data$DateTime, "America/Anchorage")
+
+#Calibrate logger 11619 to LICOR
+poke.par.2019.Data$CalibratedValue <- poke.par.2019.Data$CalibratedValue * 0.035
+
+
+max.par.poke.2019 <- max(poke.par.2019.Data$CalibratedValue)
+
+max.par.crrel.2019 <- max(CRREL_FRCH.2019$ParWm2)
+
+multiplyFactor.2019 <- max.par.poke.2019/max.par.crrel.2019
+
+
+CRREL_FRCH.2019$ParMetCor <- CRREL_FRCH.2019$ParWm2 *multiplyFactor.2019
+
+
+
+
+
+
+
+
+#### POKE 2020 ####
+PAR.2020.url <- "https://drive.google.com/drive/u/1/folders/1udve7khOM2EX0l8BZQK3yehb2HUbwFtR"
+PAR_2020.prt1 <- drive_get(as_id(PAR.2020.url))
+poke_par_glist <- drive_ls(PAR_2020.prt1, pattern = "11619_002_002_POKE_EndOfSeason.CSV")
+walk(poke_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+poke.par.2020.Data <- read.csv("11619_002_002_POKE_EndOfSeason.CSV",
+                               skip = 9, header = FALSE)
+poke.par.2020.Data <- poke.par.2020.Data %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+#Fix Date Time
+poke.par.2020.Data$DateTime <- paste(poke.par.2020.Data$Date, poke.par.2020.Data$Time, sep="")
+poke.par.2020.Data$DateTime <-  dmy_hms(poke.par.2020.Data$DateTime)
+poke.par.2020.Data$DateTime <- force_tz(poke.par.2020.Data$DateTime, "America/Anchorage")
+
+#Calibrate logger 11619 to LICOR
+poke.par.2020.Data$CalibratedValue <- poke.par.2020.Data$CalibratedValue * 0.035
+
+#2020
+CRREL_FRCH.2020 <- left_join(data.frch.mm.2020,CRREL, by = "datetimeAK")
+
+CRREL_FRCH.2020$ParWm2 <- na_kalman(CRREL_FRCH.2020$ParWm2)
+
+
+max.par.poke.2020 <- max(poke.par.2020.Data$CalibratedValue)
+
+max.par.crrel.2020 <- max(CRREL_FRCH.2020$ParWm2)
+
+multiplyFactor.2020 <- max.par.poke.2020/max.par.crrel.2020
+
+
+CRREL_FRCH.2020$ParMetCor <- CRREL_FRCH.2020$ParWm2 *multiplyFactor.2020
+
+
+
+
+#2021
+###### 2021 #####
+PAR.2021.url <- "https://drive.google.com/drive/u/1/folders/1EPjHLDmfbCo5n12AKj7QpN2vXRCPQtg5"
+PAR_2021.prt1 <- drive_get(as_id(PAR.2021.url))
+par2021_glist <- drive_ls(PAR_2021.prt1, pattern = "all.dates.par.2021.csv")
+walk(par2021_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+par2021.Data <- read.csv("all.dates.par.2021.csv",
+                         skip = 0, header = TRUE)
+# Sort into sites
+poke.par2021.Data <- par2021.Data %>% filter(site == "poke")
+
+poke.par2021.Data <- poke.par2021.Data %>%
+  dplyr::rename(RawValue = V5)
+
+poke.par2021.Data$DateTime <- as.POSIXct(poke.par2021.Data$DateTime)
+
+#Calibrate loggers to LICOR
+poke.par2021.Data$Calibrated.Value <- poke.par2021.Data$Calibrated.Value * 0.035
+
+
+
+#2021
+CRREL_FRCH.2021 <- left_join(data.frch.mm.2021,CRREL, by = "datetimeAK")
+
+CRREL_FRCH.2021$ParWm2 <- na_kalman(CRREL_FRCH.2021$ParWm2)
+
+
+max.par.poke.2021 <- max(poke.par2021.Data$Calibrated.Value)
+
+max.par.crrel.2021 <- max(CRREL_FRCH.2021$ParWm2)
+
+multiplyFactor.2021 <- max.par.poke.2021/max.par.crrel.2021
+
+
+CRREL_FRCH.2021$ParMetCor <- CRREL_FRCH.2021$ParWm2 *multiplyFactor.2021
+
+
+
+
+#save for analysis
+data.frch.mm.all <- rbind(CRREL_FRCH.2019, CRREL_FRCH.2020, CRREL_FRCH.2021)
+
+data.frch.mm.all$light <- data.frch.mm.all$ParMetCor
+
+data.frch.mm.all <- data.frch.mm.all %>% 
+  select(solar.time, depth, DO.obs, DO.sat, temp.water, light, discharge)
+
+
+anyNA(data.frch.mm.all, recursive = TRUE)
+lapply(data.frch.mm.all, summary)
+
+write.csv(data.frch.mm.all, here("outputs", "french.comb.readyforMetab.csv"))
+
+
+```

@@ -1,0 +1,1345 @@
+---
+title: "FinalMoose.Metab"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+---
+title: "FinalMoose_Run"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+#2019
+
+```{r data}
+
+
+library(ggpubr)
+library(anytime)
+library(googlesheets4)
+library(ggpmisc)
+library(plyr)
+
+library(dplyr)
+library(lubridate)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(scales)
+
+library(zoo)
+library(xts)
+library(forecast)
+library(googledrive)
+library(streamMetabolizer)
+library(readr)
+library(here)
+library(imputeTS)
+setwd(here())
+MOOS.comb.in <- read.csv(here("outputs", "moos.comb.csv"))
+
+#Set year of 2019
+MOOS.comb.in <- MOOS.comb.in %>% filter(datetimeAK >= "2019-05-31 15:45:00" & datetimeAK < "2019-10-22 07:30:00")
+
+#data
+MOOS.comb.in.1 <- MOOS.comb.in %>% filter(datetimeAK <= "2019-08-20 08:30:00")
+MOOS.comb.in.2 <- MOOS.comb.in %>% filter(datetimeAK >= "2019-08-26 18:30:00")
+
+
+MOOS.comb.in <- rbind(MOOS.comb.in.1,MOOS.comb.in.2)
+MOOS.comb.in.1 <- MOOS.comb.in %>% filter(datetimeAK <= "2019-08-10 11:45:00")
+MOOS.comb.in.2 <- MOOS.comb.in %>% filter(datetimeAK >= "2019-08-12 16:45:00")
+MOOS.comb.in <- rbind(MOOS.comb.in.1,MOOS.comb.in.2)
+
+anyNA(MOOS.comb.in, recursive = TRUE)
+lapply(MOOS.comb.in, summary)
+
+# MOOS.comb.in <- MOOS.comb.in %>%
+  # mutate(across(c(temp.water, ODO.Psat, ODO.Ploc, DO.obs, DO.sat.EXO, DO.sat),
+                # ~ifelse(datetimeAK == "2019-06-27 14:15:00", NA, .)))
+
+#NA FILL OUT OF WATER and Other small gaps
+MOOS.comb.in$temp.water <- na_kalman(MOOS.comb.in$temp.water)
+MOOS.comb.in$ODO.Psat <- na_kalman(MOOS.comb.in$ODO.Psat)
+MOOS.comb.in$DO.obs <- na_kalman(MOOS.comb.in$DO.obs, type = "level")
+MOOS.comb.in$DO.sat <- na_kalman(MOOS.comb.in$DO.sat)
+MOOS.comb.in$DO.sat.EXO <- na_kalman(MOOS.comb.in$DO.sat.EXO)
+MOOS.comb.in$depth <- na_kalman(MOOS.comb.in$depth, type = "level")
+MOOS.comb.in$discharge <- na_kalman(MOOS.comb.in$discharge, type = "level")
+
+
+
+#Set time of run
+# MOOS.comb <- MOOS.comb.in %>% filter(solar.time >= "2019-04-28 04:13:57" & solar.time < "2019-06-16 04:13:57")
+
+
+
+anyNA(MOOS.comb.in, recursive = TRUE)
+lapply(MOOS.comb.in, summary)
+
+MOOS.comb<- MOOS.comb.in
+
+MOOS.comb$datetimeAK <- force_tz(as.POSIXct(MOOS.comb$datetimeAK), "America/Anchorage")
+
+MOOS.comb$solar.time <- calc_solar_time(as.POSIXct(MOOS.comb$datetimeAK), longitude = -146.916364)
+
+
+#DO sat is DO sat EXO, duplicate cols
+data.moos.mm.2019 <- MOOS.comb %>%
+  select(datetimeAK, solar.time, depth, DO.obs, DO.sat, temp.water, light, discharge)
+
+anyNA(data.moos.mm.2019, recursive = TRUE)
+lapply(data.moos.mm.2019, summary)
+
+
+
+# #Data after AUG 1 is bad: 
+# data.moos.mm.2019 <- data.moos.mm.2019 %>% filter(solar.time < "2019-08-01  04:13:57")
+
+
+
+```
+
+
+#2020
+``` {r}
+setwd(here())
+MOOS.comb.in <- read.csv(here("outputs", "moos.comb.csv"))
+
+
+#CANT fill this hole. But we have Psat and need to back - calculate DO. obs
+
+#convert from PSAT to mg/L using the formula the EXO uses
+MOOS.comb.in.1 <- MOOS.comb.in %>% filter(datetimeAK < "2020-08-25 22:45:00")
+MOOS.comb.in.2 <- MOOS.comb.in %>% filter(datetimeAK > "2020-09-02 16:45:00")
+MOOS.comb.in.2020TelemFill <- MOOS.comb.in %>% filter(datetimeAK >= "2020-08-25 22:45:00" & datetimeAK <= "2020-09-02 16:45:00")
+
+MOOS.comb.in.2020TelemFill$DO.obs <- as.numeric(MOOS.comb.in.2020TelemFill$ODO.Psat) * (0.01* exp(
+  (-862194900000*(1/(MOOS.comb.in.2020TelemFill$temp.water+273.15))^4+12438000000*(1/(MOOS.comb.in.2020TelemFill$temp.water+273.15))^3-66423080*(1/(MOOS.comb.in.2020TelemFill$temp.water+273.15))^2+157570.1*(1/(MOOS.comb.in.2020TelemFill$temp.water+273.15))-139.344)
+  -0* (2140.7*(1/(MOOS.comb.in.2020TelemFill$temp.water+273.15))^2-10.754*(1/(MOOS.comb.in.2020TelemFill$temp.water+273.15))+0.017674 )))
+
+
+MOOS.comb.in <- rbind(MOOS.comb.in.1,MOOS.comb.in.2020TelemFill,MOOS.comb.in.2  )
+
+
+
+#day missed in June
+MOOS.comb.in.1 <- MOOS.comb.in %>% filter(datetimeAK < "2020-06-25 15:15:00")
+MOOS.comb.in.2 <- MOOS.comb.in %>% filter(datetimeAK > "2020-06-26 14:00:00")
+MOOS.comb.in <- rbind(MOOS.comb.in.1,MOOS.comb.in.2  )
+
+
+
+
+MOOS.comb.in2020.1 <- MOOS.comb.in %>% filter(datetimeAK >= "2020-10-01 14:00:00" & datetimeAK < "2020-10-13 18:00:00")
+
+
+#visuallize missing data
+ggplot(MOOS.comb.in2020.1,
+       aes(x = as.POSIXct(datetimeAK),
+           y = DO.obs)) +
+    geom_miss_point()
+#gap in june, gap in aug/sept, gap in oct
+MOOS.comb.in2020.1$DO.obs <- na_kalman(MOOS.comb.in2020.1$DO.obs, type = "level")
+
+#visuallize missing data
+ggplot(MOOS.comb.in2020.1,
+       aes(x = as.POSIXct(datetimeAK),
+           y = DO.obs)) +
+    geom_miss_point()
+
+
+#This fill worked out OK
+
+
+
+#set to time frame
+MOOS.comb.in2020 <- MOOS.comb.in %>% filter(datetimeAK >= "2020-06-15 09:30:00" & datetimeAK < "2020-10-13 23:45:00")
+
+ggplot(MOOS.comb.in2020,
+       aes(x = as.POSIXct(datetimeAK),
+           y = DO.obs)) +
+    geom_miss_point()
+
+
+anyNA(MOOS.comb.in2020, recursive = TRUE)
+lapply(MOOS.comb.in2020, summary)
+
+#NA FILL OUT OF WATER and Other small gaps
+MOOS.comb.in2020$temp.water <- na_kalman(MOOS.comb.in2020$temp.water, type = "level")
+MOOS.comb.in2020$ODO.Psat <- na_kalman(MOOS.comb.in2020$ODO.Psat)
+MOOS.comb.in2020$DO.obs <- na_kalman(MOOS.comb.in2020$DO.obs)
+MOOS.comb.in2020$DO.sat <- na_kalman(MOOS.comb.in2020$DO.sat, type = "level")
+MOOS.comb.in2020$depth <- na_kalman(MOOS.comb.in2020$depth, type = "level")
+MOOS.comb.in2020$discharge <- na_kalman(MOOS.comb.in2020$discharge, type = "level")
+
+
+
+# Inspect fill results 
+
+
+MOOS.comb.in2020 %>%  filter(datetimeAK >= "2020-10-01 14:00:00" & datetimeAK < "2020-10-13 18:00:00") %>% ggplot(
+       aes(x = as.POSIXct(datetimeAK),
+           y = DO.obs)) +
+    geom_miss_point()
+
+#Good
+MOOS.comb.in2020 %>%  filter(datetimeAK >= "2020-06-21 14:00:00" & datetimeAK < "2020-06-28 18:00:00")%>% ggplot(aes(x = as.POSIXct(datetimeAK),
+           y = DO.obs)) +
+    geom_miss_point()
+
+#OKAY, not good not bad
+
+
+
+
+
+anyNA(MOOS.comb.in2020, recursive = TRUE)
+lapply(MOOS.comb.in2020, summary)
+
+MOOS.comb.in2020$datetimeAK <- force_tz(as.POSIXct(MOOS.comb.in2020$datetimeAK), "America/Anchorage")
+
+MOOS.comb.in2020$solar.time <- calc_solar_time(as.POSIXct(MOOS.comb.in2020$datetimeAK), longitude = -146.916364)
+
+
+#DO sat is DO sat EXO, duplicate cols
+data.moos.mm.2020 <- MOOS.comb.in2020 %>%
+  select(datetimeAK, solar.time, depth, DO.obs, DO.sat, temp.water, light, discharge)
+
+anyNA(data.moos.mm.2020, recursive = TRUE)
+lapply(data.moos.mm.2020, summary)
+
+
+
+```
+
+
+
+#2021
+``` {r}
+setwd(here())
+MOOS.comb.in <- read.csv(here("outputs", "moos.comb.csv"))
+
+
+MOOS.comb.in <- MOOS.comb.in %>% filter(datetimeAK >= "2021-05-05 17:15:00" & datetimeAK < "2021-09-27 23:45:00")
+
+MOOS.comb.in %>%  ggplot(aes(x = as.POSIXct(datetimeAK),
+           y = DO.obs)) +
+    geom_miss_point()
+#No large DO holes
+
+MOOS.comb.in %>%  ggplot(aes(x = as.POSIXct(datetimeAK),
+           y = discharge)) +
+    geom_miss_point()
+
+#NO Q data until july again
+
+#Q data bad until 6/30
+MOOS.comb.in2021 <- MOOS.comb.in %>% filter(datetimeAK >= "2021-06-30 13:30:00")
+
+anyNA(MOOS.comb.in2021, recursive = TRUE)
+lapply(MOOS.comb.in2021, summary)
+
+
+#NA FILL OUT OF WATER and Other small gaps
+MOOS.comb.in2021$temp.water <- na_kalman(MOOS.comb.in2021$temp.water, type = "level")
+MOOS.comb.in2021$ODO.Psat <- na_kalman(MOOS.comb.in2021$ODO.Psat)
+MOOS.comb.in2021$DO.obs <- na_kalman(MOOS.comb.in2021$DO.obs, type = "level")
+MOOS.comb.in2021$DO.sat <- na_kalman(MOOS.comb.in2021$DO.sat, type = "level")
+MOOS.comb.in2021$DO.sat.EXO <- na_kalman(MOOS.comb.in2021$DO.sat.EXO, type = "level")
+MOOS.comb.in2021$depth <- na_kalman(MOOS.comb.in2021$depth, type = "level")
+MOOS.comb.in2021$discharge <- na_kalman(MOOS.comb.in2021$discharge, type = "level")
+
+
+anyNA(MOOS.comb.in2021, recursive = TRUE)
+lapply(MOOS.comb.in2021, summary)
+
+
+MOOS.comb.in2021$datetimeAK <- force_tz(as.POSIXct(MOOS.comb.in2021$datetimeAK), "America/Anchorage")
+
+MOOS.comb.in2021$solar.time <- calc_solar_time(as.POSIXct(MOOS.comb.in2021$datetimeAK), longitude = -146.916364)
+
+
+#DO sat is DO sat EXO, duplicate cols
+data.moos.mm.2021 <- MOOS.comb.in2021 %>%
+  select(datetimeAK, solar.time, depth, DO.obs, DO.sat, temp.water, light, discharge)
+
+anyNA(data.moos.mm.2021, recursive = TRUE)
+lapply(data.moos.mm.2021, summary)
+
+
+
+
+```
+
+Met tower Light, then Combine years and save
+
+``` {r}
+
+data.moos.mm.all <- rbind(data.moos.mm.2019,data.moos.mm.2020, data.moos.mm.2021)
+
+
+
+
+anyNA(data.moos.mm.all, recursive = TRUE)
+lapply(data.moos.mm.all, summary)
+
+
+CRREL <- read.csv(here("MetTowerData.csv"), skip = 5)
+
+CRREL$datetimeAK <- as.POSIXct(CRREL$Time, tz = "America/Anchorage")
+
+CRREL <- CRREL %>% rename(ParWm2 = CPCRW.CRREL.Main.Met.Station..PAR_Den_AVG.W.m2.)
+
+
+#2019
+CRREL_MOOS.2019 <- left_join(data.moos.mm.2019,CRREL, by = "datetimeAK")
+
+CRREL_MOOS.2019$ParWm2 <- na_kalman(CRREL_MOOS.2019$ParWm2)
+
+
+
+#### POKE 2019 ####
+PAR.2019.url <- "https://drive.google.com/drive/u/1/folders/11kWuwCF6pTXYolwYnxcsX6OcYyQeF35z"
+PAR_19.prt1 <- drive_get(as_id(PAR.2019.url))
+poke_par_glist <- drive_ls(PAR_19.prt1, pattern = "191017_11619_POKE.CSV")
+walk(poke_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+poke.par.2019.Data <- read.csv("191017_11619_POKE.CSV",
+                               skip = 8, header = FALSE)
+poke.par.2019.Data <- poke.par.2019.Data %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+#Fix Date Time
+poke.par.2019.Data$DateTime <- paste(poke.par.2019.Data$Date, poke.par.2019.Data$Time, sep="")
+
+poke.par.2019.Data$DateTime <-  dmy_hms(poke.par.2019.Data$DateTime)
+poke.par.2019.Data$DateTime <- force_tz(poke.par.2019.Data$DateTime, "America/Anchorage")
+
+#Calibrate logger 11619 to LICOR
+poke.par.2019.Data$CalibratedValue <- poke.par.2019.Data$CalibratedValue * 0.035
+
+
+max.par.poke.2019 <- max(poke.par.2019.Data$CalibratedValue)
+
+max.par.crrel.2019 <- max(CRREL_MOOS.2019$ParWm2)
+
+multiplyFactor.2019 <- max.par.poke.2019/max.par.crrel.2019
+
+
+CRREL_MOOS.2019$ParMetCor <- CRREL_MOOS.2019$ParWm2 *multiplyFactor.2019
+
+
+
+
+
+
+
+
+#### POKE 2020 ####
+PAR.2020.url <- "https://drive.google.com/drive/u/1/folders/1udve7khOM2EX0l8BZQK3yehb2HUbwFtR"
+PAR_2020.prt1 <- drive_get(as_id(PAR.2020.url))
+poke_par_glist <- drive_ls(PAR_2020.prt1, pattern = "11619_002_002_POKE_EndOfSeason.CSV")
+walk(poke_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+poke.par.2020.Data <- read.csv("11619_002_002_POKE_EndOfSeason.CSV",
+                               skip = 9, header = FALSE)
+poke.par.2020.Data <- poke.par.2020.Data %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+#Fix Date Time
+poke.par.2020.Data$DateTime <- paste(poke.par.2020.Data$Date, poke.par.2020.Data$Time, sep="")
+poke.par.2020.Data$DateTime <-  dmy_hms(poke.par.2020.Data$DateTime)
+poke.par.2020.Data$DateTime <- force_tz(poke.par.2020.Data$DateTime, "America/Anchorage")
+
+#Calibrate logger 11619 to LICOR
+poke.par.2020.Data$CalibratedValue <- poke.par.2020.Data$CalibratedValue * 0.035
+
+#2020
+CRREL_MOOS.2020 <- left_join(data.moos.mm.2020,CRREL, by = "datetimeAK")
+
+CRREL_MOOS.2020$ParWm2 <- na_kalman(CRREL_MOOS.2020$ParWm2)
+
+
+max.par.poke.2020 <- max(poke.par.2020.Data$CalibratedValue)
+
+max.par.crrel.2020 <- max(CRREL_MOOS.2020$ParWm2)
+
+multiplyFactor.2020 <- max.par.poke.2020/max.par.crrel.2020
+
+
+CRREL_MOOS.2020$ParMetCor <- CRREL_MOOS.2020$ParWm2 *multiplyFactor.2020
+
+
+
+
+#2021
+###### 2021 #####
+PAR.2021.url <- "https://drive.google.com/drive/u/1/folders/1EPjHLDmfbCo5n12AKj7QpN2vXRCPQtg5"
+PAR_2021.prt1 <- drive_get(as_id(PAR.2021.url))
+par2021_glist <- drive_ls(PAR_2021.prt1, pattern = "all.dates.par.2021.csv")
+walk(par2021_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+par2021.Data <- read.csv("all.dates.par.2021.csv",
+                         skip = 0, header = TRUE)
+# Sort into sites
+poke.par2021.Data <- par2021.Data %>% filter(site == "poke")
+
+poke.par2021.Data <- poke.par2021.Data %>%
+  dplyr::rename(RawValue = V5)
+
+poke.par2021.Data$DateTime <- as.POSIXct(poke.par2021.Data$DateTime)
+
+#Calibrate loggers to LICOR
+poke.par2021.Data$Calibrated.Value <- poke.par2021.Data$Calibrated.Value * 0.035
+
+
+
+#2021
+CRREL_MOOS.2021 <- left_join(data.moos.mm.2021,CRREL, by = "datetimeAK")
+
+CRREL_MOOS.2021$ParWm2 <- na_kalman(CRREL_MOOS.2021$ParWm2)
+
+
+max.par.poke.2021 <- max(poke.par2021.Data$Calibrated.Value)
+
+max.par.crrel.2021 <- max(CRREL_MOOS.2021$ParWm2)
+
+multiplyFactor.2021 <- max.par.poke.2021/max.par.crrel.2021
+
+
+CRREL_MOOS.2021$ParMetCor <- CRREL_MOOS.2021$ParWm2 *multiplyFactor.2021
+
+
+
+
+#save for analysis
+data.moos.mm.all <- rbind(CRREL_MOOS.2019, CRREL_MOOS.2020, CRREL_MOOS.2021)
+
+data.moos.mm.all$light <- data.moos.mm.all$ParMetCor
+
+data.moos.mm.all <- data.moos.mm.all %>% 
+  select(solar.time, depth, DO.obs, DO.sat, temp.water, light, discharge)
+
+
+anyNA(data.moos.mm.all, recursive = TRUE)
+lapply(data.moos.mm.all, summary)
+
+write.csv(data.moos.mm.all, here("outputs", "moose.comb.readyforMetab.csv"))
+
+
+```
+
+
+
+
+
+``` {r}
+ rm(list = ls())
+
+
+```
+
+
+#Metab 2019
+
+
+```{r}
+
+
+# 2. Configuring the model
+
+
+bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
+bayes_name
+
+bayes_name_AppEtAL <- "b_Kb_oipi_tr_plrckm.stan"
+bayes_name_AppEtAL
+
+
+bayes_specs <- specs(bayes_name, 
+                     burnin_steps=9000, saved_steps=5000, n_cores=4, n_chains = 4, GPP_daily_lower = 0, ER_daily_upper = 0
+)
+
+```
+
+
+``` {r}
+date.list <- c(unique(as.Date(data.moos.mm.all$solar.time)))
+
+```
+
+RUN AGAIN
+```{r fig.width=8, fig.height=10}
+
+data.moos.mm.all <- read.csv(here("outputs", "moose.comb.readyforMetab.csv"))
+
+
+#split 2019
+data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2019-06-01 2019-06-01 04:13:57" & solar.time <= "2019-07-14 04:13:57")
+
+#remove high discharge storm and cut weird Q data
+data.moos.mm.all.1 <- data.moos.mm.all %>% filter(solar.time >= "2019-06-10 2019-06-01 04:13:57" & solar.time < "2019-07-07 04:13:57")
+
+data.moos.mm.all.2 <- data.moos.mm.all %>% filter(solar.time >= "2019-07-09 07:43:57")
+
+data.moos.mm.all <- rbind(data.moos.mm.all.1 
+                          # data.moos.mm.all.2)
+                          )
+
+# 
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2019-06-19 12:43:57" & solar.time <= "2019-08-02 04:13:57")
+# 
+# #Try all of 2020
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2020-04-01 12:43:57" & solar.time <= "2020-11-20 04:13:57")
+# 
+# 
+# #split 2021
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2021-06-01 12:43:57" & solar.time <= "2021-08-25 04:13:57")
+# 
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2021-08-22 12:43:57" & solar.time <= "2021-11-22 04:13:57")
+data.moos.mm.all$solar.time <- as.POSIXct(data.moos.mm.all$solar.time, tz = "UTC")
+
+data.moos.mm.all <- data.moos.mm.all %>% select(solar.time, DO.obs, DO.sat, light, discharge, depth, temp.water)
+
+startTime <- as.POSIXct(Sys.time())
+mm.test.moos <- metab(bayes_specs, data=data.moos.mm.all)
+endTime <- as.POSIXct(Sys.time())
+
+difftime(endTime, startTime)
+save(mm.test.moos, file = here("Outputs", "moos.2019.1.RData"))
+
+
+fit.moos <- get_fit(mm.test.moos)
+fit.daily <- fit.moos$daily
+write.csv(fit.daily, here("outputs", "moos.2019.1.full.csv"))
+
+```
+
+``` {r fig.width=15, fig.height=8}
+#Plots
+gpp <- ggplot(data=fit.moos$daily, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+er <- ggplot(data = fit.daily, aes(x = date)) +geom_point(aes(y = ER_mean), color = "firebrick3") + geom_errorbar(aes(ymin=ER_mean-ER_sd, ymax=ER_mean+ER_sd), width=.2, position=position_dodge(0.05), color = "firebrick3")
+
+k600 <- ggplot(data=fit.moos$daily, aes(x=date, y=K600_daily_mean)) + geom_point(color = "orange") + geom_errorbar(aes(ymin=K600_daily_mean-K600_daily_sd, ymax=K600_daily_mean+K600_daily_sd), width=.2, position=position_dodge(0.05), color = "orange") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+rhat <- ggplot(data=fit.moos$daily, aes(x=date)) + geom_point(aes(y=GPP_Rhat, colour = "GPP")) + geom_point(aes(y=as.numeric(ER_Rhat), colour = "ER")) + geom_point(aes(y=K600_daily_Rhat, colour = "K600")) +
+  labs(y = "RHAT") + theme(legend.position="top") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+
+ggplot(data=fit.daily, aes(x=GPP_mean, y=ER_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+ggplot(data=fit.daily, aes(x=GPP_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+
+ggplot(data=fit.daily, aes(x=ER_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+dev.set(dev.next())
+
+mcmc <- get_mcmc(mm.test.moos)
+k600mcmc <- rstan::traceplot(mcmc, pars='K600_daily', nrow=3)
+gppmcmc <- rstan::traceplot(mcmc, pars='GPP_daily', nrow=3)
+ermcmc <- rstan::traceplot(mcmc, pars='ER_daily', nrow=3)
+
+library(grid)
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(k600mcmc), ggplotGrob(gppmcmc), ggplotGrob(ermcmc)))
+
+
+#DO r2
+moos.DO.pred <- predict_DO(mm.test.moos)
+moos.DO.pred <- na.omit(moos.DO.pred)
+lm(DO.obs~ DO.mod, data = moos.DO.pred)
+moos.DO.pred$SM.date <- as.Date(moos.DO.pred$solar.time - 4*60*60)
+moos.DO.pred$SM.date <- as.factor(moos.DO.pred$SM.date)
+fit_model <- function(x, y) summary(lm(x ~ y))$adj.r.squared
+test.run <- moos.DO.pred %>% group_by(SM.date) %>% summarise(adj.R2 = fit_model(DO.obs,DO.mod))
+moos.DO.pred <- full_join(moos.DO.pred, test.run)
+rsq <-  summary(lm(moos.DO.pred$DO.mod~moos.DO.pred$DO.obs))$r.squared
+library(ggplot2)
+p1 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=DO.obs, colour = "Observed DO"), color = "darkcyan") + geom_line(aes(y = DO.mod, colour= "Modeled DO"), color = "blue4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) + labs(colour="Green", y = "DO (mg/L)") +  theme(legend.position="none") + ggtitle("Observed (points) and Modeled (lines)")
+p2 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=adj.R2))
+q.fig <- ggplot(data = data.moos.mm.all, aes(x = solar.time)) +geom_point(aes(y=discharge))
+
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), ggplotGrob(rhat),ggplotGrob(q.fig), ggplotGrob(k600),ggplotGrob(gpp), ggplotGrob(er)))
+
+
+rm(list = ls())
+
+
+```
+
+
+
+```{r fig.width=8, fig.height=10}
+
+# 2. Configuring the model
+
+
+bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
+bayes_name
+
+bayes_name_AppEtAL <- "b_Kb_oipi_tr_plrckm.stan"
+bayes_name_AppEtAL
+
+
+bayes_specs <- specs(bayes_name, 
+                     burnin_steps=9000, saved_steps=5000, n_cores=4, n_chains = 4, GPP_daily_lower = 0, ER_daily_upper = 0
+)
+
+data.moos.mm.all <- read.csv(here("outputs", "moose.comb.readyforMetab.csv"))
+
+
+#split 2019
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time > "2019-04-29 12:43:57" & solar.time <= "2019-06-20 04:13:57")
+# 
+data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2019-07-10 04:13:57" & solar.time < "2019-09-12 04:13:57")
+
+# 
+# #Try all of 2020
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2020-04-01 12:43:57" & solar.time <= "2020-11-20 04:13:57")
+# 
+# 
+# #split 2021
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2021-06-01 12:43:57" & solar.time <= "2021-08-25 04:13:57")
+# 
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2021-08-22 12:43:57" & solar.time <= "2021-11-22 04:13:57")
+data.moos.mm.all$solar.time <- as.POSIXct(data.moos.mm.all$solar.time, tz = "UTC")
+
+data.moos.mm.all <- data.moos.mm.all %>% select(solar.time, DO.obs, DO.sat, light, discharge, depth, temp.water)
+
+startTime <- as.POSIXct(Sys.time())
+mm.test.moos <- metab(bayes_specs, data=data.moos.mm.all)
+endTime <- as.POSIXct(Sys.time())
+
+difftime(endTime, startTime)
+save(mm.test.moos, file = here("Outputs", "moos.2019.2.RData"))
+load(here("Outputs", "moos.2019.2.RData"))
+
+fit.moos <- get_fit(mm.test.moos)
+fit.daily <- fit.moos$daily
+write.csv(fit.daily, here("outputs", "moos.2019.2.full.csv"))
+
+```
+
+``` {r fig.width=15, fig.height=8}
+#Plots
+gpp <- ggplot(data=fit.moos$daily, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+er <- ggplot(data = fit.daily, aes(x = date)) +geom_point(aes(y = ER_mean), color = "firebrick3") + geom_errorbar(aes(ymin=ER_mean-ER_sd, ymax=ER_mean+ER_sd), width=.2, position=position_dodge(0.05), color = "firebrick3")
+
+k600 <- ggplot(data=fit.moos$daily, aes(x=date, y=K600_daily_mean)) + geom_point(color = "orange") + geom_errorbar(aes(ymin=K600_daily_mean-K600_daily_sd, ymax=K600_daily_mean+K600_daily_sd), width=.2, position=position_dodge(0.05), color = "orange") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+rhat <- ggplot(data=fit.moos$daily, aes(x=date)) + geom_point(aes(y=GPP_Rhat, colour = "GPP")) + geom_point(aes(y=as.numeric(ER_Rhat), colour = "ER")) + geom_point(aes(y=K600_daily_Rhat, colour = "K600")) +
+  labs(y = "RHAT") + theme(legend.position="top") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+
+ggplot(data=fit.daily, aes(x=GPP_mean, y=ER_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+ggplot(data=fit.daily, aes(x=GPP_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+
+ggplot(data=fit.daily, aes(x=ER_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+dev.set(dev.next())
+
+mcmc <- get_mcmc(mm.test.moos)
+k600mcmc <- rstan::traceplot(mcmc, pars='K600_daily', nrow=3)
+gppmcmc <- rstan::traceplot(mcmc, pars='GPP_daily', nrow=3)
+ermcmc <- rstan::traceplot(mcmc, pars='ER_daily', nrow=3)
+
+library(grid)
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(k600mcmc), ggplotGrob(gppmcmc), ggplotGrob(ermcmc)))
+
+
+#DO r2
+moos.DO.pred <- predict_DO(mm.test.moos)
+moos.DO.pred <- na.omit(moos.DO.pred)
+lm(DO.obs~ DO.mod, data = moos.DO.pred)
+moos.DO.pred$SM.date <- as.Date(moos.DO.pred$solar.time - 4*60*60)
+moos.DO.pred$SM.date <- as.factor(moos.DO.pred$SM.date)
+fit_model <- function(x, y) summary(lm(x ~ y))$adj.r.squared
+test.run <- moos.DO.pred %>% group_by(SM.date) %>% summarise(adj.R2 = fit_model(DO.obs,DO.mod))
+moos.DO.pred <- full_join(moos.DO.pred, test.run)
+rsq <-  summary(lm(moos.DO.pred$DO.mod~moos.DO.pred$DO.obs))$r.squared
+library(ggplot2)
+p1 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=DO.obs, colour = "Observed DO"), color = "darkcyan") + geom_line(aes(y = DO.mod, colour= "Modeled DO"), color = "blue4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) + labs(colour="Green", y = "DO (mg/L)") +  theme(legend.position="none") + ggtitle("Observed (points) and Modeled (lines)")
+p2 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=adj.R2))
+q.fig <- ggplot(data = data.moos.mm.all, aes(x = solar.time)) +geom_point(aes(y=discharge))
+
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), ggplotGrob(rhat),ggplotGrob(q.fig), ggplotGrob(k600),ggplotGrob(gpp), ggplotGrob(er)))
+
+
+rm(list = ls())
+
+
+```
+
+```{r fig.width=8, fig.height=10}
+
+# 2. Configuring the model
+
+
+bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
+bayes_name
+
+bayes_name_AppEtAL <- "b_Kb_oipi_tr_plrckm.stan"
+bayes_name_AppEtAL
+
+
+bayes_specs <- specs(bayes_name, 
+                     burnin_steps=9000, saved_steps=5000, n_cores=4, n_chains = 4, GPP_daily_lower = 0, ER_daily_upper = 0
+)
+
+data.moos.mm.all <- read.csv(here("outputs", "moose.comb.readyforMetab.csv"))
+
+
+#split 2019
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time > "2019-04-29 12:43:57" & solar.time <= "2019-06-20 04:13:57")
+# 
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2019-06-19 12:43:57" & solar.time <= "2019-08-02 04:13:57")
+
+data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2019-07-06 04:13:57" & solar.time <= "2019-10-22 04:13:57")
+
+# 
+# #Try all of 2020
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2020-04-01 12:43:57" & solar.time <= "2020-11-20 04:13:57")
+# 
+# 
+# #split 2021
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2021-06-01 12:43:57" & solar.time <= "2021-08-25 04:13:57")
+# 
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2021-08-22 12:43:57" & solar.time <= "2021-11-22 04:13:57")
+data.moos.mm.all$solar.time <- as.POSIXct(data.moos.mm.all$solar.time, tz = "UTC")
+
+data.moos.mm.all <- data.moos.mm.all %>% select(solar.time, DO.obs, DO.sat, light, discharge, depth, temp.water)
+
+startTime <- as.POSIXct(Sys.time())
+mm.test.moos <- metab(bayes_specs, data=data.moos.mm.all)
+endTime <- as.POSIXct(Sys.time())
+
+difftime(endTime, startTime)
+save(mm.test.moos, file = here("Outputs", "moos.2019.3.RData"))
+
+
+fit.moos <- get_fit(mm.test.moos)
+fit.daily <- fit.moos$daily
+write.csv(fit.daily, here("outputs", "moos.2019.3.full.csv"))
+
+```
+
+``` {r fig.width=15, fig.height=8}
+#Plots
+gpp <- ggplot(data=fit.moos$daily, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+er <- ggplot(data = fit.daily, aes(x = date)) +geom_point(aes(y = ER_mean), color = "firebrick3") + geom_errorbar(aes(ymin=ER_mean-ER_sd, ymax=ER_mean+ER_sd), width=.2, position=position_dodge(0.05), color = "firebrick3")
+
+k600 <- ggplot(data=fit.moos$daily, aes(x=date, y=K600_daily_mean)) + geom_point(color = "orange") + geom_errorbar(aes(ymin=K600_daily_mean-K600_daily_sd, ymax=K600_daily_mean+K600_daily_sd), width=.2, position=position_dodge(0.05), color = "orange") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+rhat <- ggplot(data=fit.moos$daily, aes(x=date)) + geom_point(aes(y=GPP_Rhat, colour = "GPP")) + geom_point(aes(y=as.numeric(ER_Rhat), colour = "ER")) + geom_point(aes(y=K600_daily_Rhat, colour = "K600")) +
+  labs(y = "RHAT") + theme(legend.position="top") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+
+ggplot(data=fit.daily, aes(x=GPP_mean, y=ER_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+ggplot(data=fit.daily, aes(x=GPP_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+
+ggplot(data=fit.daily, aes(x=ER_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+dev.set(dev.next())
+
+mcmc <- get_mcmc(mm.test.moos)
+k600mcmc <- rstan::traceplot(mcmc, pars='K600_daily', nrow=3)
+gppmcmc <- rstan::traceplot(mcmc, pars='GPP_daily', nrow=3)
+ermcmc <- rstan::traceplot(mcmc, pars='ER_daily', nrow=3)
+
+library(grid)
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(k600mcmc), ggplotGrob(gppmcmc), ggplotGrob(ermcmc)))
+
+
+#DO r2
+moos.DO.pred <- predict_DO(mm.test.moos)
+moos.DO.pred <- na.omit(moos.DO.pred)
+lm(DO.obs~ DO.mod, data = moos.DO.pred)
+moos.DO.pred$SM.date <- as.Date(moos.DO.pred$solar.time - 4*60*60)
+moos.DO.pred$SM.date <- as.factor(moos.DO.pred$SM.date)
+fit_model <- function(x, y) summary(lm(x ~ y))$adj.r.squared
+test.run <- moos.DO.pred %>% group_by(SM.date) %>% summarise(adj.R2 = fit_model(DO.obs,DO.mod))
+moos.DO.pred <- full_join(moos.DO.pred, test.run)
+rsq <-  summary(lm(moos.DO.pred$DO.mod~moos.DO.pred$DO.obs))$r.squared
+library(ggplot2)
+p1 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=DO.obs, colour = "Observed DO"), color = "darkcyan") + geom_line(aes(y = DO.mod, colour= "Modeled DO"), color = "blue4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) + labs(colour="Green", y = "DO (mg/L)") +  theme(legend.position="none") + ggtitle("Observed (points) and Modeled (lines)")
+p2 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=adj.R2))
+q.fig <- ggplot(data = data.moos.mm.all, aes(x = solar.time)) +geom_point(aes(y=discharge))
+
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), ggplotGrob(rhat),ggplotGrob(q.fig), ggplotGrob(k600),ggplotGrob(gpp), ggplotGrob(er)))
+
+
+rm(list = ls())
+
+
+```
+RUN AGAIN
+```{r fig.width=8, fig.height=10}
+
+# 2. Configuring the model
+
+
+bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
+bayes_name
+
+bayes_name_AppEtAL <- "b_Kb_oipi_tr_plrckm.stan"
+bayes_name_AppEtAL
+
+
+bayes_specs <- specs(bayes_name, 
+                     burnin_steps=9000, saved_steps=5000, n_cores=4, n_chains = 4, GPP_daily_lower = 0, ER_daily_upper = 0
+)
+
+data.moos.mm.all <- read.csv(here("outputs", "moose.comb.readyforMetab.csv"))
+
+
+#split 2019
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time > "2019-04-29 12:43:57" & solar.time <= "2019-06-20 04:13:57")
+# 
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2019-06-19 12:43:57" & solar.time <= "2019-08-02 04:13:57")
+# 
+#Split 2020
+data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2020-06-16 04:13:57" & solar.time <= "2020-08-01 04:13:57")
+
+
+#cut out storm
+data.moos.mm.all.1 <- data.moos.mm.all %>% filter(solar.time >= "2020-06-16 04:13:57" & solar.time <= "2020-06-20 04:13:57")
+
+#start again after data gap
+data.moos.mm.all.2 <- data.moos.mm.all %>% filter(solar.time >= "2020-06-26 12:28:57" & solar.time <= "2020-08-01 04:13:57")
+
+data.moos.mm.all <- rbind(data.moos.mm.all.1, data.moos.mm.all.2)
+# 
+# 
+# #split 2021
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2021-06-01 12:43:57" & solar.time <= "2021-08-25 04:13:57")
+# 
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2021-08-22 12:43:57" & solar.time <= "2021-11-22 04:13:57")
+data.moos.mm.all$solar.time <- as.POSIXct(data.moos.mm.all$solar.time, tz = "UTC")
+
+data.moos.mm.all <- data.moos.mm.all %>% select(solar.time, DO.obs, DO.sat, light, discharge, depth, temp.water)
+
+startTime <- as.POSIXct(Sys.time())
+mm.test.moos <- metab(bayes_specs, data=data.moos.mm.all)
+endTime <- as.POSIXct(Sys.time())
+
+difftime(endTime, startTime)
+save(mm.test.moos, file = here("Outputs", "moos.2020.1.RData"))
+
+
+fit.moos <- get_fit(mm.test.moos)
+fit.daily <- fit.moos$daily
+write.csv(fit.daily, here("outputs", "moos.2020.1.full.csv"))
+
+```
+
+``` {r fig.width=15, fig.height=8}
+#Plots
+gpp <- ggplot(data=fit.moos$daily, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+er <- ggplot(data = fit.daily, aes(x = date)) +geom_point(aes(y = ER_mean), color = "firebrick3") + geom_errorbar(aes(ymin=ER_mean-ER_sd, ymax=ER_mean+ER_sd), width=.2, position=position_dodge(0.05), color = "firebrick3")
+
+k600 <- ggplot(data=fit.moos$daily, aes(x=date, y=K600_daily_mean)) + geom_point(color = "orange") + geom_errorbar(aes(ymin=K600_daily_mean-K600_daily_sd, ymax=K600_daily_mean+K600_daily_sd), width=.2, position=position_dodge(0.05), color = "orange") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+rhat <- ggplot(data=fit.moos$daily, aes(x=date)) + geom_point(aes(y=GPP_Rhat, colour = "GPP")) + geom_point(aes(y=as.numeric(ER_Rhat), colour = "ER")) + geom_point(aes(y=K600_daily_Rhat, colour = "K600")) +
+  labs(y = "RHAT") + theme(legend.position="top") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+
+ggplot(data=fit.daily, aes(x=GPP_mean, y=ER_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+ggplot(data=fit.daily, aes(x=GPP_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+
+ggplot(data=fit.daily, aes(x=ER_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+dev.set(dev.next())
+
+mcmc <- get_mcmc(mm.test.moos)
+k600mcmc <- rstan::traceplot(mcmc, pars='K600_daily', nrow=3)
+gppmcmc <- rstan::traceplot(mcmc, pars='GPP_daily', nrow=3)
+ermcmc <- rstan::traceplot(mcmc, pars='ER_daily', nrow=3)
+
+library(grid)
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(k600mcmc), ggplotGrob(gppmcmc), ggplotGrob(ermcmc)))
+
+
+#DO r2
+moos.DO.pred <- predict_DO(mm.test.moos)
+moos.DO.pred <- na.omit(moos.DO.pred)
+lm(DO.obs~ DO.mod, data = moos.DO.pred)
+moos.DO.pred$SM.date <- as.Date(moos.DO.pred$solar.time - 4*60*60)
+moos.DO.pred$SM.date <- as.factor(moos.DO.pred$SM.date)
+fit_model <- function(x, y) summary(lm(x ~ y))$adj.r.squared
+test.run <- moos.DO.pred %>% group_by(SM.date) %>% summarise(adj.R2 = fit_model(DO.obs,DO.mod))
+moos.DO.pred <- full_join(moos.DO.pred, test.run)
+rsq <-  summary(lm(moos.DO.pred$DO.mod~moos.DO.pred$DO.obs))$r.squared
+library(ggplot2)
+p1 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=DO.obs, colour = "Observed DO"), color = "darkcyan") + geom_line(aes(y = DO.mod, colour= "Modeled DO"), color = "blue4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) + labs(colour="Green", y = "DO (mg/L)") +  theme(legend.position="none") + ggtitle("Observed (points) and Modeled (lines)")
+p2 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=adj.R2))
+q.fig <- ggplot(data = data.moos.mm.all, aes(x = solar.time)) +geom_point(aes(y=discharge))
+
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), ggplotGrob(rhat),ggplotGrob(q.fig), ggplotGrob(k600),ggplotGrob(gpp), ggplotGrob(er)))
+
+
+rm(list = ls())
+
+
+```
+
+```{r fig.width=8, fig.height=10}
+
+# 2. Configuring the model
+
+
+bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
+bayes_name
+
+bayes_name_AppEtAL <- "b_Kb_oipi_tr_plrckm.stan"
+bayes_name_AppEtAL
+
+
+bayes_specs <- specs(bayes_name, 
+                     burnin_steps=9000, saved_steps=5000, n_cores=4, n_chains = 4, GPP_daily_lower = 0, ER_daily_upper = 0
+)
+
+data.moos.mm.all <- read.csv(here("outputs", "moose.comb.readyforMetab.csv"))
+
+
+#split 2019
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time > "2019-04-29 12:43:57" & solar.time <= "2019-06-20 04:13:57")
+# 
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2019-06-19 12:43:57" & solar.time <= "2019-08-02 04:13:57")
+# 
+# #Try all of 2020
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2020-04-01 12:43:57" & solar.time <= "2020-11-20 04:13:57")
+#Split 2020
+data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2020-07-29 04:13:57" & solar.time <= "2020-09-10 04:13:57")
+
+# 
+# 
+# #split 2021
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2021-06-01 12:43:57" & solar.time <= "2021-08-25 04:13:57")
+# 
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2021-08-22 12:43:57" & solar.time <= "2021-11-22 04:13:57")
+data.moos.mm.all$solar.time <- as.POSIXct(data.moos.mm.all$solar.time, tz = "UTC")
+
+data.moos.mm.all <- data.moos.mm.all %>% select(solar.time, DO.obs, DO.sat, light, discharge, depth, temp.water)
+
+startTime <- as.POSIXct(Sys.time())
+mm.test.moos <- metab(bayes_specs, data=data.moos.mm.all)
+endTime <- as.POSIXct(Sys.time())
+
+difftime(endTime, startTime)
+save(mm.test.moos, file = here("Outputs", "moos.2020.2.RData"))
+
+
+fit.moos <- get_fit(mm.test.moos)
+fit.daily <- fit.moos$daily
+write.csv(fit.daily, here("outputs", "moos.2020.2.full.csv"))
+
+```
+
+``` {r fig.width=15, fig.height=8}
+#Plots
+gpp <- ggplot(data=fit.moos$daily, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+er <- ggplot(data = fit.daily, aes(x = date)) +geom_point(aes(y = ER_mean), color = "firebrick3") + geom_errorbar(aes(ymin=ER_mean-ER_sd, ymax=ER_mean+ER_sd), width=.2, position=position_dodge(0.05), color = "firebrick3")
+
+k600 <- ggplot(data=fit.moos$daily, aes(x=date, y=K600_daily_mean)) + geom_point(color = "orange") + geom_errorbar(aes(ymin=K600_daily_mean-K600_daily_sd, ymax=K600_daily_mean+K600_daily_sd), width=.2, position=position_dodge(0.05), color = "orange") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+rhat <- ggplot(data=fit.moos$daily, aes(x=date)) + geom_point(aes(y=GPP_Rhat, colour = "GPP")) + geom_point(aes(y=as.numeric(ER_Rhat), colour = "ER")) + geom_point(aes(y=K600_daily_Rhat, colour = "K600")) +
+  labs(y = "RHAT") + theme(legend.position="top") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+
+ggplot(data=fit.daily, aes(x=GPP_mean, y=ER_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+ggplot(data=fit.daily, aes(x=GPP_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+
+ggplot(data=fit.daily, aes(x=ER_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+dev.set(dev.next())
+
+mcmc <- get_mcmc(mm.test.moos)
+k600mcmc <- rstan::traceplot(mcmc, pars='K600_daily', nrow=3)
+gppmcmc <- rstan::traceplot(mcmc, pars='GPP_daily', nrow=3)
+ermcmc <- rstan::traceplot(mcmc, pars='ER_daily', nrow=3)
+
+library(grid)
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(k600mcmc), ggplotGrob(gppmcmc), ggplotGrob(ermcmc)))
+
+
+#DO r2
+moos.DO.pred <- predict_DO(mm.test.moos)
+moos.DO.pred <- na.omit(moos.DO.pred)
+lm(DO.obs~ DO.mod, data = moos.DO.pred)
+moos.DO.pred$SM.date <- as.Date(moos.DO.pred$solar.time - 4*60*60)
+moos.DO.pred$SM.date <- as.factor(moos.DO.pred$SM.date)
+fit_model <- function(x, y) summary(lm(x ~ y))$adj.r.squared
+test.run <- moos.DO.pred %>% group_by(SM.date) %>% summarise(adj.R2 = fit_model(DO.obs,DO.mod))
+moos.DO.pred <- full_join(moos.DO.pred, test.run)
+rsq <-  summary(lm(moos.DO.pred$DO.mod~moos.DO.pred$DO.obs))$r.squared
+library(ggplot2)
+p1 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=DO.obs, colour = "Observed DO"), color = "darkcyan") + geom_line(aes(y = DO.mod, colour= "Modeled DO"), color = "blue4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) + labs(colour="Green", y = "DO (mg/L)") +  theme(legend.position="none") + ggtitle("Observed (points) and Modeled (lines)")
+p2 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=adj.R2))
+q.fig <- ggplot(data = data.moos.mm.all, aes(x = solar.time)) +geom_point(aes(y=discharge))
+
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), ggplotGrob(rhat),ggplotGrob(q.fig), ggplotGrob(k600),ggplotGrob(gpp), ggplotGrob(er)))
+
+
+rm(list = ls())
+
+
+```
+
+```{r fig.width=8, fig.height=10}
+
+# 2. Configuring the model
+
+
+bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
+bayes_name
+
+bayes_name_AppEtAL <- "b_Kb_oipi_tr_plrckm.stan"
+bayes_name_AppEtAL
+
+
+bayes_specs <- specs(bayes_name, 
+                     burnin_steps=9000, saved_steps=5000, n_cores=4, n_chains = 4, GPP_daily_lower = 0, ER_daily_upper = 0
+)
+
+data.moos.mm.all <- read.csv(here("outputs", "moose.comb.readyforMetab.csv"))
+
+
+#split 2019
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time > "2019-04-29 12:43:57" & solar.time <= "2019-06-20 04:13:57")
+# 
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2019-06-19 12:43:57" & solar.time <= "2019-08-02 04:13:57")
+# 
+# #Try all of 2020
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2020-04-01 12:43:57" & solar.time <= "2020-11-20 04:13:57")
+#Split 2020
+data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2020-09-05 04:13:57" & solar.time <= "2020-10-13 04:13:57")
+
+# 
+# 
+# #split 2021
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2021-06-01 12:43:57" & solar.time <= "2021-08-25 04:13:57")
+# 
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2021-08-22 12:43:57" & solar.time <= "2021-11-22 04:13:57")
+data.moos.mm.all$solar.time <- as.POSIXct(data.moos.mm.all$solar.time, tz = "UTC")
+
+data.moos.mm.all <- data.moos.mm.all %>% select(solar.time, DO.obs, DO.sat, light, discharge, depth, temp.water)
+
+startTime <- as.POSIXct(Sys.time())
+mm.test.moos <- metab(bayes_specs, data=data.moos.mm.all)
+endTime <- as.POSIXct(Sys.time())
+
+difftime(endTime, startTime)
+save(mm.test.moos, file = here("Outputs", "moos.2020.3.RData"))
+
+
+fit.moos <- get_fit(mm.test.moos)
+fit.daily <- fit.moos$daily
+write.csv(fit.daily, here("outputs", "moos.2020.3.full.csv"))
+
+```
+
+``` {r fig.width=15, fig.height=8}
+#Plots
+gpp <- ggplot(data=fit.moos$daily, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+er <- ggplot(data = fit.daily, aes(x = date)) +geom_point(aes(y = ER_mean), color = "firebrick3") + geom_errorbar(aes(ymin=ER_mean-ER_sd, ymax=ER_mean+ER_sd), width=.2, position=position_dodge(0.05), color = "firebrick3")
+
+k600 <- ggplot(data=fit.moos$daily, aes(x=date, y=K600_daily_mean)) + geom_point(color = "orange") + geom_errorbar(aes(ymin=K600_daily_mean-K600_daily_sd, ymax=K600_daily_mean+K600_daily_sd), width=.2, position=position_dodge(0.05), color = "orange") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+rhat <- ggplot(data=fit.moos$daily, aes(x=date)) + geom_point(aes(y=GPP_Rhat, colour = "GPP")) + geom_point(aes(y=as.numeric(ER_Rhat), colour = "ER")) + geom_point(aes(y=K600_daily_Rhat, colour = "K600")) +
+  labs(y = "RHAT") + theme(legend.position="top") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+
+ggplot(data=fit.daily, aes(x=GPP_mean, y=ER_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+ggplot(data=fit.daily, aes(x=GPP_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+
+ggplot(data=fit.daily, aes(x=ER_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+dev.set(dev.next())
+
+mcmc <- get_mcmc(mm.test.moos)
+k600mcmc <- rstan::traceplot(mcmc, pars='K600_daily', nrow=3)
+gppmcmc <- rstan::traceplot(mcmc, pars='GPP_daily', nrow=3)
+ermcmc <- rstan::traceplot(mcmc, pars='ER_daily', nrow=3)
+
+library(grid)
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(k600mcmc), ggplotGrob(gppmcmc), ggplotGrob(ermcmc)))
+
+
+#DO r2
+moos.DO.pred <- predict_DO(mm.test.moos)
+moos.DO.pred <- na.omit(moos.DO.pred)
+lm(DO.obs~ DO.mod, data = moos.DO.pred)
+moos.DO.pred$SM.date <- as.Date(moos.DO.pred$solar.time - 4*60*60)
+moos.DO.pred$SM.date <- as.factor(moos.DO.pred$SM.date)
+fit_model <- function(x, y) summary(lm(x ~ y))$adj.r.squared
+test.run <- moos.DO.pred %>% group_by(SM.date) %>% summarise(adj.R2 = fit_model(DO.obs,DO.mod))
+moos.DO.pred <- full_join(moos.DO.pred, test.run)
+rsq <-  summary(lm(moos.DO.pred$DO.mod~moos.DO.pred$DO.obs))$r.squared
+library(ggplot2)
+p1 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=DO.obs, colour = "Observed DO"), color = "darkcyan") + geom_line(aes(y = DO.mod, colour= "Modeled DO"), color = "blue4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) + labs(colour="Green", y = "DO (mg/L)") +  theme(legend.position="none") + ggtitle("Observed (points) and Modeled (lines)")
+p2 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=adj.R2))
+q.fig <- ggplot(data = data.moos.mm.all, aes(x = solar.time)) +geom_point(aes(y=discharge))
+
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), ggplotGrob(rhat),ggplotGrob(q.fig), ggplotGrob(k600),ggplotGrob(gpp), ggplotGrob(er)))
+
+
+rm(list = ls())
+
+
+```
+RUN AGAIN
+```{r fig.width=8, fig.height=10}
+
+# 2. Configuring the model
+
+
+bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
+bayes_name
+
+bayes_name_AppEtAL <- "b_Kb_oipi_tr_plrckm.stan"
+bayes_name_AppEtAL
+
+
+bayes_specs <- specs(bayes_name, 
+                     burnin_steps=9000, saved_steps=5000, n_cores=4, n_chains = 4, GPP_daily_lower = 0, ER_daily_upper = 0
+)
+
+data.moos.mm.all <- read.csv(here("outputs", "moose.comb.readyforMetab.csv"))
+
+
+#split 2019
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time > "2019-04-29 12:43:57" & solar.time <= "2019-06-20 04:13:57")
+# 
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2019-06-19 12:43:57" & solar.time <= "2019-08-02 04:13:57")
+# 
+# #Try all of 2020
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2020-04-01 12:43:57" & solar.time <= "2020-11-20 04:13:57")
+#Split 2020
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2020-09-05 04:13:57" & solar.time <= "2020-10-13 04:13:57")
+
+# 
+# 
+# #split 2021
+data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2021-07-01 04:13:57" & solar.time <= "2021-08-15 04:13:57")
+
+
+#remove Storm
+
+data.moos.mm.all.1 <- data.moos.mm.all %>% filter(solar.time >= "2021-07-01 04:13:57" & solar.time <= "2021-07-27 04:13:57")
+data.moos.mm.all.2 <- data.moos.mm.all %>% filter(solar.time >= "2021-08-01 04:13:57" & solar.time <= "2021-08-08 04:13:57")
+
+#edit 2: cut off end
+
+
+
+data.moos.mm.all <- rbind(data.moos.mm.all.1
+                          # , data.moos.mm.all.2
+                          )
+
+
+# 
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2021-08-22 12:43:57" & solar.time <= "2021-11-22 04:13:57")
+data.moos.mm.all$solar.time <- as.POSIXct(data.moos.mm.all$solar.time, tz = "UTC")
+
+data.moos.mm.all <- data.moos.mm.all %>% select(solar.time, DO.obs, DO.sat, light, discharge, depth, temp.water)
+
+startTime <- as.POSIXct(Sys.time())
+mm.test.moos <- metab(bayes_specs, data=data.moos.mm.all)
+endTime <- as.POSIXct(Sys.time())
+
+difftime(endTime, startTime)
+save(mm.test.moos, file = here("Outputs", "moos.2021.1.edit.RData"))
+
+
+fit.moos <- get_fit(mm.test.moos)
+fit.daily <- fit.moos$daily
+write.csv(fit.daily, here("outputs", "moos.2021.1.full.edit.csv"))
+
+```
+
+``` {r fig.width=15, fig.height=8}
+#Plots
+gpp <- ggplot(data=fit.moos$daily, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+er <- ggplot(data = fit.daily, aes(x = date)) +geom_point(aes(y = ER_mean), color = "firebrick3") + geom_errorbar(aes(ymin=ER_mean-ER_sd, ymax=ER_mean+ER_sd), width=.2, position=position_dodge(0.05), color = "firebrick3")
+
+k600 <- ggplot(data=fit.moos$daily, aes(x=date, y=K600_daily_mean)) + geom_point(color = "orange") + geom_errorbar(aes(ymin=K600_daily_mean-K600_daily_sd, ymax=K600_daily_mean+K600_daily_sd), width=.2, position=position_dodge(0.05), color = "orange") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+rhat <- ggplot(data=fit.moos$daily, aes(x=date)) + geom_point(aes(y=GPP_Rhat, colour = "GPP")) + geom_point(aes(y=as.numeric(ER_Rhat), colour = "ER")) + geom_point(aes(y=K600_daily_Rhat, colour = "K600")) +
+  labs(y = "RHAT") + theme(legend.position="top") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+
+ggplot(data=fit.daily, aes(x=GPP_mean, y=ER_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+ggplot(data=fit.daily, aes(x=GPP_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+
+ggplot(data=fit.daily, aes(x=ER_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+dev.set(dev.next())
+
+mcmc <- get_mcmc(mm.test.moos)
+k600mcmc <- rstan::traceplot(mcmc, pars='K600_daily', nrow=3)
+gppmcmc <- rstan::traceplot(mcmc, pars='GPP_daily', nrow=3)
+ermcmc <- rstan::traceplot(mcmc, pars='ER_daily', nrow=3)
+
+library(grid)
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(k600mcmc), ggplotGrob(gppmcmc), ggplotGrob(ermcmc)))
+
+
+#DO r2
+moos.DO.pred <- predict_DO(mm.test.moos)
+moos.DO.pred <- na.omit(moos.DO.pred)
+lm(DO.obs~ DO.mod, data = moos.DO.pred)
+moos.DO.pred$SM.date <- as.Date(moos.DO.pred$solar.time - 4*60*60)
+moos.DO.pred$SM.date <- as.factor(moos.DO.pred$SM.date)
+fit_model <- function(x, y) summary(lm(x ~ y))$adj.r.squared
+test.run <- moos.DO.pred %>% group_by(SM.date) %>% summarise(adj.R2 = fit_model(DO.obs,DO.mod))
+moos.DO.pred <- full_join(moos.DO.pred, test.run)
+rsq <-  summary(lm(moos.DO.pred$DO.mod~moos.DO.pred$DO.obs))$r.squared
+library(ggplot2)
+p1 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=DO.obs, colour = "Observed DO"), color = "darkcyan") + geom_line(aes(y = DO.mod, colour= "Modeled DO"), color = "blue4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) + labs(colour="Green", y = "DO (mg/L)") +  theme(legend.position="none") + ggtitle("Observed (points) and Modeled (lines)")
+p2 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=adj.R2))
+q.fig <- ggplot(data = data.moos.mm.all, aes(x = solar.time)) +geom_point(aes(y=discharge))
+
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), ggplotGrob(rhat),ggplotGrob(q.fig), ggplotGrob(k600),ggplotGrob(gpp), ggplotGrob(er)))
+
+
+rm(list = ls())
+
+
+```
+
+
+```{r fig.width=8, fig.height=10}
+
+# 2. Configuring the model
+
+
+bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
+bayes_name
+
+bayes_name_AppEtAL <- "b_Kb_oipi_tr_plrckm.stan"
+bayes_name_AppEtAL
+
+
+bayes_specs <- specs(bayes_name, 
+                     burnin_steps=9000, saved_steps=5000, n_cores=4, n_chains = 4, GPP_daily_lower = 0, ER_daily_upper = 0
+)
+
+data.moos.mm.all <- read.csv(here("outputs", "moose.comb.readyforMetab.csv"))
+
+
+#split 2019
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time > "2019-04-29 12:43:57" & solar.time <= "2019-06-20 04:13:57")
+# 
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2019-06-19 12:43:57" & solar.time <= "2019-08-02 04:13:57")
+# 
+# #Try all of 2020
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2020-04-01 12:43:57" & solar.time <= "2020-11-20 04:13:57")
+#Split 2020
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2020-09-05 04:13:57" & solar.time <= "2020-10-13 04:13:57")
+
+# 
+# 
+# #split 2021
+# data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2021-06-01 12:43:57" & solar.time <= "2021-08-25 04:13:57")
+# 
+data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2021-08-20 04:43:57" & solar.time <= "2021-11-22 04:13:57")
+data.moos.mm.all$solar.time <- as.POSIXct(data.moos.mm.all$solar.time, tz = "UTC")
+
+data.moos.mm.all <- data.moos.mm.all %>% select(solar.time, DO.obs, DO.sat, light, discharge, depth, temp.water)
+
+startTime <- as.POSIXct(Sys.time())
+mm.test.moos <- metab(bayes_specs, data=data.moos.mm.all)
+endTime <- as.POSIXct(Sys.time())
+
+difftime(endTime, startTime)
+save(mm.test.moos, file = here("Outputs", "moos.2021.2.RData"))
+
+
+fit.moos <- get_fit(mm.test.moos)
+fit.daily <- fit.moos$daily
+write.csv(fit.daily, here("outputs", "moos.2021.2.full.csv"))
+
+```
+
+``` {r fig.width=15, fig.height=8}
+#Plots
+gpp <- ggplot(data=fit.moos$daily, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+er <- ggplot(data = fit.daily, aes(x = date)) +geom_point(aes(y = ER_mean), color = "firebrick3") + geom_errorbar(aes(ymin=ER_mean-ER_sd, ymax=ER_mean+ER_sd), width=.2, position=position_dodge(0.05), color = "firebrick3")
+
+k600 <- ggplot(data=fit.moos$daily, aes(x=date, y=K600_daily_mean)) + geom_point(color = "orange") + geom_errorbar(aes(ymin=K600_daily_mean-K600_daily_sd, ymax=K600_daily_mean+K600_daily_sd), width=.2, position=position_dodge(0.05), color = "orange") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+rhat <- ggplot(data=fit.moos$daily, aes(x=date)) + geom_point(aes(y=GPP_Rhat, colour = "GPP")) + geom_point(aes(y=as.numeric(ER_Rhat), colour = "ER")) + geom_point(aes(y=K600_daily_Rhat, colour = "K600")) +
+  labs(y = "RHAT") + theme(legend.position="top") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+
+ggplot(data=fit.daily, aes(x=GPP_mean, y=ER_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+ggplot(data=fit.daily, aes(x=GPP_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+
+ggplot(data=fit.daily, aes(x=ER_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+dev.set(dev.next())
+
+mcmc <- get_mcmc(mm.test.moos)
+k600mcmc <- rstan::traceplot(mcmc, pars='K600_daily', nrow=3)
+gppmcmc <- rstan::traceplot(mcmc, pars='GPP_daily', nrow=3)
+ermcmc <- rstan::traceplot(mcmc, pars='ER_daily', nrow=3)
+
+library(grid)
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(k600mcmc), ggplotGrob(gppmcmc), ggplotGrob(ermcmc)))
+
+
+#DO r2
+moos.DO.pred <- predict_DO(mm.test.moos)
+moos.DO.pred <- na.omit(moos.DO.pred)
+lm(DO.obs~ DO.mod, data = moos.DO.pred)
+moos.DO.pred$SM.date <- as.Date(moos.DO.pred$solar.time - 4*60*60)
+moos.DO.pred$SM.date <- as.factor(moos.DO.pred$SM.date)
+fit_model <- function(x, y) summary(lm(x ~ y))$adj.r.squared
+test.run <- moos.DO.pred %>% group_by(SM.date) %>% summarise(adj.R2 = fit_model(DO.obs,DO.mod))
+moos.DO.pred <- full_join(moos.DO.pred, test.run)
+rsq <-  summary(lm(moos.DO.pred$DO.mod~moos.DO.pred$DO.obs))$r.squared
+library(ggplot2)
+p1 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=DO.obs, colour = "Observed DO"), color = "darkcyan") + geom_line(aes(y = DO.mod, colour= "Modeled DO"), color = "blue4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) + labs(colour="Green", y = "DO (mg/L)") +  theme(legend.position="none") + ggtitle("Observed (points) and Modeled (lines)")
+p2 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=adj.R2))
+q.fig <- ggplot(data = data.moos.mm.all, aes(x = solar.time)) +geom_point(aes(y=discharge))
+
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), ggplotGrob(rhat),ggplotGrob(q.fig), ggplotGrob(k600),ggplotGrob(gpp), ggplotGrob(er)))
+
+
+rm(list = ls())
+
+
+```
