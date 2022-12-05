@@ -115,7 +115,7 @@ poke.exo.telemFilled.2019$ODO.mgL <- as.numeric(poke.exo.telemFilled.2019$ODO.Ps
 
 #Plot It
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/poke19filled.pdf")
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/poke19filled.pdf")
 
 plot(POKE_EXO_cl.2019.renamed$datetimeAK, POKE_EXO_cl.2019.renamed$ODO.Psat ,type="l",col="black", xlab = "date", ylab = "ODO %Sat",  ylim=c(93,107),)
 
@@ -444,7 +444,7 @@ All.years.poke.MESSY <- All.years.poke.MESSY %>%
 #plot all
 
 #keep in mind 2019 and 2020 is clean data and 2021 is not.
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/PokerODO.pdf")
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/PokerODO.pdf")
 
 testPlotPoke <- ggplot(data = All.years.poke.MESSY,
                        mapping = aes(x = datetimeAK, y = as.numeric(ODO.Psat))) + geom_point() + labs(x = "Date", y = "Percent Saturation")
@@ -859,7 +859,7 @@ All.years.strt.MESSY <- All.years.strt.MESSY %>%
 
 
 #keep in mind 2019 and 2020 is clean data and 2021 are not.
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/StuartODO.pdf")
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/StuartODO.pdf")
 
 testPlotSTRT <- ggplot(data = All.years.strt.MESSY,
                        mapping = aes(x = datetimeAK, y = as.numeric(ODO.Psat))) + geom_point() + labs(x = "Date", y = "Dissolved Oxygen (%Sat)")
@@ -1298,7 +1298,7 @@ All.years.vaul.MESSY <- All.years.vaul.MESSY %>%
 
 
 #keep in mind 2019 and 2020 is clean data and 2021 is not.
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/VaultODO.pdf")
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/VaultODO.pdf")
 
 testPlotVAUL <- ggplot(data = All.years.vaul.MESSY,
                        mapping = aes(x = datetimeAK, y = as.numeric(ODO.Psat))) + geom_point() + labs(x = "Date", y = "Dissolved Oxygen (%Sat)")
@@ -1705,7 +1705,7 @@ All.years.moos.MESSY <- All.years.moos.MESSY %>%
 
 
 #keep in mind 2019 and 2020 is clean data and 2021 are not.
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/MoosODO.pdf")
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/MoosODO.pdf")
 
 testPlotMOOS <- ggplot(data = All.years.moos.MESSY,
                        mapping = aes(x = datetimeAK, y = as.numeric(ODO.Psat))) + geom_point() + labs(x = "Date", y = "Dissolved Oxygen (%Sat)")
@@ -2123,7 +2123,7 @@ All.years.frch.MESSY <- All.years.frch.MESSY %>%
 # All.years.frch.MESSY$depth <- All.years.frch.MESSY$depth / 100
 
 #keep in mind 2019 and 2020 is clean data and 2021 are not.
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/FrchODO.pdf")
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/FrchODO.pdf")
 
 testPlotFRCH <- ggplot(data = All.years.frch.MESSY,
                        mapping = aes(x = datetimeAK, y = as.numeric(ODO.Psat))) + geom_point() + labs(x = "Date", y = "Dissolved Oxygen (%Sat)")
@@ -5018,7 +5018,7 @@ frchPlot2 <- FRCH.comb %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/FRCH_comb_2019-2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/FRCH_comb_2019-2021.pdf", height= 8.5)
 ggarrange(frch.plot1, frchPlot2, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5046,7 +5046,7 @@ frchPlot2.19 <- FRCH.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/FRCH_comb.2019.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/FRCH_comb.2019.pdf", height= 8.5)
 ggarrange(frch.plot1.19, frchPlot2.19, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5073,7 +5073,7 @@ frchPlot2.20 <- FRCH.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/FRCH_comb.2020.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/FRCH_comb.2020.pdf", height= 8.5)
 ggarrange(frch.plot1.20, frchPlot2.20, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5100,7 +5100,7 @@ frchPlot2.21 <- FRCH.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/FRCH_comb.2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/FRCH_comb.2021.pdf", height= 8.5)
 ggarrange(frch.plot1.21, frchPlot2.21, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5215,7 +5215,7 @@ dev.off()
 #   facet_grid(units ~ ., scale='free_y') + theme_bw() +
 #   scale_color_discrete('variable')
 # 
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/FRCH_comb_2019-2021.pdf", height= 8.5)
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/FRCH_comb_2019-2021.pdf", height= 8.5)
 # ggarrange(frch.plot1, frchPlot2, ncol = 1, nrow = 2)
 # dev.off()
 # 
@@ -5243,7 +5243,7 @@ dev.off()
 #   facet_grid(units ~ ., scale='free_y') + theme_bw() +
 #   scale_color_discrete('variable')
 # 
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/FRCH_comb.2019.pdf", height= 8.5)
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/FRCH_comb.2019.pdf", height= 8.5)
 # ggarrange(frch.plot1.19, frchPlot2.19, ncol = 1, nrow = 2)
 # dev.off()
 # 
@@ -5270,7 +5270,7 @@ dev.off()
 #   facet_grid(units ~ ., scale='free_y') + theme_bw() +
 #   scale_color_discrete('variable')
 # 
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/FRCH_comb.2020.pdf", height= 8.5)
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/FRCH_comb.2020.pdf", height= 8.5)
 # ggarrange(frch.plot1.20, frchPlot2.20, ncol = 1, nrow = 2)
 # dev.off()
 # 
@@ -5297,7 +5297,7 @@ dev.off()
 #   facet_grid(units ~ ., scale='free_y') + theme_bw() +
 #   scale_color_discrete('variable')
 # 
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/FRCH_comb.2021.pdf", height= 8.5)
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/FRCH_comb.2021.pdf", height= 8.5)
 # ggarrange(frch.plot1.21, frchPlot2.21, ncol = 1, nrow = 2)
 # dev.off()
 # 
@@ -5415,7 +5415,7 @@ moosPlot2 <- MOOS.comb %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/MOOS_comb_2019-2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/MOOS_comb_2019-2021.pdf", height= 8.5)
 ggarrange(moos.plot1, moosPlot2, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5443,7 +5443,7 @@ moosPlot2.19 <- MOOS.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/MOOS_comb.2019.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/MOOS_comb.2019.pdf", height= 8.5)
 ggarrange(moos.plot1.19, moosPlot2.19, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5470,7 +5470,7 @@ moosPlot2.20 <- MOOS.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/MOOS_comb.2020.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/MOOS_comb.2020.pdf", height= 8.5)
 ggarrange(moos.plot1.20, moosPlot2.20, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5497,7 +5497,7 @@ moosPlot2.21 <- MOOS.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/MOOS_comb.2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/MOOS_comb.2021.pdf", height= 8.5)
 ggarrange(moos.plot1.21, moosPlot2.21, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5674,7 +5674,7 @@ strtPlot2 <- STRT.comb %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/STRT_comb_2019-2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/STRT_comb_2019-2021.pdf", height= 8.5)
 ggarrange(strt.plot1, strtPlot2, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5702,7 +5702,7 @@ strtPlot2.19 <- STRT.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/STRT_comb.2019.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/STRT_comb.2019.pdf", height= 8.5)
 ggarrange(strt.plot1.19, strtPlot2.19, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5729,7 +5729,7 @@ strtPlot2.20 <- STRT.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/STRT_comb.2020.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/STRT_comb.2020.pdf", height= 8.5)
 ggarrange(strt.plot1.20, strtPlot2.20, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5756,7 +5756,7 @@ strtPlot2.21 <- STRT.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/STRT_comb.2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/STRT_comb.2021.pdf", height= 8.5)
 ggarrange(strt.plot1.21, strtPlot2.21, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5871,7 +5871,7 @@ pokePlot2 <- POKE.comb %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/POKE_comb_2019-2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/POKE_comb_2019-2021.pdf", height= 8.5)
 ggarrange(poke.plot1, pokePlot2, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5899,7 +5899,7 @@ pokePlot2.19 <- POKE.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/POKE_comb.2019.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/POKE_comb.2019.pdf", height= 8.5)
 ggarrange(poke.plot1.19, pokePlot2.19, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5926,7 +5926,7 @@ pokePlot2.20 <- POKE.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/POKE_comb.2020.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/POKE_comb.2020.pdf", height= 8.5)
 ggarrange(poke.plot1.20, pokePlot2.20, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5953,7 +5953,7 @@ pokePlot2.21 <- POKE.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/POKE_comb.2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/POKE_comb.2021.pdf", height= 8.5)
 ggarrange(poke.plot1.21, pokePlot2.21, ncol = 1, nrow = 2)
 dev.off()
 
@@ -6075,7 +6075,7 @@ vaulPlot2 <- VAUL.comb %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/VAUL_comb_2019-2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/VAUL_comb_2019-2021.pdf", height= 8.5)
 ggarrange(vaul.plot1, vaulPlot2, ncol = 1, nrow = 2)
 dev.off()
 
@@ -6103,7 +6103,7 @@ vaulPlot2.19 <- VAUL.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/VAUL_comb.2019.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/VAUL_comb.2019.pdf", height= 8.5)
 ggarrange(vaul.plot1.19, vaulPlot2.19, ncol = 1, nrow = 2)
 dev.off()
 
@@ -6130,7 +6130,7 @@ vaulPlot2.20 <- VAUL.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/VAUL_comb.2020.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/VAUL_comb.2020.pdf", height= 8.5)
 ggarrange(vaul.plot1.20, vaulPlot2.20, ncol = 1, nrow = 2)
 dev.off()
 
@@ -6157,7 +6157,7 @@ vaulPlot2.21 <- VAUL.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/VAUL_comb.2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/VAUL_comb.2021.pdf", height= 8.5)
 ggarrange(vaul.plot1.21, vaulPlot2.21, ncol = 1, nrow = 2)
 dev.off()
 
@@ -6168,7 +6168,7 @@ dev.off()
 # 
 # 
 # #2019
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testFRCH_SM_DO.2019.png")
+# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testFRCH_SM_DO.2019.png")
 # frch.all %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
 #   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
 #   select(solar.time, starts_with('DO')) %>%
@@ -6181,7 +6181,7 @@ dev.off()
 # 
 # 
 # #2020
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testFRCH_SM_DO.2020.png")
+# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testFRCH_SM_DO.2020.png")
 # frch.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
 #   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
 #   select(solar.time, starts_with('DO')) %>%
@@ -6193,7 +6193,7 @@ dev.off()
 # dev.off()
 # 
 # #2021
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testFRCH_SM_DO.2021.png")
+# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testFRCH_SM_DO.2021.png")
 # frch.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
 #   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
 #   select(solar.time, starts_with('DO')) %>%
@@ -6229,7 +6229,7 @@ dev.off()
 # 
 # moos.all$solar.time <- calc_solar_time(moos.all$datetimeAK,-147.052814)
 # 
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testMOOS_SM_DO.png")
+# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testMOOS_SM_DO.png")
 # 
 # moos.all %>% 
 #   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
@@ -6241,7 +6241,7 @@ dev.off()
 #   scale_color_discrete('variable') + labs(title = "Moose ODO, 2019 - 2021")
 # dev.off()
 # #2019
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testMOOS_SM_DO.2019.png")
+# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testMOOS_SM_DO.2019.png")
 # moos.all %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
 #   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
 #   select(solar.time, starts_with('DO')) %>%
@@ -6254,7 +6254,7 @@ dev.off()
 # 
 # 
 # #2020
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testMOOS_SM_DO.2020.png")
+# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testMOOS_SM_DO.2020.png")
 # moos.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
 #   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
 #   select(solar.time, starts_with('DO')) %>%
@@ -6266,7 +6266,7 @@ dev.off()
 # dev.off()
 # 
 # #2021
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testMOOS_SM_DO.2021.png")
+# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testMOOS_SM_DO.2021.png")
 # moos.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
 #   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
 #   select(solar.time, starts_with('DO')) %>%
@@ -6301,7 +6301,7 @@ dev.off()
 # 
 # poke.all$solar.time <- calc_solar_time(poke.all$datetimeAK,-147.052814)
 # 
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testPOKE_SM_DO.png")
+# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testPOKE_SM_DO.png")
 # 
 # poke.all %>% 
 #   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
@@ -6314,7 +6314,7 @@ dev.off()
 # dev.off()
 # 
 # #2019
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testPOKE_SM_DO.2019.png")
+# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testPOKE_SM_DO.2019.png")
 # poke.all %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
 #   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
 #   select(solar.time, starts_with('DO')) %>%
@@ -6327,7 +6327,7 @@ dev.off()
 # 
 # 
 # #2020
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testPOKE_SM_DO.2020.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testPOKE_SM_DO.2020.pdf")
 # poke.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
 #   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
 #   select(solar.time, starts_with('DO')) %>%
@@ -6339,7 +6339,7 @@ dev.off()
 # dev.off()
 # 
 # #2021
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testPOKE_SM_DO.2021.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testPOKE_SM_DO.2021.pdf")
 # poke.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
 #   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
 #   select(solar.time, starts_with('DO')) %>%
@@ -6373,7 +6373,7 @@ dev.off()
 # 
 # strt.all$solar.time <- calc_solar_time(strt.all$datetimeAK,-147.052814)
 # 
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testSTRT_SM_DO.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testSTRT_SM_DO.pdf")
 # 
 # strt.all %>% 
 #   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
@@ -6385,7 +6385,7 @@ dev.off()
 #   scale_color_discrete('variable') + labs(title = "Strt ODO, 2019 - 2021")
 # dev.off()
 # #2019
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testSTRT_SM_DO.2019.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testSTRT_SM_DO.2019.pdf")
 # strt.all %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
 #   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
 #   select(solar.time, starts_with('DO')) %>%
@@ -6398,7 +6398,7 @@ dev.off()
 # 
 # 
 # #2020
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testSTRT_SM_DO.2020.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testSTRT_SM_DO.2020.pdf")
 # strt.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
 #   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
 #   select(solar.time, starts_with('DO')) %>%
@@ -6410,7 +6410,7 @@ dev.off()
 # dev.off()
 # 
 # #2021
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testSTRT_SM_DO.2021.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testSTRT_SM_DO.2021.pdf")
 # strt.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
 #   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
 #   select(solar.time, starts_with('DO')) %>%
@@ -6445,7 +6445,7 @@ dev.off()
 # 
 # vaul.all$solar.time <- calc_solar_time(vaul.all$datetimeAK,-147.052814)
 # 
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testVAUL_SM_DO.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testVAUL_SM_DO.pdf")
 # 
 # 
 # 
@@ -6459,7 +6459,7 @@ dev.off()
 #   scale_color_discrete('variable') + labs(title = "Vaul ODO, 2019 - 2021")
 # dev.off()
 # #2019
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testVAUL_SM_DO.2019.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testVAUL_SM_DO.2019.pdf")
 # vaul.all %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
 #   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
 #   select(solar.time, starts_with('DO')) %>%
@@ -6472,7 +6472,7 @@ dev.off()
 # 
 # 
 # #2020
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testVAUL_SM_DO.2020.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testVAUL_SM_DO.2020.pdf")
 # vaul.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
 #   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
 #   select(solar.time, starts_with('DO')) %>%
@@ -6484,7 +6484,7 @@ dev.off()
 # dev.off()
 # 
 # #2021
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testVAUL_SM_DO.2021.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testVAUL_SM_DO.2021.pdf")
 # vaul.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
 #   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
 #   select(solar.time, starts_with('DO')) %>%
@@ -6513,7 +6513,7 @@ dev.off()
 # moos.all <- merge(moos.combinded.par, moos.all,  by = "datetimeAK",all = TRUE)
 # 
 # 
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testMOOS_SM_light_temp_depth.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testMOOS_SM_light_temp_depth.pdf")
 # 
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
@@ -6530,7 +6530,7 @@ dev.off()
 # dev.off()
 # 
 # #2019
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testMOOS_SM_light_temp_depth.2019.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testMOOS_SM_light_temp_depth.2019.pdf")
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
 # moos.all %>% filter(datetimeAK >= "2019-01-01 00:00:00") %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
@@ -6546,7 +6546,7 @@ dev.off()
 # dev.off()
 # 
 # #2020
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testMOOS_SM_light_temp_depth.2020.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testMOOS_SM_light_temp_depth.2020.pdf")
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
 # moos.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
@@ -6562,7 +6562,7 @@ dev.off()
 # dev.off()
 # 
 # #2021
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testMOOS_SM_light_temp_depth.2021.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testMOOS_SM_light_temp_depth.2021.pdf")
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
 # moos.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
@@ -6593,7 +6593,7 @@ dev.off()
 # frch.all <- merge(frch.combinded.par, frch.all,  by = "datetimeAK", all = TRUE)
 # 
 # 
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testFRCH_SM_light_temp_depth.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testFRCH_SM_light_temp_depth.pdf")
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
 # frch.all %>% 
@@ -6608,7 +6608,7 @@ dev.off()
 # 
 # dev.off()
 # #2019
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testFRCH_SM_light_temp_depth.2019.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testFRCH_SM_light_temp_depth.2019.pdf")
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
 # frch.all %>% filter(datetimeAK >= "2019-01-01 00:00:00") %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
@@ -6624,7 +6624,7 @@ dev.off()
 # dev.off()
 # 
 # #2020
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testFRCH_SM_light_temp_depth.2020.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testFRCH_SM_light_temp_depth.2020.pdf")
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
 # frch.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
@@ -6640,7 +6640,7 @@ dev.off()
 # dev.off()
 # 
 # #2021
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testFRCH_SM_light_temp_depth.2021.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testFRCH_SM_light_temp_depth.2021.pdf")
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
 # frch.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
@@ -6671,7 +6671,7 @@ dev.off()
 # poke.all <- merge(poke.combinded.par, poke.all,  by = "datetimeAK",all = TRUE)
 # 
 # 
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testPOKE_SM_light_temp_depth.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testPOKE_SM_light_temp_depth.pdf")
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
 # poke.all %>% 
@@ -6687,7 +6687,7 @@ dev.off()
 # dev.off()
 # 
 # #2019
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testPOKE_SM_light_temp_depth.2019.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testPOKE_SM_light_temp_depth.2019.pdf")
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
 # poke.all %>% filter(datetimeAK >= "2019-01-01 00:00:00") %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
@@ -6703,7 +6703,7 @@ dev.off()
 # dev.off()
 # 
 # #2020
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testPOKE_SM_light_temp_depth.2020.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testPOKE_SM_light_temp_depth.2020.pdf")
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
 # poke.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
@@ -6719,7 +6719,7 @@ dev.off()
 # dev.off()
 # 
 # #2021
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testPOKE_SM_light_temp_depth.2021.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testPOKE_SM_light_temp_depth.2021.pdf")
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
 # poke.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
@@ -6751,7 +6751,7 @@ dev.off()
 # vaul.all <- merge(vaul.combinded.par, vaul.all,  by = "datetimeAK",all = TRUE)
 # 
 # 
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testVAUL_SM_light_temp_depth.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testVAUL_SM_light_temp_depth.pdf")
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
 # vaul.all %>% 
@@ -6766,7 +6766,7 @@ dev.off()
 # 
 # dev.off()
 # #2019
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testVAUL_SM_light_temp_depth.2019.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testVAUL_SM_light_temp_depth.2019.pdf")
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
 # vaul.all %>% filter(datetimeAK >= "2019-01-01 00:00:00") %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
@@ -6782,7 +6782,7 @@ dev.off()
 # dev.off()
 # 
 # #2020
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testVAUL_SM_light_temp_depth.2020.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testVAUL_SM_light_temp_depth.2020.pdf")
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
 # vaul.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
@@ -6798,7 +6798,7 @@ dev.off()
 # dev.off()
 # 
 # #2021
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testVAUL_SM_light_temp_depth.2021.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testVAUL_SM_light_temp_depth.2021.pdf")
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
 # vaul.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
@@ -6831,7 +6831,7 @@ dev.off()
 # strt.all <- merge(strt.combinded.par, strt.all,  by = "datetimeAK", all = TRUE)
 # 
 # 
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testSTRT_SM_light_temp_depth.png")
+# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testSTRT_SM_light_temp_depth.png")
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
 # strt.all %>% 
@@ -6846,7 +6846,7 @@ dev.off()
 # 
 # dev.off()
 # #2019
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testSTRT_SM_light_temp_depth.2019.png")
+# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testSTRT_SM_light_temp_depth.2019.png")
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
 # strt.all %>% filter(datetimeAK >= "2019-01-01 00:00:00") %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
@@ -6862,7 +6862,7 @@ dev.off()
 # dev.off()
 # 
 # #2020
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testSTRT_SM_light_temp_depth.2020.png")
+# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testSTRT_SM_light_temp_depth.2020.png")
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
 # strt.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
@@ -6878,7 +6878,7 @@ dev.off()
 # dev.off()
 # 
 # #2021
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/testSTRT_SM_light_temp_depth.2021.png")
+# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testSTRT_SM_light_temp_depth.2021.png")
 # 
 # labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
 # strt.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
