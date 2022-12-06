@@ -1,0 +1,10 @@
+"0","ggplot(data=fit.daily, aes(x=GPP_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() "
+"2","Warning:"
+"2"," Removed 2 rows containing non-finite values (stat_poly_line).
+"
+"2","Warning:"
+"2"," Removed 2 rows containing non-finite values (stat_poly_eq).
+"
+"2","Warning:"
+"2"," Removed 2 rows containing missing values (geom_point).
+"

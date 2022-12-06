@@ -1,0 +1,5 @@
+"0","gpp <- ggplot(data=fit.salcha$daily, aes(x=date, y=GPP_mean)) + geom_point(color = ""chartreuse4"") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = ""chartreuse4"")"
+"0","gpp"
+"2","Warning:"
+"2"," Removed 2 rows containing missing values (geom_point).
+"

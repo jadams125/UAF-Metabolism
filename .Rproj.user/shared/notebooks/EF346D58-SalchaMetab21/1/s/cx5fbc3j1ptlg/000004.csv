@@ -1,0 +1,8 @@
+"0",""
+"0","light.fig <- ggplot(data=model_data, aes(x=solar.time, y=light)) + geom_point(color = ""chartreuse4"") +theme(text = element_text(size=20))"
+"0","q.fig<- ggplot(data=model_data, aes(x=solar.time, y=discharge)) + geom_point(color = ""darksalmon"")+theme(text = element_text(size=20))"
+"0","temp.fig<- ggplot(data=model_data, aes(x=solar.time, y=temp.water)) + geom_point(color = ""turquoise4"")+theme(text = element_text(size=20))"
+"0","depth.fig<- ggplot(data=model_data, aes(x=solar.time, y=depth)) + geom_point(color = ""maroon"")+theme(text = element_text(size=20))"
+"0",""
+"0","library(grid)"
+"0","grid.newpage()"

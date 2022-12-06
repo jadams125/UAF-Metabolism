@@ -1,0 +1,1 @@
+"0","plot(salchaData$datetimeAK, salchaData$ParWm2.int)"
