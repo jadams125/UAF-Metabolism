@@ -1,0 +1,5 @@
+"0",""
+"0","clean.moos.2020 <- clean %>% filter(as.character(solar.time) < ""2020-09-03 04:13:57"")"
+"0",""
+"0","write.csv(clean.moos.2020, here(""outputs"", ""clean.moos.2020.csv""))"
+"0",""

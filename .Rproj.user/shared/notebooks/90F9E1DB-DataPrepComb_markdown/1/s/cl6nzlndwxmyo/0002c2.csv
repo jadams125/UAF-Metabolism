@@ -1,0 +1,1 @@
+"0","plot(frch.combinded.par$DateTime, frch.combinded.par$Calibrated.Value, main = ""Frch PAR"", ylab = ""PAR (µmol of photons m-2 s-1)"", xlab = ""date"")"

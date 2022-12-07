@@ -1,0 +1,1 @@
+"0","plot(VAUL.ALL.Q$DateTime, VAUL.ALL.Q$Q, main = ""Vaul Discharge"", xlab = ""Date"", ylab = ""Predicted Discahrge (m^3/s)"")"

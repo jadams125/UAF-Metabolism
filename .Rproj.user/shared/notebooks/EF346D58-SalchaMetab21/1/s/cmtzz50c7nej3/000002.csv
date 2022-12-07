@@ -1,5 +1,0 @@
-"0","k600 <- ggplot(data=fit.salcha$daily, aes(x=date, y=K600_daily_mean)) + geom_point(color = ""orange"") + geom_errorbar(aes(ymin=K600_daily_mean-K600_daily_sd, ymax=K600_daily_mean+K600_daily_sd), width=.2, position=position_dodge(0.05), color = ""orange"")"
-"0","k600"
-"2","Warning:"
-"2"," Removed 2 rows containing missing values (geom_point).
-"

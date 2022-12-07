@@ -1,0 +1,1 @@
+"0","plot(strt.combinded.par$DateTime, strt.combinded.par$Calibrated.Value, main = ""Strt PAR"", ylab = ""PAR (µmol of photons m-2 s-1)"", xlab = ""date"")"

@@ -1,2 +1,0 @@
-"0","grid.draw(rbind(ggplotGrob(light.fig), ggplotGrob(q.fig),ggplotGrob(depth.fig), ggplotGrob(temp.fig)))"
-"0",""

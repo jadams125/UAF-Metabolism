@@ -1,0 +1,1 @@
+"0","plot(vaul.combinded.par$DateTime, vaul.combinded.par$Calibrated.Value, main = ""Vaul PAR"", ylab = ""PAR (µmol of photons m-2 s-1)"", xlab = ""date"")"

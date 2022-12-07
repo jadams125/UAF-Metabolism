@@ -1,0 +1,10 @@
+"0",""
+"0","clean <- MOOS.comb.in %>%"
+"0","   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%"
+"0","   group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% "
+"0","   ungroup() %>% "
+"0","   group_by(DO.obs,new) %>% "
+"0","   filter(n()<48) %>% "
+"0","   select(-new)"
+"1","[38;5;255mAdding missing grouping variables: `new`[39m
+"

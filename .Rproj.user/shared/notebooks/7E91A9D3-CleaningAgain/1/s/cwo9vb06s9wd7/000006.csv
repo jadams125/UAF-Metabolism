@@ -1,0 +1,3 @@
+"0",""
+"0","#NOTE: In these plots, Missing means NA. Data is still missing, but NAs have been removed. This removes those rows from the whole TS. Since the gap is greater than 12 hours, we cannot gap fill any of these slots anyway"
+"0",""

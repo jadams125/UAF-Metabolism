@@ -2168,11 +2168,14 @@ library(here)
 
 ####### 2019 #######
 
-Q2019.url <- "https://drive.google.com/drive/u/1/folders/1ww0WENY9u_iHbx5RvVuOp1po9RvtzC7j"
-q.2019.prt1 <- drive_get(as_id(Q2019.url))
-q.2019.glist <- drive_ls(q.2019.prt1, pattern = "Q_2019.csv")
-walk(q.2019.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
-Q_2019 <- read.csv("Q_2019.csv",)
+# Q2019.url <- "https://drive.google.com/drive/u/1/folders/1ww0WENY9u_iHbx5RvVuOp1po9RvtzC7j"
+# q.2019.prt1 <- drive_get(as_id(Q2019.url))
+# q.2019.glist <- drive_ls(q.2019.prt1, pattern = "Q_2019.csv")
+# walk(q.2019.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# Q_2019 <- read.csv("Q_2019.csv",)
+
+
+Q_2019 <- read.csv("C:/Users/jadams125/Documents/GitHub/DoD_Discharge/Predicted_Discharge/2019/Q_2019.csv")
 
 #### Breaking up into sites ####
 POKE_Q_2019 <- Q_2019 %>% filter(Site == "POKE")
@@ -2180,6 +2183,8 @@ VAUL_Q_2019 <- Q_2019 %>% filter(Site == "VAUL")
 STRT_Q_2019 <- Q_2019 %>% filter(Site == "STRT")
 MOOS_Q_2019 <- Q_2019 %>% filter(Site == "MOOS")
 FRCH_Q_2019 <- Q_2019 %>% filter(Site == "FRCH")
+
+
 
 
 #change poke discharge becuase of gaps
@@ -2206,92 +2211,161 @@ FRCH.2019.Q <- FRCH_Q_2019 %>%
 
 #### Breaking up into sites ####
 ### POKE ###
+# 
+# poke_q_2020.url <- "https://drive.google.com/drive/u/1/folders/18UaoUOnZYKXo0Ea7BAyV2Ow7w3ArfS89"
+# poke_q_2020.prt1 <- drive_get(as_id(poke_q_2020.url))
+# poke.2020.q.glist <- drive_ls(poke_q_2020.prt1, pattern = "POKE.Q.csv")
+# walk(poke.2020.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# POKE.2020.Q <- read.csv("POKE.Q.csv",)
+# 
+# 
+# ### VAUL ###
+# vaul_q_2020.url <- "https://drive.google.com/drive/u/1/folders/1SCdGe_2MUpoeNcpFI4kZbUa3FK-T4El0"
+# vaul_q_2020.prt1 <- drive_get(as_id(vaul_q_2020.url))
+# vaul.2020.q.glist <- drive_ls(vaul_q_2020.prt1, pattern = "VAUL.Q.csv")
+# walk(vaul.2020.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# VAUL.2020.Q <- read.csv("VAUL.Q.csv",)
+# 
+# 
+# ### STRT ###
+# 
+# strt_q_2020.url <- "https://drive.google.com/drive/u/1/folders/1A4-Rw0ZQ0kAxKb7WkBm2VnDFT8fa1RsJ"
+# strt_q_2020.prt1 <- drive_get(as_id(strt_q_2020.url))
+# strt.2020.q.glist <- drive_ls(strt_q_2020.prt1, pattern = "STRT.Q.csv")
+# walk(strt.2020.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# STRT.2020.Q <- read.csv("STRT.Q.csv",)
+# 
+# ### MOOS ###
+# 
+# moos_q_2020.url <- "https://drive.google.com/drive/u/1/folders/1ArCib8d1B4cBAeit-GBZG2Em8-jTBBmi"
+# moos_q_2020.prt1 <- drive_get(as_id(moos_q_2020.url))
+# moos.2020.q.glist <- drive_ls(moos_q_2020.prt1, pattern = "MOOS.Q.csv")
+# walk(moos.2020.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# MOOS.2020.Q <- read.csv("MOOS.Q.csv",)
+# 
+# 
+# ### FRCH ###
+# 
+# frch_q_2020.url <- "https://drive.google.com/drive/u/1/folders/1X5ejz_Ia7jwqAk6jT8Xb9a5EknSV8bF-"
+# frch_q_2020.prt1 <- drive_get(as_id(frch_q_2020.url))
+# frch.2020.q.glist <- drive_ls(frch_q_2020.prt1, pattern = "FRCH.Q.csv")
+# walk(frch.2020.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# FRCH.2020.Q <- read.csv("FRCH.Q.csv",)
 
-poke_q_2020.url <- "https://drive.google.com/drive/u/1/folders/18UaoUOnZYKXo0Ea7BAyV2Ow7w3ArfS89"
-poke_q_2020.prt1 <- drive_get(as_id(poke_q_2020.url))
-poke.2020.q.glist <- drive_ls(poke_q_2020.prt1, pattern = "POKE.Q.csv")
-walk(poke.2020.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
-POKE.2020.Q <- read.csv("POKE.Q.csv",)
-
-### VAUL ###
-vaul_q_2020.url <- "https://drive.google.com/drive/u/1/folders/1SCdGe_2MUpoeNcpFI4kZbUa3FK-T4El0"
-vaul_q_2020.prt1 <- drive_get(as_id(vaul_q_2020.url))
-vaul.2020.q.glist <- drive_ls(vaul_q_2020.prt1, pattern = "VAUL.Q.csv")
-walk(vaul.2020.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
-VAUL.2020.Q <- read.csv("VAUL.Q.csv",)
+Q_2020 <- read.csv("C:/Users/jadams125/Documents/GitHub/DoD_Discharge/Predicted_Discharge/2020/Q_2020.csv")
 
 
-### STRT ###
-
-strt_q_2020.url <- "https://drive.google.com/drive/u/1/folders/1A4-Rw0ZQ0kAxKb7WkBm2VnDFT8fa1RsJ"
-strt_q_2020.prt1 <- drive_get(as_id(strt_q_2020.url))
-strt.2020.q.glist <- drive_ls(strt_q_2020.prt1, pattern = "STRT.Q.csv")
-walk(strt.2020.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
-STRT.2020.Q <- read.csv("STRT.Q.csv",)
-
-### MOOS ###
-
-moos_q_2020.url <- "https://drive.google.com/drive/u/1/folders/1ArCib8d1B4cBAeit-GBZG2Em8-jTBBmi"
-moos_q_2020.prt1 <- drive_get(as_id(moos_q_2020.url))
-moos.2020.q.glist <- drive_ls(moos_q_2020.prt1, pattern = "MOOS.Q.csv")
-walk(moos.2020.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
-MOOS.2020.Q <- read.csv("MOOS.Q.csv",)
+#### Breaking up into sites ####
+POKE_Q_2020 <- Q_2020 %>% filter(Site == "POKE")
+VAUL_Q_2020 <- Q_2020 %>% filter(Site == "VAUL")
+STRT_Q_2020 <- Q_2020 %>% filter(Site == "STRT")
+MOOS_Q_2020 <- Q_2020 %>% filter(Site == "MOOS")
+FRCH_Q_2020 <- Q_2020 %>% filter(Site == "FRCH")
 
 
-### FRCH ###
 
-frch_q_2020.url <- "https://drive.google.com/drive/u/1/folders/1X5ejz_Ia7jwqAk6jT8Xb9a5EknSV8bF-"
-frch_q_2020.prt1 <- drive_get(as_id(frch_q_2020.url))
-frch.2020.q.glist <- drive_ls(frch_q_2020.prt1, pattern = "FRCH.Q.csv")
-walk(frch.2020.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
-FRCH.2020.Q <- read.csv("FRCH.Q.csv",)
+
+#change poke discharge becuase of gaps
+# POKE_Q_2020 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2020/POKE/POKE.Q.csv")
+
+#Select needed columns 
+POKE.2020.Q <- POKE_Q_2020 %>%
+  select(DateTime, Q, Site)
+
+VAUL.2020.Q <- VAUL_Q_2020 %>%
+  select(DateTime, Q, Site)
+
+STRT.2020.Q <- STRT_Q_2020 %>%
+  select(DateTime, Q, Site)
+
+MOOS.2020.Q <- MOOS_Q_2020 %>%
+  select(DateTime, Q, Site)
+
+FRCH.2020.Q <- FRCH_Q_2020 %>%
+  select(DateTime, Q, Site)
+
+
+
+
 
 
 ####### 2021 #######
 
 #### Breaking up into sites ####
-### POKE ###
+# ### POKE ###
+# 
+# poke_q_2021.url <- "https://drive.google.com/drive/u/1/folders/1KIgfC8CCUW7bj1DcecOtZzf85OYP6lI7"
+# poke_q_2021.prt1 <- drive_get(as_id(poke_q_2021.url))
+# poke.2021.q.glist <- drive_ls(poke_q_2021.prt1, pattern = "POKE.Q.csv")
+# walk(poke.2021.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# POKE.2021.Q <- read.csv("POKE.Q.csv",)
+# 
+# ### VAUL ###
+# vaul_q_2021.url <- "https://drive.google.com/drive/u/1/folders/1USPfRoW9Pc_7-CWd6PDTQ2sYHBSUkvjI"
+# vaul_q_2021.prt1 <- drive_get(as_id(vaul_q_2021.url))
+# vaul.2021.q.glist <- drive_ls(vaul_q_2021.prt1, pattern = "VAUL.Q.csv")
+# walk(vaul.2021.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# VAUL.2021.Q <- read.csv("VAUL.Q.csv",)
+# 
+# 
+# ### STRT ###
+# 
+# strt_q_2021.url <- "https://drive.google.com/drive/u/1/folders/1CUb8n8lmhRt4-Z0iiuWB9rcd-TRBJ1mI"
+# strt_q_2021.prt1 <- drive_get(as_id(strt_q_2021.url))
+# strt.2021.q.glist <- drive_ls(strt_q_2021.prt1, pattern = "STRT.Q.csv")
+# walk(strt.2021.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# STRT.2021.Q <- read.csv("STRT.Q.csv",)
+# 
+# ### MOOS ###
+# 
+# moos_q_2021.url <- "https://drive.google.com/drive/u/1/folders/1IJ_l63IM_L7-5o1gZ_TbY-a1t52OoZXn"
+# moos_q_2021.prt1 <- drive_get(as_id(moos_q_2021.url))
+# moos.2021.q.glist <- drive_ls(moos_q_2021.prt1, pattern = "MOOS.Q.csv")
+# walk(moos.2021.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# MOOS.2021.Q <- read.csv("MOOS.Q.csv",)
+# 
+# 
+# ### FRCH ###
+# 
+# frch_q_2021.url <- "https://drive.google.com/drive/u/1/folders/1tB71qTZa8Eq1W4lnVsHl-NWSKtRr5eZ4"
+# frch_q_2021.prt1 <- drive_get(as_id(frch_q_2021.url))
+# frch.2021.q.glist <- drive_ls(frch_q_2021.prt1, pattern = "FRCH.Q.csv")
+# walk(frch.2021.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# FRCH.2021.Q <- read.csv("FRCH.Q.csv",)
+# 
 
-poke_q_2021.url <- "https://drive.google.com/drive/u/1/folders/1KIgfC8CCUW7bj1DcecOtZzf85OYP6lI7"
-poke_q_2021.prt1 <- drive_get(as_id(poke_q_2021.url))
-poke.2021.q.glist <- drive_ls(poke_q_2021.prt1, pattern = "POKE.Q.csv")
-walk(poke.2021.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
-POKE.2021.Q <- read.csv("POKE.Q.csv",)
 
-### VAUL ###
-vaul_q_2021.url <- "https://drive.google.com/drive/u/1/folders/1USPfRoW9Pc_7-CWd6PDTQ2sYHBSUkvjI"
-vaul_q_2021.prt1 <- drive_get(as_id(vaul_q_2021.url))
-vaul.2021.q.glist <- drive_ls(vaul_q_2021.prt1, pattern = "VAUL.Q.csv")
-walk(vaul.2021.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
-VAUL.2021.Q <- read.csv("VAUL.Q.csv",)
+Q_2021 <- read.csv("C:/Users/jadams125/Documents/GitHub/DoD_Discharge/Predicted_Discharge/2021/Q_2021.csv")
 
 
-### STRT ###
-
-strt_q_2021.url <- "https://drive.google.com/drive/u/1/folders/1CUb8n8lmhRt4-Z0iiuWB9rcd-TRBJ1mI"
-strt_q_2021.prt1 <- drive_get(as_id(strt_q_2021.url))
-strt.2021.q.glist <- drive_ls(strt_q_2021.prt1, pattern = "STRT.Q.csv")
-walk(strt.2021.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
-STRT.2021.Q <- read.csv("STRT.Q.csv",)
-
-### MOOS ###
-
-moos_q_2021.url <- "https://drive.google.com/drive/u/1/folders/1IJ_l63IM_L7-5o1gZ_TbY-a1t52OoZXn"
-moos_q_2021.prt1 <- drive_get(as_id(moos_q_2021.url))
-moos.2021.q.glist <- drive_ls(moos_q_2021.prt1, pattern = "MOOS.Q.csv")
-walk(moos.2021.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
-MOOS.2021.Q <- read.csv("MOOS.Q.csv",)
+#### Breaking up into sites ####
+POKE_Q_2021 <- Q_2021 %>% filter(Site == "POKE")
+VAUL_Q_2021 <- Q_2021 %>% filter(Site == "VAUL")
+STRT_Q_2021 <- Q_2021 %>% filter(Site == "STRT")
+MOOS_Q_2021 <- Q_2021 %>% filter(Site == "MOOS")
+FRCH_Q_2021 <- Q_2021 %>% filter(Site == "FRCH")
 
 
-### FRCH ###
-
-frch_q_2021.url <- "https://drive.google.com/drive/u/1/folders/1tB71qTZa8Eq1W4lnVsHl-NWSKtRr5eZ4"
-frch_q_2021.prt1 <- drive_get(as_id(frch_q_2021.url))
-frch.2021.q.glist <- drive_ls(frch_q_2021.prt1, pattern = "FRCH.Q.csv")
-walk(frch.2021.q.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
-FRCH.2021.Q <- read.csv("FRCH.Q.csv",)
 
 
+#change poke discharge becuase of gaps
+# POKE_Q_2021 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2021/POKE/POKE.Q.csv")
+
+#Select needed columns 
+POKE.2021.Q <- POKE_Q_2021 %>%
+  select(DateTime, Q, Site)
+
+VAUL.2021.Q <- VAUL_Q_2021 %>%
+  select(DateTime, Q, Site)
+
+STRT.2021.Q <- STRT_Q_2021 %>%
+  select(DateTime, Q, Site)
+
+MOOS.2021.Q <- MOOS_Q_2021 %>%
+  select(DateTime, Q, Site)
+
+FRCH.2021.Q <- FRCH_Q_2021 %>%
+  select(DateTime, Q, Site)
 
 
 ########## Combine ##########
@@ -2299,10 +2373,11 @@ getwd()
 
 #Poke
 POKE.ALL.Q <- rbind(POKE.2019.Q, POKE.2020.Q, POKE.2021.Q)
-POKE.ALL.Q$DateTime <-  as.POSIXct(POKE.ALL.Q$DateTime)
+
+POKE.ALL.Q$DateTime <-  force_tz(as.POSIXct(ymd_hms(POKE.ALL.Q$DateTime)), tz = "America/Anchorage")
 
 
-write.csv(POKE.ALL.Q, here("Predicted_Discharge/Combined after 2019/POKE.ALL.Q.csv"), row.names = FALSE)
+write.csv(POKE.ALL.Q, here("Predicted_Discharge", "POKE.ALL.Q.csv"), row.names = FALSE)
 
 tiff("Q_Plots/PokeQ_all_years.tiff", compression = "lzw", width = 1500, height =1000)
 plot(POKE.ALL.Q$DateTime, POKE.ALL.Q$Q, main = "Poke Discharge", xlab = "Date", ylab = "Predicted Discahrge (m^3/s)")
@@ -2311,9 +2386,11 @@ dev.off()
 
 #Vaul
 VAUL.ALL.Q <- rbind(VAUL.2019.Q, VAUL.2020.Q, VAUL.2021.Q)
-VAUL.ALL.Q$DateTime <-  as.POSIXct(VAUL.ALL.Q$DateTime)
 
-write.csv(VAUL.ALL.Q,here("Predicted_Discharge/Combined after 2019/VAUL.ALL.Q.csv"), row.names = FALSE)
+VAUL.ALL.Q$DateTime <-  force_tz(as.POSIXct(ymd_hms(VAUL.ALL.Q$DateTime)), tz = "America/Anchorage")
+
+
+write.csv(VAUL.ALL.Q, here("Predicted_Discharge", "VAUL.ALL.Q.csv"), row.names = FALSE)
 
 tiff("Q_Plots/VaulQ_all_years.tiff", compression = "lzw", width = 1500, height =1000)
 plot(VAUL.ALL.Q$DateTime, VAUL.ALL.Q$Q, main = "Vaul Discharge", xlab = "Date", ylab = "Predicted Discahrge (m^3/s)")
@@ -2322,35 +2399,36 @@ dev.off()
 
 #Strt
 STRT.ALL.Q <- rbind(STRT.2019.Q, STRT.2020.Q, STRT.2021.Q)
-STRT.ALL.Q$DateTime <-  as.POSIXct(STRT.ALL.Q$DateTime)
 
-write.csv(STRT.ALL.Q,here("Predicted_Discharge/Combined after 2019/STRT.ALL.Q.csv"), row.names = FALSE)
+STRT.ALL.Q$DateTime <-  force_tz(as.POSIXct(ymd_hms(STRT.ALL.Q$DateTime)), tz = "America/Anchorage")
+
+
+write.csv(STRT.ALL.Q, here("Predicted_Discharge", "STRT.ALL.Q.csv"), row.names = FALSE)
 
 tiff("Q_Plots/StrtQ_all_years.tiff", compression = "lzw", width = 1500, height =1000)
 plot(STRT.ALL.Q$DateTime, STRT.ALL.Q$Q, main = "Strt Discharge", xlab = "Date", ylab = "Predicted Discahrge (m^3/s)")
 dev.off()
 
-
 #Moos
 MOOS.ALL.Q <- rbind(MOOS.2019.Q, MOOS.2020.Q, MOOS.2021.Q)
-MOOS.ALL.Q$DateTime <-  as.POSIXct(MOOS.ALL.Q$DateTime)
 
-write.csv(MOOS.ALL.Q,here("Predicted_Discharge/Combined after 2019/MOOS.ALL.Q.csv"), row.names = FALSE)
+MOOS.ALL.Q$DateTime <-  force_tz(as.POSIXct(ymd_hms(MOOS.ALL.Q$DateTime)), tz = "America/Anchorage")
+
+
+write.csv(MOOS.ALL.Q, here("Predicted_Discharge", "MOOS.ALL.Q.csv"), row.names = FALSE)
 
 tiff("Q_Plots/MoosQ_all_years.tiff", compression = "lzw", width = 1500, height =1000)
 plot(MOOS.ALL.Q$DateTime, MOOS.ALL.Q$Q, main = "Moos Discharge", xlab = "Date", ylab = "Predicted Discahrge (m^3/s)")
 dev.off()
 
-
 #Frch
 FRCH.ALL.Q <- rbind(FRCH.2019.Q, FRCH.2020.Q, FRCH.2021.Q)
-FRCH.ALL.Q$DateTime <-  as.POSIXct(FRCH.ALL.Q$DateTime)
 
-write.csv(FRCH.ALL.Q,here("Predicted_Discharge/Combined after 2019/FRCH.ALL.Q.csv"), row.names = FALSE)
+FRCH.ALL.Q$DateTime <-  force_tz(as.POSIXct(ymd_hms(FRCH.ALL.Q$DateTime)), tz = "America/Anchorage")
 
-tiff("Q_Plots/FrchQ_all_years.tiff", compression = "lzw", width = 1500, height =1000)
-plot(FRCH.ALL.Q$DateTime, FRCH.ALL.Q$Q, main = "Frch Discharge", xlab = "Date", ylab = "Predicted Discahrge (m^3/s)")
-dev.off()
+
+write.csv(FRCH.ALL.Q, here("Predicted_Discharge", "FRCH.ALL.Q.csv"), row.names = FALSE)
+
 
 
 
@@ -3451,6 +3529,15 @@ strt.2021.pt <- mutate(strt.2021.pt, AvgAbsDepth = ifelse(is.na(AvgAbsDepth) == 
 
 
 
+
+
+
+#Try and use discharge instead
+
+
+
+
+
 #MY METHOD
 
 
@@ -3499,40 +3586,41 @@ poke.2019.pt <- poke.2019.pt %>%
 
 
 
-
+poke.all.q.dt <- POKE.ALL.Q
 
 
 setDT(Poke_depth_19_WR)
-setDT(poke.2019.pt)
+setDT(poke.all.q.dt)
 
-poke.2019.pt$datetimeAK1 <- poke.2019.pt$datetimeAK
+poke.all.q.dt$datetimeAK1 <- poke.all.q.dt$datetimeAK
 
-setkey( poke.2019.pt, datetimeAK )
+setkey( poke.all.q.dt, datetimeAK )
 setkey( Poke_depth_19_WR, datetimeAK )
 
 #WR was taken when EXO out of water. round depth point to nearest in data record
-rounded.dates_poke19 <- poke.2019.pt[ Poke_depth_19_WR, roll = "nearest" ]
+rounded.dates_poke19 <- poke.all.q.dt[ Poke_depth_19_WR, roll = "nearest" ]
 
 rounded.dates_poke19_WR_PT <- rounded.dates_poke19 %>%
-  select(datetimeAK, AvgAbsDepth, meanDepth)
+  select(datetimeAK, discharge, meanDepth)
 
 #convert to meters
 rounded.dates_poke19_WR_PT$meanDepth <- rounded.dates_poke19_WR_PT$meanDepth /100
 
-poke_pt_wr_graph <- ggplot(rounded.dates_poke19_WR_PT, aes(AvgAbsDepth, meanDepth)) +
+poke_pt_wr_graph <- ggplot(rounded.dates_poke19_WR_PT, aes(discharge, meanDepth)) +
   geom_point()
 # Add regression line
-poke_pt_wr_graph + geom_smooth(method = lm) + xlab("Depth (PT)") +ylab ("Depth (WR)")
+poke_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
 
-ggsave("plots/poke_pt_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+ggsave("plots/poke_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
 
 
-poke19_depth_mod <- lm(meanDepth~AvgAbsDepth, data = rounded.dates_poke19_WR_PT)
+poke19_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_poke19_WR_PT)
 
 summary(poke19_depth_mod)
 
-plot(meanDepth~AvgAbsDepth, data = rounded.dates_poke19_WR_PT)
+plot(meanDepth~discharge, data = rounded.dates_poke19_WR_PT)
 abline(poke19_depth_mod)
+
 
 #extract slope of model and develop rating curve
 poke.2019.pt$RatingCurveDepth <- poke19_depth_mod$coefficients[1]+(poke19_depth_mod$coefficients[2])*poke.2019.pt$AvgAbsDepth
@@ -6160,744 +6248,3 @@ vaulPlot2.21 <- VAUL.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% fi
 pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/VAUL_comb.2021.pdf", height= 8.5)
 ggarrange(vaul.plot1.21, vaulPlot2.21, ncol = 1, nrow = 2)
 dev.off()
-
-
-##### OLD CODE #####
-
-
-# 
-# 
-# #2019
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testFRCH_SM_DO.2019.png")
-# frch.all %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
-#   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
-#   select(solar.time, starts_with('DO')) %>%
-#   gather(type, DO.value, starts_with('DO')) %>%
-#   mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
-#   ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable') + labs(title = "French ODO, 2019")
-# dev.off()
-# 
-# 
-# #2020
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testFRCH_SM_DO.2020.png")
-# frch.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
-#   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
-#   select(solar.time, starts_with('DO')) %>%
-#   gather(type, DO.value, starts_with('DO')) %>%
-#   mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
-#   ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable') + labs(title = "French ODO, 2020")
-# dev.off()
-# 
-# #2021
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testFRCH_SM_DO.2021.png")
-# frch.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
-#   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
-#   select(solar.time, starts_with('DO')) %>%
-#   gather(type, DO.value, starts_with('DO')) %>%
-#   mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
-#   ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable') + labs(title = "French ODO, 2021")
-# dev.off()
-# 
-# 
-# 
-# #Moos
-# 
-# moos.ap.data <- moos.ap.data %>%
-#   dplyr::rename(datetimeAK = DateTime)
-# 
-# 
-# moos.all <- merge(All.years.moos.MESSY,moos.ap.data, by = "datetimeAK",all = TRUE)
-# 
-# #rename some 
-# moos.all <- moos.all %>%
-#   dplyr::rename(temp.water = Temp.C)
-# 
-# moos.all <- moos.all %>%
-#   dplyr::rename(DO.obs = ODO.mgL)
-# 
-# 
-# 
-# 
-# moos.all$DO.sat <- calc_DO_sat(moos.all$temp.water, moos.all$air.pressure.mbar, model = "garcia-benson")
-# 
-# 
-# moos.all$solar.time <- calc_solar_time(moos.all$datetimeAK,-147.052814)
-# 
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testMOOS_SM_DO.png")
-# 
-# moos.all %>% 
-#   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
-#   select(solar.time, starts_with('DO')) %>%
-#   gather(type, DO.value, starts_with('DO')) %>%
-#   mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
-#   ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable') + labs(title = "Moose ODO, 2019 - 2021")
-# dev.off()
-# #2019
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testMOOS_SM_DO.2019.png")
-# moos.all %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
-#   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
-#   select(solar.time, starts_with('DO')) %>%
-#   gather(type, DO.value, starts_with('DO')) %>%
-#   mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
-#   ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable') + labs(title = "Moose ODO, 2019")
-# dev.off()
-# 
-# 
-# #2020
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testMOOS_SM_DO.2020.png")
-# moos.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
-#   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
-#   select(solar.time, starts_with('DO')) %>%
-#   gather(type, DO.value, starts_with('DO')) %>%
-#   mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
-#   ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable') + labs(title = "Moose ODO, 2020")
-# dev.off()
-# 
-# #2021
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testMOOS_SM_DO.2021.png")
-# moos.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
-#   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
-#   select(solar.time, starts_with('DO')) %>%
-#   gather(type, DO.value, starts_with('DO')) %>%
-#   mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
-#   ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable') + labs(title = "Moose ODO, 2021")
-# dev.off()
-# 
-# 
-# #Poke
-# 
-# poke.ap.data <- poke.ap.data %>%
-#   dplyr::rename(datetimeAK = DateTime)
-# 
-# 
-# poke.all <- merge(All.years.poke.MESSY,poke.ap.data, by = "datetimeAK",)
-# 
-# #rename some 
-# poke.all <- poke.all %>%
-#   dplyr::rename(temp.water = Temp.C)
-# 
-# poke.all <- poke.all %>%
-#   dplyr::rename(DO.obs = ODO.mgL)
-# 
-# 
-# 
-# 
-# poke.all$DO.sat <- calc_DO_sat(poke.all$temp.water, poke.all$air.pressure.mbar, model = "garcia-benson")
-# 
-# 
-# poke.all$solar.time <- calc_solar_time(poke.all$datetimeAK,-147.052814)
-# 
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testPOKE_SM_DO.png")
-# 
-# poke.all %>% 
-#   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
-#   select(solar.time, starts_with('DO')) %>%
-#   gather(type, DO.value, starts_with('DO')) %>%
-#   mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
-#   ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable') + labs(title = "Poker ODO, 2019 - 2021")
-# dev.off()
-# 
-# #2019
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testPOKE_SM_DO.2019.png")
-# poke.all %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
-#   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
-#   select(solar.time, starts_with('DO')) %>%
-#   gather(type, DO.value, starts_with('DO')) %>%
-#   mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
-#   ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable') + labs(title = "Poker ODO, 2019")
-# dev.off()
-# 
-# 
-# #2020
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testPOKE_SM_DO.2020.pdf")
-# poke.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
-#   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
-#   select(solar.time, starts_with('DO')) %>%
-#   gather(type, DO.value, starts_with('DO')) %>%
-#   mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
-#   ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable') + labs(title = "Poker ODO, 2020")
-# dev.off()
-# 
-# #2021
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testPOKE_SM_DO.2021.pdf")
-# poke.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
-#   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
-#   select(solar.time, starts_with('DO')) %>%
-#   gather(type, DO.value, starts_with('DO')) %>%
-#   mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
-#   ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable') + labs(title = "Poker ODO, 2021")
-# dev.off()
-# 
-# 
-# #Strt
-# strt.ap.data <- strt.ap.data %>%
-#   dplyr::rename(datetimeAK = DateTime)
-# 
-# 
-# strt.all <- merge(All.years.strt.MESSY,strt.ap.data, by = "datetimeAK",all = TRUE)
-# 
-# #rename some 
-# strt.all <- strt.all %>%
-#   dplyr::rename(temp.water = Temp.C)
-# 
-# strt.all <- strt.all %>%
-#   dplyr::rename(DO.obs = ODO.mgL)
-# 
-# 
-# 
-# 
-# strt.all$DO.sat <- calc_DO_sat(strt.all$temp.water, strt.all$air.pressure.mbar, model = "garcia-benson")
-# 
-# 
-# strt.all$solar.time <- calc_solar_time(strt.all$datetimeAK,-147.052814)
-# 
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testSTRT_SM_DO.pdf")
-# 
-# strt.all %>% 
-#   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
-#   select(solar.time, starts_with('DO')) %>%
-#   gather(type, DO.value, starts_with('DO')) %>%
-#   mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
-#   ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable') + labs(title = "Strt ODO, 2019 - 2021")
-# dev.off()
-# #2019
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testSTRT_SM_DO.2019.pdf")
-# strt.all %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
-#   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
-#   select(solar.time, starts_with('DO')) %>%
-#   gather(type, DO.value, starts_with('DO')) %>%
-#   mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
-#   ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable') + labs(title = "Stuart ODO, 2019")
-# dev.off()
-# 
-# 
-# #2020
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testSTRT_SM_DO.2020.pdf")
-# strt.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
-#   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
-#   select(solar.time, starts_with('DO')) %>%
-#   gather(type, DO.value, starts_with('DO')) %>%
-#   mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
-#   ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable') + labs(title = "Stuart ODO, 2020")
-# dev.off()
-# 
-# #2021
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testSTRT_SM_DO.2021.pdf")
-# strt.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
-#   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
-#   select(solar.time, starts_with('DO')) %>%
-#   gather(type, DO.value, starts_with('DO')) %>%
-#   mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
-#   ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable') + labs(title = "Stuart ODO, 2021")
-# dev.off()
-# 
-# 
-# 
-# #Vaul
-# vaul.ap.data <- vaul.ap.data %>%
-#   dplyr::rename(datetimeAK = DateTime)
-# 
-# 
-# vaul.all <- merge(All.years.vaul.MESSY,vaul.ap.data, by = "datetimeAK",all = TRUE)
-# 
-# #rename some 
-# vaul.all <- vaul.all %>%
-#   dplyr::rename(temp.water = Temp.C)
-# 
-# vaul.all <- vaul.all %>%
-#   dplyr::rename(DO.obs = ODO.mgL)
-# 
-# vaul.all<- vaul.all[-c(22786),]
-# 
-# 
-# vaul.all$DO.sat <- calc_DO_sat(vaul.all$temp.water, vaul.all$air.pressure.mbar, model = "garcia-benson")
-# 
-# 
-# vaul.all$solar.time <- calc_solar_time(vaul.all$datetimeAK,-147.052814)
-# 
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testVAUL_SM_DO.pdf")
-# 
-# 
-# 
-# vaul.all %>% 
-#   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
-#   select(solar.time, starts_with('DO')) %>%
-#   gather(type, DO.value, starts_with('DO')) %>%
-#   mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
-#   ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable') + labs(title = "Vaul ODO, 2019 - 2021")
-# dev.off()
-# #2019
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testVAUL_SM_DO.2019.pdf")
-# vaul.all %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
-#   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
-#   select(solar.time, starts_with('DO')) %>%
-#   gather(type, DO.value, starts_with('DO')) %>%
-#   mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
-#   ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable') + labs(title = "Vault ODO, 2019")
-# dev.off()
-# 
-# 
-# #2020
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testVAUL_SM_DO.2020.pdf")
-# vaul.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
-#   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
-#   select(solar.time, starts_with('DO')) %>%
-#   gather(type, DO.value, starts_with('DO')) %>%
-#   mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
-#   ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable') + labs(title = "Vault ODO, 2020")
-# dev.off()
-# 
-# #2021
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testVAUL_SM_DO.2021.pdf")
-# vaul.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
-#   mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
-#   select(solar.time, starts_with('DO')) %>%
-#   gather(type, DO.value, starts_with('DO')) %>%
-#   mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
-#   ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable') + labs(title = "Vault ODO, 2021")
-# dev.off()
-# 
-# 
-# 
-# 
-# ######################################################################
-# #Light, Depth, Water temp
-# 
-# #MOOS
-# 
-# 
-# moos.combinded.par <- moos.combinded.par %>%
-#   dplyr::rename(light = Calibrated.Value)
-# 
-# moos.combinded.par <- moos.combinded.par %>%
-#   dplyr::rename(datetimeAK = DateTime)
-# 
-# moos.all <- merge(moos.combinded.par, moos.all,  by = "datetimeAK",all = TRUE)
-# 
-# 
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testMOOS_SM_light_temp_depth.pdf")
-# 
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# moos.all %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "MOOS, 2019 - 2021")
-# 
-# dev.off()
-# 
-# #2019
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testMOOS_SM_light_temp_depth.2019.pdf")
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# moos.all %>% filter(datetimeAK >= "2019-01-01 00:00:00") %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "MOOS, 2019")
-# 
-# dev.off()
-# 
-# #2020
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testMOOS_SM_light_temp_depth.2020.pdf")
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# moos.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "MOOS, 2020")
-# 
-# dev.off()
-# 
-# #2021
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testMOOS_SM_light_temp_depth.2021.pdf")
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# moos.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "MOOS, 2021")
-# 
-# dev.off()
-# 
-# 
-# 
-# 
-# 
-# #FRCH
-# 
-# 
-# frch.combinded.par <- frch.combinded.par %>%
-#   dplyr::rename(light = Calibrated.Value)
-# 
-# frch.combinded.par <- frch.combinded.par %>%
-#   dplyr::rename(datetimeAK = DateTime)
-# 
-# frch.all <- merge(frch.combinded.par, frch.all,  by = "datetimeAK", all = TRUE)
-# 
-# 
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testFRCH_SM_light_temp_depth.pdf")
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# frch.all %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "FRCH, 2019 - 2021")
-# 
-# dev.off()
-# #2019
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testFRCH_SM_light_temp_depth.2019.pdf")
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# frch.all %>% filter(datetimeAK >= "2019-01-01 00:00:00") %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "FRCH, 2019")
-# 
-# dev.off()
-# 
-# #2020
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testFRCH_SM_light_temp_depth.2020.pdf")
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# frch.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "FRCH, 2020")
-# 
-# dev.off()
-# 
-# #2021
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testFRCH_SM_light_temp_depth.2021.pdf")
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# frch.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "FRCH, 2021")
-# 
-# dev.off()
-# 
-# 
-# 
-# 
-# 
-# #POKE
-# 
-# 
-# poke.combinded.par <- poke.combinded.par %>%
-#   dplyr::rename(light = Calibrated.Value)
-# 
-# poke.combinded.par <- poke.combinded.par %>%
-#   dplyr::rename(datetimeAK = DateTime)
-# 
-# poke.all <- merge(poke.combinded.par, poke.all,  by = "datetimeAK",all = TRUE)
-# 
-# 
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testPOKE_SM_light_temp_depth.pdf")
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# poke.all %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "POKE, 2019 - 2021")
-# 
-# dev.off()
-# 
-# #2019
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testPOKE_SM_light_temp_depth.2019.pdf")
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# poke.all %>% filter(datetimeAK >= "2019-01-01 00:00:00") %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "POKE, 2019")
-# 
-# dev.off()
-# 
-# #2020
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testPOKE_SM_light_temp_depth.2020.pdf")
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# poke.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "POKE, 2020")
-# 
-# dev.off()
-# 
-# #2021
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testPOKE_SM_light_temp_depth.2021.pdf")
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# poke.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "POKE, 2021")
-# 
-# dev.off()
-# 
-# 
-# 
-# 
-# 
-# 
-# #VAUL
-# 
-# 
-# vaul.combinded.par <- vaul.combinded.par %>%
-#   dplyr::rename(light = Calibrated.Value)
-# 
-# vaul.combinded.par <- vaul.combinded.par %>%
-#   dplyr::rename(datetimeAK = DateTime)
-# 
-# vaul.all <- merge(vaul.combinded.par, vaul.all,  by = "datetimeAK",all = TRUE)
-# 
-# 
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testVAUL_SM_light_temp_depth.pdf")
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# vaul.all %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "VAUL, 2019 - 2021")
-# 
-# dev.off()
-# #2019
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testVAUL_SM_light_temp_depth.2019.pdf")
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# vaul.all %>% filter(datetimeAK >= "2019-01-01 00:00:00") %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "VAUL, 2019")
-# 
-# dev.off()
-# 
-# #2020
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testVAUL_SM_light_temp_depth.2020.pdf")
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# vaul.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "VAUL, 2020")
-# 
-# dev.off()
-# 
-# #2021
-# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testVAUL_SM_light_temp_depth.2021.pdf")
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# vaul.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "VAUL, 2021")
-# 
-# dev.off()
-# 
-# 
-# 
-# #STRT
-# 
-# 
-# strt.combinded.par <- strt.combinded.par %>%
-#   dplyr::rename(light = Calibrated.Value)
-# 
-# strt.combinded.par <- strt.combinded.par %>%
-#   dplyr::rename(datetimeAK = DateTime)
-# 
-# strt.combinded.par$datetimeAK <- lubridate::round_date(strt.combinded.par$datetimeAK, "15 minutes")
-# 
-# 
-# 
-# strt.all <- merge(strt.combinded.par, strt.all,  by = "datetimeAK", all = TRUE)
-# 
-# 
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testSTRT_SM_light_temp_depth.png")
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# strt.all %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "STRT, 2019 - 2021")
-# 
-# dev.off()
-# #2019
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testSTRT_SM_light_temp_depth.2019.png")
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# strt.all %>% filter(datetimeAK >= "2019-01-01 00:00:00") %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "STRT, 2019")
-# 
-# dev.off()
-# 
-# #2020
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testSTRT_SM_light_temp_depth.2020.png")
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# strt.all %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "STRT, 2020")
-# 
-# dev.off()
-# 
-# #2021
-# png(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/testSTRT_SM_light_temp_depth.2021.png")
-# 
-# labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)')
-# strt.all %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
-#   select(solar.time, depth, temp.water, light) %>%
-#   gather(type, value, depth, temp.water, light) %>%
-#   mutate(
-#     type=ordered(type, levels=c('depth','temp.water','light')),
-#     units=ordered(labels[type], unname(labels))) %>%
-#   ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
-#   facet_grid(units ~ ., scale='free_y') + theme_bw() +
-#   scale_color_discrete('variable')+ labs(title = "STRT, 2021")
-# 
-# dev.off()
-# 
-# 
-# 
-# 
-# 
-
-
-
-

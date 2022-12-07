@@ -1,0 +1,28 @@
+{
+    "id": "56025147",
+    "path": "~/GitHub/UAF-Metabolism/DataPrepComb_markdown.RMD",
+    "project_path": "DataPrepComb_markdown.RMD",
+    "type": "r_markdown",
+    "hash": "3861879979",
+    "contents": "",
+    "dirty": false,
+    "created": 1670368889682.0,
+    "source_on_save": false,
+    "relative_order": 4,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "2185,35",
+        "scrollLine": "2192",
+        "last_setup_crc32": ""
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1670441915,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1670441915947,
+    "read_only": false,
+    "read_only_alternatives": []
+}

@@ -1,0 +1,7 @@
+"0","fit.salcha <- get_fit(mm.test.salcha)
+fit.daily <- fit.salcha$daily
+write.csv(fit.daily, here(""outputs"", ""salcha.2019.2.new.full.csv""))
+"
+"2","Error in utils::write.table(fit.daily, here(""outputs"", ""salcha.2019.2.new.full.csv""),  : 
+  Error writing to connection:  No space left on device
+"
