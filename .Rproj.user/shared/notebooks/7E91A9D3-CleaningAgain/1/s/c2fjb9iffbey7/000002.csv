@@ -1,0 +1,5 @@
+"0","#Filtering only works propperly as character"
+"0","clean %>% filter(as.character(solar.time) <= ""2020-09-03 04:13:57"") %>% ggplot() +"
+"0","  geom_point(aes(x=solar.time,y=DO.obs))+"
+"0","  geom_point(aes(x=solar.time,y=discharge/500), color = ""dark blue"")+"
+"0","  scale_y_continuous(sec.axis = sec_axis(trans = ~.*500))"

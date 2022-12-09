@@ -1,0 +1,1 @@
+"0","plot(STRT.ALL.Q$DateTime, STRT.ALL.Q$Q, main = ""Strt Discharge"", xlab = ""Date"", ylab = ""Predicted Discahrge (m^3/s)"")"

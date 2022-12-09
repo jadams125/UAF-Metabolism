@@ -42,7 +42,7 @@ library(grid)
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 bayes_name_AppEtAL <- "b_Kb_oipi_tr_plrckm.stan"
 bayes_specs <- specs(bayes_name, 
-                     burnin_steps=10000, saved_steps=3500, n_cores=4, n_chains = 4, GPP_daily_lower = 0, ER_daily_upper = 0
+                     burnin_steps=9000, saved_steps=5000, n_cores=4, n_chains = 4, GPP_daily_lower = 0, ER_daily_upper = 0
 )
 
 ```
@@ -51,7 +51,7 @@ bayes_specs <- specs(bayes_name,
 
 data.moos.mm.all <- read.csv(here("outputs", "moose.comb.readyforMetab.new.clean.csv"))
 
-data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2019-05-01 04:13:57" & solar.time < "2019-11-11 04:13:57")
+data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2020-05-01 04:13:57" & solar.time < "2020-07-14 04:13:57")
 
 data.moos.mm.all <- data.moos.mm.all %>%  rename(DO.sat = DO.sat.EXO)
 data.moos.mm.all$solar.time <- as.POSIXct(data.moos.mm.all$solar.time, tz = "UTC")

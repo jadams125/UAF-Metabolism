@@ -1,0 +1,63 @@
+"0","library(ggpubr)"
+"0","library(anytime)"
+"0","library(googlesheets4)"
+"0","library(ggpmisc)"
+"0","library(plyr)"
+"0","library(dplyr)"
+"0","library(lubridate)"
+"0","library(tidyverse)"
+"0","library(lubridate)"
+"0","library(ggplot2)"
+"0","library(scales)"
+"0","library(zoo)"
+"0","library(xts)"
+"0","library(forecast)"
+"0","library(googledrive)"
+"0","library(streamMetabolizer)"
+"0","library(readr)"
+"0","library(here)"
+"0","library(rstan)"
+"2","Loading required package: StanHeaders
+"
+"2","rstan (Version 2.21.5, GitRev: 2e1f913d3ca3)
+"
+"2","For execution on a local, multicore CPU with excess RAM we recommend calling
+options(mc.cores = parallel::detectCores()).
+To avoid recompilation of unchanged Stan programs, we recommend calling
+rstan_options(auto_write = TRUE)
+"
+"2","Do not specify '-march=native' in 'LOCAL_CPPFLAGS' or a Makevars file
+"
+"2","
+Attaching package: ‘rstan’
+
+"
+"2","The following object is masked from ‘package:tidyr’:
+
+    extract
+
+"
+"0","library(imputeTS)"
+"2","
+Attaching package: ‘imputeTS’
+
+"
+"2","The following object is masked from ‘package:zoo’:
+
+    na.locf
+
+"
+"0","library(itsmr)"
+"2","
+Attaching package: ‘itsmr’
+
+"
+"2","The following object is masked from ‘package:forecast’:
+
+    forecast
+
+"
+"0","library(purrr)"
+"0","library(naniar)"
+"0","library(data.table)"
+"0","library(grid)"
