@@ -1,0 +1,5 @@
+"0",""
+"0","CRREL_SALCHA1$ParWm2 <- na_kalman(CRREL_SALCHA1$ParWm2)"
+"0",""
+"0","CRREL_SALCHA1 %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = ParWm2)) + geom_miss_point()"
+"0",""

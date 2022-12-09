@@ -1,1 +1,0 @@
-{"frames":[{"func":"ggplot(data = data.salcha.mm.all, aes(x = solar.time))","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0}],"message":"Error in ggplot(data = data.salcha.mm.all, aes(x = solar.time)) : \n  object 'data.salcha.mm.all' not found\n"}

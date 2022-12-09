@@ -1,0 +1,7 @@
+"0",""
+"0","bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)"
+"0","bayes_name_AppEtAL <- ""b_Kb_oipi_tr_plrckm.stan"""
+"0","bayes_specs <- specs(bayes_name, "
+"0","                     burnin_steps=11000, saved_steps=5000, n_cores=8, n_chains = 4, GPP_daily_lower = 0, ER_daily_upper = 0"
+"0",")"
+"0",""

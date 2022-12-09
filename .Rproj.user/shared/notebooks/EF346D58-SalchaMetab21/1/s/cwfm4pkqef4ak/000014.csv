@@ -1,0 +1,2 @@
+"0","grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), ggplotGrob(rhat),ggplotGrob(q.fig), ggplotGrob(k600),ggplotGrob(gpp), ggplotGrob(er)))"
+"0",""

@@ -1,0 +1,17 @@
+"0","plot_for_loop(data.test2, as.POSIXct(data.test2$min, tz = ""America/Anchorage""), plot_list) 
+"
+"1","[1m[33mError[39m in [38;5;255m`FUN()`[39m:[22m
+[33m![39m Unknown input: list
+Backtrace:
+[90m  1. [39m[1mbase[22m (local) `<fn>`(x)
+[90m  2. [39mggplot2:::print.ggplot(x)
+[90m  4. [39mggplot2:::ggplot_build.ggplot(x)
+[90m  5. [39mggplot2 (local) by_layer(function(l, d) l$compute_aesthetics(d, plot))
+[90m  6. [39mggplot2 (local) f(l = layers[[i]], d = data[[i]])
+     ...
+[90m 10. [39m[1mbase[22m::vapply(aesthetics, is_calculated, logical(1), USE.NAMES = FALSE)
+[90m 11. [39mggplot2 (local) FUN(X[[i]], ...)
+[90m 12. [39mggplot2:::is_calculated(quo_get_expr(x))
+[90m 13. [39m[1mbase[22m::vapply(x, is_calculated, logical(1))
+[90m 14. [39mggplot2 (local) [38;5;255m[1m[94mFUN([38;5;255m[22m[39mX[[i]], ...[38;5;255m[1m[94m)[38;5;255m[22m[39m
+"

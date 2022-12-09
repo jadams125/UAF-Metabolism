@@ -1,0 +1,989 @@
+
+library(ggpubr)
+library(anytime)
+library(googlesheets4)
+library(ggpmisc)
+library(plyr)
+
+library(dplyr)
+library(lubridate)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(scales)
+
+library(zoo)
+library(xts)
+library(forecast)
+library(googledrive)
+library(streamMetabolizer)
+library(readr)
+library(here)
+
+library(imputeTS)
+library(itsmr)
+library(purrr)
+
+
+#Salcha Metabolism Remade
+
+
+Salcha.exo.2021 <- read.csv(file=file.path("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Salcha/EXO_data/from_internal_harddrive/processed/SALCHA.EXO.aord.csv"))
+
+ts_2021 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/ts_2021.csv")
+
+# setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Salcha/EXO_data/from_internal_harddrive/")
+
+test <- full_join(ts_2021, Salcha.exo.2021, by = "datetimeAK")
+
+write.csv(test, "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/salcha.2021.full.ts.csv")
+
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/")
+
+EXO.list <- list.files(path="Metabolism-UAF", 
+                       recursive=F, 
+                       pattern="salcha.2021.full.ts.csv", 
+                       full.names=TRUE)
+
+EXO.cl <- lapply(EXO.list, 
+                 read.csv, 
+                 stringsAsFactors=FALSE, 
+                 header = TRUE)
+
+
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/")
+
+
+# Format datetime
+EXO.cl <- lapply(EXO.cl, function(x) {
+  mutate(x, datetimeAK = as.POSIXct(datetimeAK, format = "%Y-%m-%d %H:%M:%S", tz= "America/Anchorage"))
+})
+
+
+### Fill gaps in Turbidity ###
+anyNA(EXO.cl, recursive = TRUE)
+lapply(EXO.cl, summary)
+
+# Make univariate time series, covert to zoo, then to ts #
+turb.only <- lapply(EXO.cl, '[', (c("datetimeAK", "Turbidity.FNU.mn")))
+
+turb.ts <- lapply(turb.only, function(x) {read.zoo(x, index.column=1, format="%Y-%m-%d %H:%M:%S", tz="America/Anchorage")
+})
+
+turb.xts <- lapply(turb.ts, function(x) {as.xts(x)
+})
+
+# Apply auto.arima (default model in call to na_kalman) and kalman filter (default = smooth) to impute missing values using na.kalman from imputeTS #
+turb.int <- lapply(turb.xts, function(x) {na_kalman(x)
+})
+
+anyNA(turb.int, recursive = TRUE)
+
+# revert xts to dataframe
+turb.ma.int = lapply(turb.int, function(x) {data.frame(datetimeAK=time(x), turb.ma.int=as.matrix(x))
+})
+
+turb.ma.int <- lapply(turb.ma.int, setNames, c("datetimeAK", "Turb.FNU.ma.int"))
+
+# Rejoin to instrument record (EXO.cl)
+EXO.cl.int <- map2(EXO.cl, turb.ma.int, ~merge(.x, .y, by = "datetimeAK"))
+
+## Compare instrument record and with imputed turbidity time series
+# to dataframe for compatibility with ggplot
+EXO.cl.int.df <- bind_rows(EXO.cl.int, .id = "Site")
+
+
+### Fill gaps in Temperature ###
+anyNA(EXO.cl, recursive = TRUE)
+lapply(EXO.cl, summary)
+
+# Make univariate time series, covert to zoo, then to ts #
+Temp.only <- lapply(EXO.cl, '[', (c("datetimeAK", "Temp.C.mn")))
+
+Temp.ts <- lapply(Temp.only, function(x) {read.zoo(x, index.column=1, format="%Y-%m-%d %H:%M:%S", tz="America/Anchorage")
+})
+
+Temp.xts <- lapply(Temp.ts, function(x) {as.xts(x)
+})
+
+
+# Apply auto.arima (default model in call to na_kalman) and kalman filter (default = smooth) to impute missing values using na.kalman from imputeTS #
+# type = "level" added to circumvent error with optim ("need finite values of 'fn'")
+Temp.int <- lapply(Temp.xts, function(x) {na_kalman(x)
+})
+
+anyNA(Temp.int, recursive = TRUE)
+
+# revert xts to dataframe
+Temp.int = lapply(Temp.int, function(x) {data.frame(datetimeAK=time(x), Temp.C.int=as.matrix(x))
+})
+
+Temp.int <- lapply(Temp.int, setNames, c("datetimeAK", "Temp.C.int"))
+
+# Rejoin to instrument record (EXO.cl)
+EXO.cl.int <- map2(EXO.cl.int, Temp.int, ~merge(.x, .y, by = "datetimeAK"))
+
+## Compare instrument record and with imputed turbidity time series
+# to dataframe for compatibility with ggplot
+EXO.cl.int.df <- bind_rows(EXO.cl.int, .id = "Site")
+
+Temp.int.pl <- EXO.cl.int.df %>% 
+  ggplot(aes(x = datetimeAK, y = Temp.C.mn)) +
+  geom_point(color = "blue") +
+  #geom_line(color = "blue") +
+  geom_line(aes(x = datetimeAK, y = Temp.C.int), color = "green") +
+  xlim(as.POSIXct(c("2021-05-01", "2021-10-27"))) +
+  facet_wrap(~Site)
+
+Temp.int.pl
+# 
+# ############### psat addition
+# 
+# 
+# setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/")
+# 
+# EXO.list <- list.files(path="Metabolism-UAF", 
+#                        recursive=F, 
+#                        pattern="salcha.2021.full.ts.csv", 
+#                        full.names=TRUE)
+# 
+# EXO.cl <- lapply(EXO.list, 
+#                  read.csv, 
+#                  stringsAsFactors=FALSE, 
+#                  header = TRUE)
+# 
+# 
+# setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/")
+# 
+# ### Fill gaps in Temperature ###
+# anyNA(EXO.cl, recursive = TRUE)
+# lapply(EXO.cl, summary)
+# 
+# # Make univariate time series, covert to zoo, then to ts #
+# psat.only <- lapply(EXO.cl, '[', (c("datetimeAK", "ODO.Psat.mn")))
+# 
+# psat.ts <- lapply(psat.only, function(x) {read.zoo(x, index.column=1, format="%Y-%m-%d %H:%M:%S", tz="America/Anchorage")
+# })
+# 
+# psat.xts <- lapply(psat.ts, function(x) {as.xts(x)
+# })
+# 
+# 
+# # Apply auto.arima (default model in call to na_kalman) and kalman filter (default = smooth) to impute missing values using na.kalman from imputeTS #
+# # type = "level" added to circumvent error with optim ("need finite values of 'fn'")
+# psat.int <- lapply(psat.xts, function(x) {na_kalman(x, type = "level")
+# })
+# 
+# anyNA(psat.int, recursive = TRUE)
+# 
+# # revert xts to dataframe
+# psat.int = lapply(psat.int, function(x) {data.frame(datetimeAK=time(x), psat.C.int=as.matrix(x))
+# })
+# 
+# psat.int <- lapply(psat.int, setNames, c("datetimeAK", "ODO.Psat.int"))
+# 
+# # Rejoin to instrument record (EXO.cl)
+# EXO.cl.int <- map2(EXO.cl.int, psat.int, ~merge(.x, .y, by = "datetimeAK"))
+# 
+# ## Compare instrument record and with imputed turbidity time series
+# # to dataframe for compatibility with ggplot
+# EXO.cl.int.df <- bind_rows(EXO.cl.int, .id = "Site")
+# # 
+# # Temp.int.pl <- EXO.cl.int.df %>% 
+# #   ggplot(aes(x = datetimeAK, y = ODO.Psat.mn)) +
+# #   geom_point(color = "blue") +
+# #   #geom_line(color = "blue") +
+# #   geom_line(aes(x = datetimeAK, y = ODO.Psat.int), color = "green") +
+# #   xlim(as.POSIXct(c("2021-05-01", "2021-10-27"))) +
+# #   facet_wrap(~Site)
+# # 
+# # Temp.int.pl
+# 
+# 
+# 
+# 
+# 
+# 
+# ##############
+
+
+
+
+
+
+
+
+
+
+### Fill gaps in Temperature ###
+anyNA(EXO.cl, recursive = TRUE)
+lapply(EXO.cl, summary)
+
+# Make univariate time series, covert to zoo, then to ts #
+DOmgl.only <- lapply(EXO.cl, '[', (c("datetimeAK", "ODO.mgL.mn")))
+
+DOmgl.ts <- lapply(DOmgl.only, function(x) {read.zoo(x, index.column=1, format="%Y-%m-%d %H:%M:%S", tz="America/Anchorage")
+})
+
+DOmgl.xts <- lapply(DOmgl.ts, function(x) {as.xts(x)
+})
+
+
+# Apply auto.arima (default model in call to na_kalman) and kalman filter (default = smooth) to impute missing values using na.kalman from imputeTS #
+# type = "level" added to circumvent error with optim ("need finite values of 'fn'")
+DOmgl.int <- lapply(DOmgl.xts, function(x) {na_kalman(x, type = "level")
+})
+
+anyNA(DOmgl.int, recursive = TRUE)
+
+# revert xts to dataframe
+DOmgl.int = lapply(DOmgl.int, function(x) {data.frame(datetimeAK=time(x), DOmgl.C.int=as.matrix(x))
+})
+
+DOmgl.int <- lapply(DOmgl.int, setNames, c("datetimeAK", "ODO.mgL.int"))
+
+# Rejoin to instrument record (EXO.cl)
+EXO.cl.int <- map2(EXO.cl.int, DOmgl.int, ~merge(.x, .y, by = "datetimeAK"))
+
+## Compare instrument record and with imputed turbidity time series
+# to dataframe for compatibility with ggplot
+EXO.cl.int.df <- bind_rows(EXO.cl.int, .id = "Site")
+
+ODOmgL.int.pl <- EXO.cl.int.df %>% 
+  ggplot(aes(x = datetimeAK, y = ODO.mgL.mn)) +
+  geom_point(color = "blue") +
+  #geom_line(color = "blue") +
+  geom_line(aes(x = datetimeAK, y = ODO.mgL.int), color = "green") +
+  xlim(as.POSIXct(c("2021-05-01", "2021-10-27"))) +
+  facet_wrap(~Site)
+
+ODOmgL.int.pl
+
+
+
+
+#Light
+
+CRREL <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Crell_met_PAR.csv", skip = 5)
+# CRREL <- read_csv(here("Crell_met_PAR.csv"), skip = 5)
+
+CRREL$datetimeAK <- strptime(CRREL$Time, '%m/%d/%Y %H:%M')
+
+CRREL$datetimeAK <- as.POSIXct(as.character(CRREL$datetimeAK))
+
+CRREL <- CRREL %>% rename(ParWm2 = CPCRW.CRREL.Main.Met.Station..PAR_Den_AVG.W.m2.)
+
+Salcha.exo.2021$datetimeAK <- as.POSIXct(Salcha.exo.2021$datetimeAK)
+
+ts_2021$datetimeAK <- as.POSIXct(ts_2021$datetimeAK, tz = "America/Anchorage")
+
+
+CRREL_SALCHA1 <- full_join(ts_2021, CRREL, by = "datetimeAK")
+
+
+write.csv(CRREL_SALCHA1, "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Crell_met_PAR2.csv")
+
+
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/")
+
+light.list <- list.files(path="Metabolism-UAF", 
+                         recursive=F, 
+                         pattern="Crell_met_PAR2", 
+                         full.names=TRUE)
+
+light.cl <- lapply(light.list, 
+                   read.csv, 
+                   stringsAsFactors=FALSE, 
+                   header = TRUE)
+
+
+# Format datetime
+light.cl <- lapply(light.cl, function(x) {
+  mutate(x, datetimeAK = as.POSIXct(datetimeAK, format = "%Y-%m-%d %H:%M:%S", tz= "America/Anchorage"))
+})
+
+
+### Fill gaps in Light ###
+anyNA(light.cl, recursive = TRUE)
+lapply(light.cl, summary)
+
+# Make univariate time series, covert to zoo, then to ts #
+light.only <- lapply(light.cl, '[', (c("datetimeAK", "ParWm2")))
+
+light.ts <- lapply(light.only, function(x) {read.zoo(x, index.column=1, format="%Y-%m-%d %H:%M:%S", tz="America/Anchorage")
+})
+
+light.xts <- lapply(light.ts, function(x) {as.xts(x)
+})
+
+# Apply auto.arima (default model in call to na_kalman) and kalman filter (default = smooth) to impute missing values using na.kalman from imputeTS #
+light.int <- lapply(light.xts, function(x) {na_kalman(x)
+})
+
+anyNA(light.int, recursive = TRUE)
+
+# revert xts to dataframe
+light.ma.int = lapply(light.int, function(x) {data.frame(datetimeAK=time(x), turb.ma.int=as.matrix(x))
+})
+
+light.ma.int <- lapply(light.ma.int, setNames, c("datetimeAK", "ParWm2.int"))
+
+
+# Rejoin to instrument record (EXO.cl)
+EXO.cl.int <- map2(EXO.cl.int, light.ma.int, ~merge(.x, .y, by = "datetimeAK"))
+
+## Compare instrument record and with imputed turbidity time series
+# to dataframe for compatibility with ggplot
+EXO.cl.int.df <- bind_rows(EXO.cl.int, .id = "Site")
+
+
+light.int.pl <- EXO.cl.int.df %>% 
+  ggplot(aes(x = datetimeAK, y = ParWm2.int)) +
+  geom_line(color = "blue") +
+  #geom_line(color = "blue") +
+  # geom_line(aes(x = datetimeAK, y = ParWm2.int), color = "green") +
+  # xlim(as.POSIXct(c("2021-05-01", "2021-10-27"))) +
+  facet_wrap(~Site)
+
+light.int.pl
+
+
+
+# Discharge and Depth
+dischargeSalcha <- read.csv("Metabolism-UAF/dischargeSalchaTXT.csv")
+
+
+dischargeSalcha <- dischargeSalcha[-c(1), ]
+
+dischargeSalcha$datetimeAK <- as.POSIXct(mdy_hm(dischargeSalcha$datetime))
+
+dischargeSalcha$datetimeAK <- force_tz(dischargeSalcha$datetimeAK, "America/Anchorage")
+
+dischargeSalcha <- dischargeSalcha %>% rename(depth = X1761_00065)
+dischargeSalcha <- dischargeSalcha %>% rename(discharge = X1760_00060)
+
+dischargeSalcha <- dischargeSalcha %>% select(discharge, depth, datetimeAK)
+
+# convert to Meters 
+
+dischargeSalcha$depth <- as.numeric(dischargeSalcha$depth) * 0.3048
+dischargeSalcha$discharge <- as.numeric(dischargeSalcha$discharge) * 0.0283168
+
+
+dischargeSalcha <- full_join(ts_2021, dischargeSalcha, by = "datetimeAK")
+
+write.csv(dischargeSalcha, ("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/q_data.csv"))
+
+
+
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/")
+
+Q.list <- list.files(path="Metabolism-UAF", 
+                         recursive=F, 
+                         pattern="q_data.csv", 
+                         full.names=TRUE)
+
+Q.cl <- lapply(Q.list, 
+                   read.csv, 
+                   stringsAsFactors=FALSE, 
+                   header = TRUE)
+
+
+# Format datetime
+Q.cl <- lapply(Q.cl, function(x) {
+  mutate(x, datetimeAK = as.POSIXct(datetimeAK, format = "%Y-%m-%d %H:%M:%S", tz= "America/Anchorage"))
+})
+
+
+### Fill gaps in Light ###
+anyNA(Q.cl, recursive = TRUE)
+lapply(Q.cl, summary)
+
+# Make univariate time series, covert to zoo, then to ts #
+Q.only <- lapply(Q.cl, '[', (c("datetimeAK", "discharge")))
+
+Q.ts <- lapply(Q.only, function(x) {read.zoo(x, index.column=1, format="%Y-%m-%d %H:%M:%S", tz="America/Anchorage")
+})
+
+Q.xts <- lapply(Q.ts, function(x) {as.xts(x)
+})
+
+# Apply auto.arima (default model in call to na_kalman) and kalman filter (default = smooth) to impute missing values using na.kalman from imputeTS #
+Q.int <- lapply(Q.xts, function(x) {na_kalman(x, type = "level")
+})
+
+anyNA(Q.int, recursive = TRUE)
+
+# revert xts to dataframe
+Q.ma.int = lapply(Q.int, function(x) {data.frame(datetimeAK=time(x), turb.ma.int=as.matrix(x))
+})
+
+Q.ma.int <- lapply(Q.ma.int, setNames, c("datetimeAK", "Q.int"))
+
+
+# Rejoin to instrument record (EXO.cl)
+EXO.cl.int <- map2(EXO.cl.int, Q.ma.int, ~merge(.x, .y, by = "datetimeAK"))
+
+## Compare instrument record and with imputed turbidity time series
+# to dataframe for compatibility with ggplot
+EXO.cl.int.df <- bind_rows(EXO.cl.int, .id = "Site")
+
+
+Q.int.pl <- EXO.cl.int.df %>% 
+  ggplot(aes(x = datetimeAK, y = Q.int)) +
+  geom_line(color = "blue") +
+  #geom_line(color = "blue") +
+  # geom_line(aes(x = datetimeAK, y = ParWm2.int), color = "green") +
+  # xlim(as.POSIXct(c("2021-05-01", "2021-10-27"))) +
+  facet_wrap(~Site)
+
+Q.int.pl
+
+
+
+
+
+
+
+#depth
+
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/")
+
+depth.list <- list.files(path="Metabolism-UAF", 
+                     recursive=F, 
+                     pattern="q_data.csv", 
+                     full.names=TRUE)
+
+depth.cl <- lapply(depth.list, 
+               read.csv, 
+               stringsAsFactors=FALSE, 
+               header = TRUE)
+
+
+# Format datetime
+depth.cl <- lapply(depth.cl, function(x) {
+  mutate(x, datetimeAK = as.POSIXct(datetimeAK, format = "%Y-%m-%d %H:%M:%S", tz= "America/Anchorage"))
+})
+
+
+### Fill gaps in Light ###
+anyNA(depth.cl, recursive = TRUE)
+lapply(depth.cl, summary)
+
+# Make univariate time series, covert to zoo, then to ts #
+depth.only <- lapply(depth.cl, '[', (c("datetimeAK", "depth")))
+
+depth.ts <- lapply(depth.only, function(x) {read.zoo(x, index.column=1, format="%Y-%m-%d %H:%M:%S", tz="America/Anchorage")
+})
+
+depth.xts <- lapply(depth.ts, function(x) {as.xts(x)
+})
+
+# Apply auto.arima (default model in call to na_kalman) and kalman filter (default = smooth) to impute missing values using na.kalman from imputeTS #
+depth.int <- lapply(depth.xts, function(x) {na_kalman(x, type = "level")
+})
+
+anyNA(depth.int, recursive = TRUE)
+
+# revert xts to dataframe
+depth.ma.int = lapply(depth.int, function(x) {data.frame(datetimeAK=time(x), turb.ma.int=as.matrix(x))
+})
+
+depth.ma.int <- lapply(depth.ma.int, setNames, c("datetimeAK", "depth.int"))
+
+
+# Rejoin to instrument record (EXO.cl)
+EXO.cl.int <- map2(EXO.cl.int, depth.ma.int, ~merge(.x, .y, by = "datetimeAK"))
+
+## Compare instrument record and with imputed turbidity time series
+# to dataframe for compatibility with ggplot
+EXO.cl.int.df <- bind_rows(EXO.cl.int, .id = "Site")
+
+
+depth.int.pl <- EXO.cl.int.df %>% 
+  ggplot(aes(x = datetimeAK, y = depth.int)) +
+  geom_line(color = "blue") +
+  #geom_line(color = "blue") +
+  # geom_line(aes(x = datetimeAK, y = ParWm2.int), color = "green") +
+  # xlim(as.POSIXct(c("2021-05-01", "2021-10-27"))) +
+  facet_wrap(~Site)
+
+depth.int.pl
+
+
+#Gap filled Data frame:
+#DO, water temp, Time
+Salcha.exo.2021 <- EXO.cl.int.df %>% select(ODO.mgL.int, Temp.C.int, datetimeAK, ParWm2.int, Q.int, depth.int)
+
+
+anyNA(Salcha.exo.2021, recursive = TRUE)
+lapply(Salcha.exo.2021, summary)
+
+Salcha.exo.2021$datetimeAK <- force_tz(as.POSIXct(Salcha.exo.2021$datetimeAK), "America/Anchorage")
+
+
+Salcha.exo.2021$ODO.mgL.int <- as.numeric(Salcha.exo.2021$ODO.mgL.int)
+Salcha.exo.2021$Temp.C.int <- as.numeric(Salcha.exo.2021$Temp.C.int)
+
+
+
+# 
+# #Join them together
+# salchaData <- join(Salcha.exo.2021, dischargeSalcha, by = "datetimeAK")
+
+
+salchaData <- Salcha.exo.2021
+
+salchaData$datetimeAK <- as.POSIXct(salchaData$datetimeAK) 
+
+#Solar Time and Light
+
+salchaData$solar.time <- calc_solar_time(salchaData$datetimeAK, -146.9281)
+
+salchaData$light <- calc_light(salchaData$solar.time, 64.47153, -146.9281)
+
+
+
+#find max PAR value from poker to rate the CRREL 
+Poke.2021.PAR.url <- "https://drive.google.com/drive/u/1/folders/1FBILijNS4ewze9O62ZFFclC86EnB0Iw_"
+pokeparget <- drive_get(as_id(Poke.2021.PAR.url))
+pokepar_glist <- drive_ls(pokeparget, pattern = "POKE_11619_002_001_EndOfSeason.CSV")
+walk(pokepar_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+poke2021par <- read.csv("POKE_11619_002_001_EndOfSeason.CSV", 
+                              skip = 8, header = FALSE)
+
+poke2021par <- poke2021par %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+#Fix Date Time
+poke2021par$datetimeAK <- paste(poke2021par$Date, poke2021par$Time, sep="")
+
+poke2021par$datetimeAK <-  dmy_hms(poke2021par$datetimeAK)
+poke2021par$datetimeAK <- force_tz(poke2021par$datetimeAK, "America/Anchorage")
+
+#Calibrate logger 11619 to LICOR
+poke2021par$CalibratedValue <- poke2021par$CalibratedValue * 0.035
+
+
+
+plot(poke2021par$datetimeAK, poke2021par$CalibratedValue)
+plot(salchaData$datetimeAK, salchaData$ParWm2.int)
+
+max.par.poke <- max(poke2021par$CalibratedValue)
+
+max.par.crrel <- max(salchaData$ParWm2.int)
+
+multiplyFactor <- max.par.poke/max.par.crrel
+
+
+salchaData$Light_umol <- salchaData$ParWm2.int *multiplyFactor
+
+
+#DO SAT
+
+
+#######
+
+# 
+# strt.2021.atmo.url <- "https://drive.google.com/drive/u/2/folders/1-om0nU42U8fNmeWtBrhM8WQTbGqBW8RN"
+# strtatmo <- drive_get(as_id(strt.2021.atmo.url))
+# test1strt2021_glist <- drive_ls(strtatmo, pattern = "20005934_STRT_ATMO_210930.csv")
+# walk(test1strt2021_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# strt2021atmo.Data <- read.csv("20005934_STRT_ATMO_210930.csv", 
+#                               skip = 1, header = TRUE)
+# 
+# names(strt2021atmo.Data)[3]= c("pressure.air.mbar")
+# names(strt2021atmo.Data)[2]= c("dateTimePre")
+# names(strt2021atmo.Data)[4]= c("TempC.air")
+# 
+# 
+# 
+# ## Go off STRT and adjust for elevation
+# 
+# #strt elevation: 250 meters, 820 feet
+# 
+# #Salcha elevation: 196 meters, 643.045 feet
+# 
+# 
+# ##calc pressure at sea level
+# 
+# #air pressure at sea level in mmHg
+# #formula from https://keisan.casio.com/exec/system/1224575267
+# 
+# strt2021atmo.Data$mmHg.sea.level <- strt2021atmo.Data$pressure.air.mbar*((1-(0.0065*250)/(strt2021atmo.Data$TempC.air + (0.0065*250) +273.15))^(-5.257)) / 1.33322387415
+# 
+# #air pressure at moos elevation
+# 
+# strt2021atmo.Data$salcha.air.pressure.mbar <- (strt2021atmo.Data$mmHg.sea.level -(2.5* 643.045/100))* 1.33322 
+# 
+# 
+# 
+# strt2021atmo.Data$datetimeAK <- as.POSIXct(strt2021atmo.Data$dateTimePre, format="%m/%d/%y %I:%M:%S %p", tz="America/Anchorage")
+# 
+# 
+# strt2021atmo.Data$strt.air.pressure.mbar <- strt2021atmo.Data$pressure.air.mbar
+# 
+# strt2021atmo.Data <- strt2021atmo.Data %>% select(datetimeAK, salcha.air.pressure.mbar, mmHg.sea.level, TempC.air, strt.air.pressure.mbar) 
+
+# salchatest1 <- plyr::join(strt2021atmo.Data, salchaData, by = "datetimeAK")
+
+
+
+
+#vaul ATMO for comparison, will not be used. 
+
+vaul.2021.atmo.url <- "https://drive.google.com/drive/u/1/folders/1F80dynCpIo87e5EalwjNprze5UnLiomX"
+vaulatmo <- drive_get(as_id(vaul.2021.atmo.url))
+test1vaul2021_glist <- drive_ls(vaulatmo, pattern = "20574425_VAUL_atmo.csv")
+walk(test1vaul2021_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+vaul2021atmo.Data <- read.csv("20574425_VAUL_atmo.csv",
+                              skip = 1, header = TRUE)
+
+names(vaul2021atmo.Data)[3]= c("pressure.air.kpa")
+names(vaul2021atmo.Data)[2]= c("dateTimePre")
+names(vaul2021atmo.Data)[4]= c("TempC.air.vaul")
+
+
+vaul2021atmo.Data$vaul.pressure.air.mbar <- vaul2021atmo.Data$pressure.air.kpa* 10
+
+
+## Go off VAUL and adjust for elevation
+
+#VAUL elevation: 210 meters, 688.976 feet
+#Salcha elevation: 196 meters, 643.045 feet
+
+
+##calc pressure at sea level
+
+#air pressure at sea level in mmHg
+#formula from https://keisan.casio.com/exec/system/1224575267
+
+vaul2021atmo.Data$mmHg.sea.level <- vaul2021atmo.Data$vaul.pressure.air.mbar*((1-(0.0065*210)/(vaul2021atmo.Data$TempC.air.vaul + (0.0065*210) +273.15))^(-5.257)) / 1.33322387415
+
+#air pressure at moos elevation
+
+vaul2021atmo.Data$salcha.air.pressure.mbar <- (vaul2021atmo.Data$mmHg.sea.level -(2.5* 688.976/100))* 1.33322 
+
+
+vaul2021atmo.Data$datetimeAK <- as.POSIXct(vaul2021atmo.Data$dateTimePre, format="%m/%d/%y %I:%M:%S %p", tz="America/Anchorage")
+
+vaul2021atmo.Data <- vaul2021atmo.Data %>% select(datetimeAK, TempC.air.vaul, salcha.air.pressure.mbar)
+
+salchatest1 <- plyr::join(vaul2021atmo.Data, salchaData, by = "datetimeAK")
+
+
+
+# 
+# salchatest1 %>% 
+#   # filter(datetimeAK >= "2021-05-18 00:00:00" & datetimeAK <= "2021-06-30 00:00:00" ) %>% 
+#   ggplot(aes(x=solar.time))  + labs(colour="Datasets", y = "Pressure (mbar)") + geom_line(aes(y=salcha.air.pressure.mbar, colour= "Salcha corrected from STRT")) + geom_line(aes(y=vaul.pressure.air.mbar, colour= "Vaul Pressure"))
+# # + geom_line(aes(y=strt.air.pressure.mbar, colour= "STRT"))
+
+
+
+
+
+
+# Salcha_DoD_and_USGS_2021 <- na.omit(Salcha_DoD_and_USGS_2021)
+# retrieve_air_pres()
+
+
+salchatest1$ModeledDOSat <- calc_DO_sat(salchatest1$Temp.C.int, salchatest1$salcha.air.pressure.mbar , model = "garcia-benson")
+
+
+
+
+
+
+
+
+#####EAFB pressure test
+
+PAEI_2021 <- read.csv(here("PAEI_2021.csv"), skip = 6, header = TRUE)
+
+PAEI_2021 <- PAEI_2021[-1,]
+
+
+PAEI_2021$datetimeAK <- as.POSIXct(mdy_hm(PAEI_2021$Date_Time, tz = "America/Anchorage"))
+
+PAEI_2021$datetimeAK <- round_date(PAEI_2021$datetimeAK, "15 mins")
+
+PAEI_2021 <- PAEI_2021 %>% select(datetimeAK, sea_level_pressure_set_1, air_temp_set_1)
+
+data_mean1 <- aggregate(as.numeric(sea_level_pressure_set_1) ~ datetimeAK, PAEI_2021, mean)
+
+joinEAFB <- left_join(ts_2021, data_mean1, by ="datetimeAK")
+
+joinEAFB$air.temp.filled <- na_kalman(joinEAFB$`as.numeric(air_temp_set_1)`)
+
+joinEAFB$air.pressure.filled <- na_kalman(joinEAFB$`as.numeric(sea_level_pressure_set_1)`, type = "level")
+
+
+
+joinEAFB$air.pressure.filled.mbar.eafb <- joinEAFB$air.pressure.filled / 0.029529983071445
+
+EAFB <- joinEAFB %>% select(datetimeAK, air.pressure.filled.mbar.eafb)
+
+EAFB$air.pressure.filled.mbar.eafb.elevation <- (EAFB$air.pressure.filled.mbar.eafb -(2.5* 652.887/100))
+
+
+salchatest1 <- full_join(salchatest1,EAFB, by = "datetimeAK")
+
+
+#DO sat AIFB
+salchatest1$DO.sat.EAFB <- calc_DO_sat(salchatest1$Temp.C.int, salchatest1$air.pressure.filled.mbar.eafb.elevation)
+
+
+
+salchatest1 %>% filter(datetimeAK >= "2021-07-01 00:00:00" & datetimeAK <= "2021-07-10 00:00:00" ) %>% ggplot(aes(x=solar.time)) + geom_line(aes(y=DO.sat.EAFB, colour= "DO.sat (EAFB Calcualted)")) + geom_line(aes(y = ODO.mgL.int, colour = 'DO.obs')) + labs(colour="Datasets", y = "DO (mg/L)")
+
+
+
+#metabolism
+
+salchaData <- salchatest1
+
+salchaData <- salchaData %>% rename(temp.water = Temp.C.int)
+salchaData <- salchaData %>% rename(DO.obs = ODO.mgL.int)
+salchaData <- salchaData %>% rename(discharge = Q.int)
+salchaData <- salchaData %>% rename(DO.sat = ModeledDOSat)
+salchaData <- salchaData %>% rename(depth = depth.int)
+
+salchaData$datetimeAK <- salchaData$datetimeAK
+CRREL$datetimeAK <- CRREL$datetimeAK
+
+
+CRREL_SALCHA <- salchaData %>% select(datetimeAK, DO.obs,DO.sat,solar.time,solar.time, depth, temp.water, Light_umol, discharge, salcha.air.pressure.mbar, air.pressure.filled.mbar.eafb.elevation, DO.sat.EAFB)
+
+
+CRREL_SALCHA <- CRREL_SALCHA %>% filter(datetimeAK >= "2021-05-18 12:00:00" & datetimeAK <= "2021-09-30 14:30:00")
+
+CRREL_SALCHA_july <- CRREL_SALCHA %>% filter(datetimeAK >= "2021-07-01 00:00:00" & datetimeAK <= "2021-08-01 00:00:00")
+
+
+anyNA(CRREL_SALCHA_july, recursive = TRUE)
+
+
+#plot it 
+
+salcha.plot.1 <- CRREL_SALCHA %>% 
+filter(datetimeAK >= "2021-07-01 00:00:00") %>% filter(datetimeAK <= "2021-07-31 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Salcha ODO, 2021")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', Light_umol='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+salcha.plot.2 <- CRREL_SALCHA %>% 
+filter(datetimeAK >= "2021-07-01 00:00:00") %>% filter(datetimeAK <= "2021-07-31 00:00:00") %>% 
+
+  select(solar.time, depth, temp.water, Light_umol, discharge) %>%
+  gather(type, value, depth, temp.water, Light_umol, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','Light_umol','discharge', 'air.pressure.mbar')),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/Plots/salcha.2021.pdf", height= 8.5)
+
+ggarrange(salcha.plot.1, salcha.plot.2, ncol = 1, nrow = 2)
+dev.off()
+
+
+
+# Diagnise More Issues with DO.sat
+
+Salcha.exo.2021 <- read.csv(file=file.path("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Salcha/EXO_data/from_internal_harddrive/processed/SALCHA.EXO.aord.csv"))
+
+Salcha.exo.2021$datetimeAK <- as.POSIXct(Salcha.exo.2021$datetimeAK)
+
+
+Salcha.exo.2021 <- Salcha.exo.2021 %>% select(datetimeAK, ODO.Psat.mn)
+
+figureTest <- full_join(Salcha.exo.2021,CRREL_SALCHA, by = "datetimeAK")
+
+figureTest$DO.pctsat = 100 * (figureTest$DO.obs / figureTest$DO.sat)
+
+figureTest %>% filter(datetimeAK >= "2021-07-01 00:00:00" & datetimeAK <= "2021-08-01 00:00:00" ) %>% ggplot(aes(x=solar.time)) + geom_line(aes(y=DO.pctsat), colour= "red") + geom_line(aes(y = ODO.Psat.mn), colour = 'blue')+ labs(colour="Datasets")
+
+
+#Try calculating DO sat from the EXO
+
+CRREL_SALCHA <- full_join(CRREL_SALCHA, Salcha.exo.2021, by = "datetimeAK")
+
+CRREL_SALCHA$psat.fill.test <- na_kalman(CRREL_SALCHA$ODO.Psat.mn, type = "level")
+
+
+# DO SAT CALCS Summary
+CRREL_SALCHA$DO.sat.EXO = CRREL_SALCHA$DO.obs /(CRREL_SALCHA$psat.fill.test/100)
+
+
+CRREL_SALCHA$DO.sat.VAUL_to_Salcha <- calc_DO_sat(CRREL_SALCHA$temp.water, CRREL_SALCHA$salcha.air.pressure.mbar)
+
+CRREL_SALCHA$DO.sat.EAFB <- calc_DO_sat(CRREL_SALCHA$temp.water, CRREL_SALCHA$air.pressure.filled.mbar.eafb.elevation)
+
+
+CRREL_SALCHA$air.pressure.modeled <- calc_air_pressure(elevation = 196)
+
+CRREL_SALCHA$DO.sat.Elevation <- calc_DO_sat(CRREL_SALCHA$temp.water, CRREL_SALCHA$air.pressure.modeled)
+
+
+################
+#import points manually from folder
+do_salcha_cal_pressure <- read.csv(here("do.salcha.cal.pressure.csv"))
+
+names(do_salcha_cal_pressure)[1]= c("datetimeAK")
+
+do_salcha_cal_pressure$datetimeAK <- as.POSIXct(mdy_hm(do_salcha_cal_pressure$datetimeAK), tz = "America/Anchorage")
+
+do_salcha_cal_pressure$datetimeAK <- force_tz(do_salcha_cal_pressure$datetimeAK, tz = "America/Anchorage")
+
+str(do_salcha_cal_pressure)
+
+do_salcha_cal_pressure <- data.frame(do_salcha_cal_pressure)
+
+do_salcha_cal_pressure$Pressure.mbar.cal.points <- as.numeric(do_salcha_cal_pressure$PressureMMHG)/ 0.75006157584566
+
+
+testmerge44 <- full_join(CRREL_SALCHA,do_salcha_cal_pressure, by = "datetimeAK")
+
+
+
+
+testmerge44 %>% filter(datetimeAK >= "2021-05-18 00:00:00" & datetimeAK <= "2021-06-30 00:00:00" ) %>% ggplot(aes(x=solar.time)) + geom_line(aes(y=air.pressure.filled.mbar.eafb.elevation, colour= "EAFB Pressure")) + labs(colour="Datasets", y = "DO (mg/L)") + geom_point(aes(y=Pressure.mbar.cal.points, colour= "Calibration Points"))
+
+
+#################
+
+anyNA(testmerge44, recursive = TRUE)
+anyNA(CRREL_SALCHA, recursive = TRUE)
+
+CRREL_SALCHA <- CRREL_SALCHA %>% filter(datetimeAK <="2021-09-30 14:30:00")
+
+
+
+
+CRREL_SALCHA %>% filter(datetimeAK >= "2021-07-01 00:00:00" & datetimeAK <= "2021-07-30 00:00:00" ) %>% ggplot(aes(x=solar.time)) + geom_line(aes(y=DO.sat.EAFB, colour= "EAFB")) + geom_line(aes(y = DO.sat.VAUL_to_Salcha, colour = 'VAUL Corrected for Salcha')) + geom_line(aes(y = DO.sat.EXO, colour = 'EXO')) + geom_line(aes(y = DO.sat.Elevation, colour = 'Elevation Only BP'))+
+  labs(colour="Datasets", y = "DO.sat (mg/L)") 
+
+
+CRREL_SALCHA %>% filter(datetimeAK >= "2021-05-18 00:00:00" & datetimeAK <= "2021-05-30 00:00:00" ) %>% ggplot(aes(x=solar.time)) + geom_line(aes(y=air.pressure.filled.mbar.eafb.elevation, colour= "EAFB Pressure")) + labs(colour="Datasets", y = "DO (mg/L)")
+
+# CRREL_SALCHA %>% filter(datetimeAK >= "2021-07-01 00:00:00" & datetimeAK <= "2021-08-01 00:00:00" ) %>% ggplot(aes(x=solar.time)) + geom_line(aes(y=DO.sat), colour= "red") + geom_line(aes(y = DO.sat.calced), colour = 'blue')+ labs(colour="Datasets")
+
+
+
+# CRREL_SALCHA %>% filter(datetimeAK >= "2021-07-01 00:00:00" & datetimeAK <= "2021-08-01 00:00:00" ) %>% ggplot(aes(x=solar.time)) + geom_line(aes(y=DO.sat), colour= "red") + geom_line(aes(y = DO.sat.calced), colour = 'blue')+geom_line(aes(y = DO.obs), colour = 'green') + labs(colour="Datasets")
+
+
+# CRREL_SALCHA$pressure.air.mmHg <- CRREL_SALCHA$pressure.air.mbar / 1.3332239
+# 
+# CRREL_SALCHA$ODO.Psat.new <- CRREL_SALCHA$ODO.Psat.mn / 754.0 * CRREL_SALCHA$pressure.air.mmHg
+# 
+# 
+# 
+
+# CRREL_SALCHA$ODO.Psat.new.filled <- na_kalman(CRREL_SALCHA$ODO.Psat.new, type = "level")
+
+# 
+# 
+# 
+# CRREL_SALCHA %>% filter(datetimeAK >= "2021-07-01 00:00:00" & datetimeAK <= "2021-08-01 00:00:00" ) %>% ggplot(aes(x=solar.time)) + geom_line(aes(y=ODO.Psat.new), colour= "red")
+
+
+# CRREL_SALCHA %>% filter(datetimeAK >= "2021-07-01 00:00:00" & datetimeAK <= "2021-08-01 00:00:00" ) %>% ggplot(aes(x=solar.time)) + geom_line(aes(y=DO.sat), colour= "red") + geom_line(aes(y = DO.sat2), colour = 'blue')+ labs(colour="Datasets")
+
+
+#Use EXO DO sat calc
+final.salcha.DT <- (CRREL_SALCHA) %>%
+  select(discharge, Light_umol, temp.water, DO.sat.EXO,DO.obs,depth,solar.time)
+
+final.salcha.DT <- final.salcha.DT %>% rename(DO.sat = DO.sat.EXO)
+
+anyNA(final.salcha.DT, recursive = TRUE)
+
+final.salcha.DT <- final.salcha.DT %>% rename(light = Light_umol)
+
+
+# final.salcha.DT <- na.omit(final.salcha.DT)
+
+str(final.salcha.DT)
+
+
+
+
+# write.csv(final.salcha.DT, here("Metabolism-UAF", "outputs", "correctedSalchaDT.csv"))
+
+
+final.salcha.DT <- final.salcha.DT %>% filter(as.character(solar.time) <= "2021-09-27 14:13:54")
+
+anyNA(final.salcha.DT, recursive = TRUE)
+final.salcha.DT$solar.time <- as.POSIXct(final.salcha.DT$solar.time)
+
+str(final.salcha.DT)
+
+
+
+
+
+bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
+
+#tun the model
+
+bayes_name
+
+bayes_specs <- specs(bayes_name,
+                     burnin_steps=4000, saved_steps=4000, n_cores=8,
+                     # GPP_daily_lower = 0, ER_daily_upper = 0,
+                    
+)
+
+bayes_specs
+
+mm.test.salcha.new <- metab(bayes_specs, data=final.salcha.DT)
+
+
+test <- get_fit(mm.test.salcha.new)
+
+testkbin <- test$KQ_binned
+
+
+dev.off()
+dev.set(dev.next())
+
+mcmc3 <- get_mcmc(mm.test.salcha.new)
+output79 <- rstan::traceplot(mcmc3, pars = "K600_daily" , nrow=3)
+output79
+
+output78 <- rstan::traceplot(mcmc3, pars = "GPP_daily" , nrow=3)
+output78
+
+output75 <- rstan::traceplot(mcmc3, pars = "ER_daily" , nrow=3)
+output75
+
+
+test9 <- get_params(mm.test.salcha.new)
+
+
+write.csv(test9, here("burnin3000_july2021_salcha.csv"))
+
+ggplot(data=test9, aes(x=GPP.daily, y=ER.daily)) + geom_point()
+ggplot(data=test9, aes(x=GPP.daily, y=K600.daily)) + geom_point()
+ggplot(data=test9, aes(x=ER.daily, y=K600.daily)) + geom_point()
+
+
+
+# # defining start date
+# start_date <- ymd_hms("2021/07/01 00:00:00")
+# 
+# # defining end date
+# end_date <- ymd_hms("2021/08/01 00:00:00")
+# 
+# # generating range of dates
+# range <- seq(start_date, end_date,"days")
+

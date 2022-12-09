@@ -1,0 +1,107 @@
+---
+title: "2022 Chems"
+author: "Jacob Adams"
+date: "12/7/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggpmisc)
+library(plyr)
+library(grid)
+library(ggpubr)
+library(anytime)
+library(googlesheets4)
+library(ggpmisc)
+library(plyr)
+library(dplyr)
+library(lubridate)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(scales)
+library(zoo)
+library(xts)
+library(forecast)
+library(googledrive)
+library(streamMetabolizer)
+library(readr)
+library(here)
+library(rstan)
+library(imputeTS)
+library(itsmr)
+library(purrr)
+library(naniar)
+library(data.table)
+library(rlang)
+
+```
+
+## R Markdown
+
+```{r, fig.width=9, fig.height=7}
+
+Data2022 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2022/processed_sensor_dat/SUNA.EXO.int.corr.lab_2022.csv")
+
+
+############ DOD Time Series #############
+data.test2 <- Data2022[Data2022$site.ID %in% c('POKE','VAUL','MOOS','FRCH','STRT'),]
+
+
+
+#Nitrate (SUNA?)
+data.test2 %>% ggplot(aes(x= as.POSIXct(min, tz = "America/Anchorage"), y = nitrateuM.adj.mn, color = site.ID)) + geom_point()+facet_grid(site.ID~., scales = "free")+ theme_grey(base_size = 15)
+
+#EXO DATA
+data.test2 %>% ggplot(aes(x= as.POSIXct(min, tz = "America/Anchorage"), y = fDOM.QSU.mn.adj, color = site.ID)) + geom_point()+facet_grid(site.ID~., scales = "free")+ theme_grey(base_size = 15)
+
+data.test2 %>% ggplot(aes(x= as.POSIXct(min, tz = "America/Anchorage"), y = Turbidity.FNU.mn.adj, color = site.ID)) + geom_point()+facet_grid(site.ID~., scales = "free")+ theme_grey(base_size = 15)
+
+data.test2 %>% ggplot(aes(x= as.POSIXct(min, tz = "America/Anchorage"), y = Turbidity.FNU.mn.adj, color = site.ID)) + geom_point()+facet_grid(site.ID~., scales = "free")+ theme_grey(base_size = 15)
+
+data.test2 %>% ggplot(aes(x= as.POSIXct(min, tz = "America/Anchorage"), y = SpCond.uScm.mn.adj, color = site.ID)) + geom_point()+facet_grid(site.ID~., scales = "free")+ theme_grey(base_size = 15)
+
+data.test2 %>% ggplot(aes(x= as.POSIXct(min, tz = "America/Anchorage"), y = ODO.mgL.mn.adj, color = site.ID)) + geom_point()+facet_grid(site.ID~., scales = "free")+ theme_grey(base_size = 15)
+
+data.test2 %>% ggplot(aes(x= as.POSIXct(min, tz = "America/Anchorage"), y = ODO.Psat.mn.adj, color = site.ID)) + geom_point()+facet_grid(site.ID~., scales = "free")+ theme_grey(base_size = 15)
+
+# Other Chems
+data.test2 %>% ggplot(aes(x= as.POSIXct(min, tz = "America/Anchorage"), y = DOC_mgL, color = site.ID)) + geom_point()+facet_grid(site.ID~., scales = "free")+ theme_grey(base_size = 15)
+
+data.test2 %>% ggplot(aes(x= as.POSIXct(min, tz = "America/Anchorage"), y = TDN_mgL, color = site.ID)) + geom_point()+facet_grid(site.ID~., scales = "free")+ theme_grey(base_size = 15)
+
+data.test2 %>% ggplot(aes(x= as.POSIXct(min, tz = "America/Anchorage"), y = Fluoride_mgL, color = site.ID)) + geom_point()+facet_grid(site.ID~., scales = "free")+ theme_grey(base_size = 15)
+
+data.test2 %>% ggplot(aes(x= as.POSIXct(min, tz = "America/Anchorage"), y = Sulfate_mgL, color = site.ID)) + geom_point()+facet_grid(site.ID~., scales = "free")+ theme_grey(base_size = 15)
+
+data.test2 %>% ggplot(aes(x= as.POSIXct(min, tz = "America/Anchorage"), y = Chloride_mgL, color = site.ID)) + geom_point()+facet_grid(site.ID~., scales = "free")+ theme_grey(base_size = 15)
+
+data.test2 %>% ggplot(aes(x= as.POSIXct(min, tz = "America/Anchorage"), y = Bromide_mgL, color = site.ID)) + geom_point()+facet_grid(site.ID~., scales = "free")+ theme_grey(base_size = 15)
+
+
+
+data.test2 %>% ggplot(aes(x= as.POSIXct(min, tz = "America/Anchorage"), y = Ammonium_uM, color = site.ID)) + geom_point()+facet_grid(site.ID~., scales = "free")+ theme_grey(base_size = 15)
+
+data.test2 %>% ggplot(aes(x= as.POSIXct(min, tz = "America/Anchorage"), y = Potassium_uM, color = site.ID)) + geom_point()+facet_grid(site.ID~., scales = "free")+ theme_grey(base_size = 15)
+
+data.test2 %>% ggplot(aes(x= as.POSIXct(min, tz = "America/Anchorage"), y = NitrateN_mgL, color = site.ID)) + geom_point()+facet_grid(site.ID~., scales = "free")+ theme_grey(base_size = 15)
+
+
+
+```
+
+
+``` {r}
+
+plot_for_loop <- function(df, x_var, y_var) {
+  
+  ggplot(df, aes(x = .data[[x_var]], y = .data[[y_var]])) + 
+    geom_point() + 
+    geom_line() +
+    labs(x = x_var, y = y_var) +
+    theme_classic(base_size = 12)
+}
+
+```

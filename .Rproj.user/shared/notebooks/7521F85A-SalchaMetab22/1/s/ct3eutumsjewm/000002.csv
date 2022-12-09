@@ -1,0 +1,5 @@
+"0","er <- ggplot(data = fit.daily, aes(x = date)) +geom_point(aes(y = ER_mean), color = ""firebrick3"") + geom_errorbar(aes(ymin=ER_mean-ER_sd, ymax=ER_mean+ER_sd), width=.2, position=position_dodge(0.05), color = ""firebrick3"")"
+"0","er"
+"2","Warning:"
+"2"," Removed 3 rows containing missing values (geom_point).
+"

@@ -1,0 +1,2 @@
+"0","gppmcmc <- rstan::traceplot(mcmc, pars='GPP_daily', nrow=7)"
+"0","gppmcmc"

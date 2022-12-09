@@ -1,0 +1,1 @@
+"0","grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2)))"

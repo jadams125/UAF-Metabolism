@@ -1,0 +1,525 @@
+---
+title: "SalchaRun1"
+author: "Jacob Adams"
+date: "12/5/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Packages
+``` {r}
+library(ggpubr)
+library(anytime)
+library(googlesheets4)
+library(ggpmisc)
+library(plyr)
+library(grid)
+library(ggpubr)
+library(anytime)
+library(googlesheets4)
+library(ggpmisc)
+library(plyr)
+library(dplyr)
+library(lubridate)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(scales)
+library(zoo)
+library(xts)
+library(forecast)
+library(googledrive)
+library(streamMetabolizer)
+library(readr)
+library(here)
+library(rstan)
+library(imputeTS)
+library(itsmr)
+library(purrr)
+library(naniar)
+library(data.table)
+
+```
+
+Data Prep
+```{r}
+Salcha.exo.2022 <- read.csv(file=file.path("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Salcha/EXO_processed/SALCHA.EXO.cl.corr.2022.csv"))
+
+ts_2022 <- as.data.frame(seq(as.POSIXct("2022-05-03 10:30:00", tz = 'America/Anchorage'), 
+    as.POSIXct("2022-10-08 09:00:00", tz = 'America/Anchorage'), by = '15 min'))
+colnames(ts_2022)[1] = "datetimeAK"
+# setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Salcha/EXO_data/from_internal_harddrive/")
+
+Salcha.exo.2022$datetimeAK <- as.POSIXct(Salcha.exo.2022$datetimeAK)
+
+test <- full_join(ts_2022, Salcha.exo.2022, by = "datetimeAK")
+
+
+anyNA(test, recursive = TRUE)
+lapply(test, summary)
+
+test %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = ODO.mgL.mn.adj)) + geom_miss_point()
+
+
+#get rid of NA gaps larger than 12 hours
+test2 <- test %>%
+   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(ODO.mgL.mn.adj))) %>% 
+   ungroup() %>% 
+   group_by(ODO.mgL.mn.adj,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+test2 %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = ODO.mgL.mn.adj)) + geom_miss_point()
+
+
+write.csv(test2, "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/salcha.2022.full.ts.csv")
+
+
+#interpolate Any missing data:
+
+anyNA(test2, recursive = TRUE)
+lapply(test2, summary)
+
+test2 %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = ODO.mgL.mn.adj)) + geom_miss_point()
+test2 %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = ODO.Psat.mn.adj)) + geom_miss_point()
+test2 %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = Temp.C.int)) + geom_miss_point()
+
+#looks like just out of water points
+
+
+test2$ODO.mgL.mn <- na_kalman(test$ODO.mgL.mn.adj, type = "level")
+test2$ODO.Psat.mn.adj <- na_kalman(test$ODO.Psat.mn.adj)
+test2$Temp.C.int <- na_kalman(test$Temp.C.int, type = "level")
+
+Salcha.exo.2022 <- test2
+
+```
+
+```{r}
+
+#Light
+
+CRREL <- read.csv(here("CRREL_met_PAR.csv"), skip = 4, header = TRUE)
+# CRREL <- read_csv(here("Crell_met_PAR.csv"), skip = 5)
+
+CRREL$datetimeAK <- strptime(CRREL$Time, '%m/%d/%Y %H:%M')
+
+CRREL$datetimeAK <- as.POSIXct(as.character(CRREL$datetimeAK))
+
+CRREL <- CRREL %>% rename(ParWm2 = CPCRW.CRREL.Main.Met.Station..PAR_Den_AVG.W.m2.)
+
+Salcha.exo.2022$datetimeAK <- as.POSIXct(Salcha.exo.2022$datetimeAK)
+
+ts_2022$datetimeAK <- as.POSIXct(ts_2022$datetimeAK, tz = "America/Anchorage")
+
+
+CRREL_SALCHA1 <- left_join(ts_2022, CRREL, by = "datetimeAK")
+
+
+write.csv(CRREL_SALCHA1, here("Crell_met_PAR2.csv"))
+
+anyNA(CRREL_SALCHA1, recursive = TRUE)
+lapply(CRREL_SALCHA1, summary)
+
+
+CRREL_SALCHA1 %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = ParWm2)) + geom_miss_point()
+
+CRREL_SALCHA1$ParWm2 <- na_kalman(CRREL_SALCHA1$ParWm2)
+
+CRREL_SALCHA1 %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = ParWm2)) + geom_miss_point()
+
+```
+
+```{r}
+# Discharge and Depth
+
+library(dataRetrieval)
+# SalchaRiver
+siteNumber <- "15484000"
+SalchaInfo <- readNWISsite(siteNumber)
+parameterCd <- "00060"
+
+# Raw Q data:
+SalchaDischarge <- readNWISuv(
+  siteNumber, parameterCd,
+  "2022-04-01", "2022-11-01"
+)
+
+
+SalchaDischarge$dateTime <- force_tz(as.POSIXct(SalchaDischarge$dateTime), tz = "UTC")
+
+
+# Raw depth data:
+SalchaDepth <- readNWISuv(
+  siteNumber, "00065",
+  "2022-04-01", "2022-11-01"
+)
+
+SalchaDepth$dateTime <- force_tz(as.POSIXct(SalchaDepth$dateTime), tz = "UTC")
+
+SalchaDischargeDepth <- merge(SalchaDischarge, SalchaDepth, by = "dateTime")
+
+SalchaDischargeDepth$datetimeAK <- with_tz(SalchaDischargeDepth$dateTime, tzone = "America/Anchorage")
+
+SalchaDischargeDepth <- SalchaDischargeDepth %>% rename(depth = X_00065_00000)
+SalchaDischargeDepth <- SalchaDischargeDepth %>% rename(discharge = X_00060_00000)
+
+# SalchaDischargeDepth <- 
+# 
+# SalchaDischargeDepth <- full_join(ts_2022, SalchaDischargeDepth, by = "datetimeAK")
+# 
+
+SalchaDischargeDepth %>% select(discharge, depth, datetimeAK)
+
+
+# convert to Meters 
+SalchaDischargeDepth$depth <- as.numeric(SalchaDischargeDepth$depth) * 0.3048
+SalchaDischargeDepth$discharge <- as.numeric(SalchaDischargeDepth$discharge) /35.315
+
+SalchaDischargeDepth <- merge(ts_2022, SalchaDischargeDepth, by = "datetimeAK")
+
+SalchaDischargeDepth %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+SalchaDischargeDepth %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = depth)) + geom_miss_point()
+
+anyNA(SalchaDischargeDepth, recursive = TRUE)
+lapply(SalchaDischargeDepth, summary)
+
+
+SalchaDischargeDepth$discharge <- na_kalman(SalchaDischargeDepth$discharge, type = "level")
+SalchaDischargeDepth$depth <- na_kalman(SalchaDischargeDepth$depth, type = "level")
+
+
+write.csv(SalchaDischargeDepth, (here("salcha.2022.q_data.csv")))
+
+
+```
+
+```{r}
+
+#join them:
+merge1 <- merge(SalchaDischargeDepth, CRREL_SALCHA1, by = "datetimeAK")
+Salcha.exo.2022 <- merge(merge1, Salcha.exo.2022, by = "datetimeAK")
+
+#Gap filled Data frame:
+#DO, water temp, Time
+Salcha.exo.2022 <- Salcha.exo.2022 %>% select(ODO.Psat.mn.adj, ODO.mgL.mn, Temp.C.int, datetimeAK, ParWm2, discharge, depth)
+
+
+anyNA(Salcha.exo.2022, recursive = TRUE)
+lapply(Salcha.exo.2022, summary)
+
+Salcha.exo.2022$datetimeAK <- force_tz(as.POSIXct(Salcha.exo.2022$datetimeAK), "America/Anchorage")
+
+
+# 
+# #Join them together
+# salchaData <- join(Salcha.exo.2022, dischargeSalcha, by = "datetimeAK")
+
+
+salchaData <- Salcha.exo.2022
+
+salchaData$datetimeAK <- as.POSIXct(salchaData$datetimeAK) 
+
+#Solar Time and Light
+
+salchaData$solar.time <- calc_solar_time(salchaData$datetimeAK, -146.9281)
+
+salchaData$light <- calc_light(salchaData$solar.time, 64.47153, -146.9281)
+
+
+
+#find max PAR value from poker to rate the CRREL . Downloaded at start of aug, peak should be in june or july so it is fine to only use this subset
+Poke.2022.PAR.url <- "https://drive.google.com/drive/u/1/folders/1JW8NRBDT-I9oIOayp3i4kGef9cP3nO3k"
+pokeparget <- drive_get(as_id(Poke.2022.PAR.url))
+pokepar_glist <- drive_ls(pokeparget, pattern = "220801_11619_125_POKE.CSV")
+walk(pokepar_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+poke2022par <- read.csv("220801_11619_125_POKE.CSV", 
+                              skip = 8, header = FALSE)
+
+poke2022par <- poke2022par %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+#Fix Date Time
+poke2022par$datetimeAK <- paste(poke2022par$Date, poke2022par$Time, sep="")
+
+poke2022par$datetimeAK <-  dmy_hms(poke2022par$datetimeAK)
+poke2022par$datetimeAK <- force_tz(poke2022par$datetimeAK, "America/Anchorage")
+
+#Calibrate logger 11619 to LICOR
+poke2022par$CalibratedValue <- poke2022par$CalibratedValue * 0.035
+
+
+plot(poke2022par$datetimeAK, poke2022par$CalibratedValue)
+plot(salchaData$datetimeAK, salchaData$ParWm2)
+
+max.par.poke <- max(poke2022par$CalibratedValue)
+
+max.par.crrel <- max(salchaData$ParWm2)
+
+multiplyFactor <- max.par.poke/max.par.crrel
+
+
+salchaData$Light_umol <- salchaData$ParWm2 *multiplyFactor
+```
+
+```{r}
+
+#Try calculating DO sat from the EXO
+
+salchaData
+
+
+# DO SAT CALCS Summary
+salchaData$DO.sat.EXO = salchaData$ODO.mgL.mn /(salchaData$ODO.Psat.mn.adj/100)
+
+
+#Use EXO DO sat calc
+final.salcha.DT <- (salchaData) %>% rename(DO.obs = ODO.mgL.mn, temp.water = Temp.C.int) %>% 
+  select(discharge, Light_umol, temp.water, DO.sat.EXO,DO.obs,depth,solar.time)
+
+final.salcha.DT <- final.salcha.DT %>% rename(DO.sat = DO.sat.EXO)
+
+anyNA(final.salcha.DT, recursive = TRUE)
+
+final.salcha.DT <- final.salcha.DT %>% rename(light = Light_umol)
+
+
+# final.salcha.DT <- na.omit(final.salcha.DT)
+
+str(final.salcha.DT)
+
+# write.csv(final.salcha.DT, here("UAF-Metabolism", "outputs", "correctedSalchaDT.csv"))
+
+final.salcha.DT$solar.time <- as.POSIXct(final.salcha.DT$solar.time)
+
+str(final.salcha.DT)
+
+
+write.csv(final.salcha.DT, here("outputs", "salcha.comb.2022.readyforMetab.new.clean.csv"))
+
+```
+
+#Metab 2022
+```{r}
+
+bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
+bayes_name_AppEtAL <- "b_Kb_oipi_tr_plrckm.stan"
+bayes_specs <- specs(bayes_name, 
+                     burnin_steps=9000, saved_steps=5000, n_cores=8, n_chains = 4, GPP_daily_lower = 0, ER_daily_upper = 0
+)
+
+```
+
+Model Run
+```{r fig.width=8, fig.height=10}
+
+data.salcha.mm.all <- read.csv(here("outputs", "salcha.comb.2022.readyforMetab.new.clean.csv"))
+
+data.salcha.mm.all <- data.salcha.mm.all %>% filter(as.character(solar.time) >= "2022-05-07 04:13:54" & as.character(solar.time) <= "2022-06-30 04:13:54")
+
+# #Cut out bad day with storm / bad DO fits
+# data.salcha.mm.all <- data.salcha.mm.all %>%
+#   mutate(across(c(DO.obs),
+#                 ~ifelse(as.character(solar.time) >= "2022-06-19 04:13:54" & as.character(solar.time) < "2022-06-20 04:13:54", NA, .)))
+# 
+# data.salcha.mm.all <- data.salcha.mm.all %>%
+#   mutate(across(c(DO.obs),
+#                 ~ifelse(as.character(solar.time) >= "2022-05-21 04:13:54" & as.character(solar.time) < "2022-05-22 04:13:54", NA, .)))
+
+
+# data.salcha.mm.all <- data.salcha.mm.all %>%  rename(DO.sat = DO.sat.EXO)
+data.salcha.mm.all$solar.time <- as.POSIXct(data.salcha.mm.all$solar.time, tz = "UTC")
+data.salcha.mm.all <- na.omit(data.salcha.mm.all) %>% select(solar.time, DO.obs, DO.sat, light, discharge, depth, temp.water)
+
+startTime <- as.POSIXct(Sys.time())
+mm.test.salcha <- metab(bayes_specs, data=data.salcha.mm.all)
+endTime <- as.POSIXct(Sys.time())
+# 
+difftime(endTime, startTime)
+save(mm.test.salcha, file = here("Outputs", "salcha.2022.1.1.new.RData"))
+# 
+fit.salcha <- get_fit(mm.test.salcha)
+fit.daily <- fit.salcha$daily
+write.csv(fit.daily, here("outputs", "salcha.2022.1.1.new.full.csv"))
+
+```
+
+#Plot Input Data
+
+```{r fig.width = 13, fig.height=7}
+model_data <- get_data(mm.test.salcha)
+write.csv(model_data, here("outputs", "salcha.2022.1.1.new.model_data.csv"))
+
+plot_DO_preds(mm.test.salcha)
+```
+
+```{r fig.width = 20, fig.height=10}
+
+light.fig <- ggplot(data=model_data, aes(x=solar.time, y=light)) + geom_point(color = "chartreuse4") +theme(text = element_text(size=20))
+q.fig<- ggplot(data=model_data, aes(x=solar.time, y=discharge)) + geom_point(color = "darksalmon")+theme(text = element_text(size=20))
+temp.fig<- ggplot(data=model_data, aes(x=solar.time, y=temp.water)) + geom_point(color = "turquoise4")+theme(text = element_text(size=20))
+depth.fig<- ggplot(data=model_data, aes(x=solar.time, y=depth)) + geom_point(color = "maroon")+theme(text = element_text(size=20))
+
+library(grid)
+grid.newpage()
+grid.draw(rbind(ggplotGrob(light.fig), ggplotGrob(q.fig),ggplotGrob(depth.fig), ggplotGrob(temp.fig)))
+
+```
+
+
+
+
+
+```{r fig.width = 10, fig.height=8}
+gpp <- ggplot(data=fit.salcha$daily, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")
+gpp
+
+#save with no axis for combined plot
+gpp <- ggplot(data=fit.salcha$daily, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+```
+
+```{r fig.width = 10, fig.height=8}
+er <- ggplot(data = fit.daily, aes(x = date)) +geom_point(aes(y = ER_mean), color = "firebrick3") + geom_errorbar(aes(ymin=ER_mean-ER_sd, ymax=ER_mean+ER_sd), width=.2, position=position_dodge(0.05), color = "firebrick3")
+er
+```
+
+```{r fig.width = 10, fig.height=8}
+k600 <- ggplot(data=fit.salcha$daily, aes(x=date, y=K600_daily_mean)) + geom_point(color = "orange") + geom_errorbar(aes(ymin=K600_daily_mean-K600_daily_sd, ymax=K600_daily_mean+K600_daily_sd), width=.2, position=position_dodge(0.05), color = "orange")
+k600
+#save with no axis for combined plot
+k600 <- ggplot(data=fit.salcha$daily, aes(x=date, y=K600_daily_mean)) + geom_point(color = "orange") + geom_errorbar(aes(ymin=K600_daily_mean-K600_daily_sd, ymax=K600_daily_mean+K600_daily_sd), width=.2, position=position_dodge(0.05), color = "orange") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+```
+
+```{r fig.width = 10, fig.height=8}
+rhat <- ggplot(data=fit.salcha$daily, aes(x=date)) + geom_point(aes(y=GPP_Rhat, colour = "GPP")) + geom_point(aes(y=as.numeric(ER_Rhat), colour = "ER")) + geom_point(aes(y=K600_daily_Rhat, colour = "K600")) +
+  labs(y = "RHAT") + theme(legend.position="top") + geom_hline(yintercept=1.01, color = "dark blue")+ geom_hline(yintercept=1.1, color = "dark red", linetype = "dashed")
+rhat
+
+rhat <- ggplot(data=fit.salcha$daily, aes(x=date)) + geom_point(aes(y=GPP_Rhat, colour = "GPP")) + geom_point(aes(y=as.numeric(ER_Rhat), colour = "ER")) + geom_point(aes(y=K600_daily_Rhat, colour = "K600")) +
+  labs(y = "RHAT") + theme(legend.position="top") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ geom_hline(yintercept=1.01, color = "dark blue")+ geom_hline(yintercept=1.1, color = "dark red", linetype = "dashed")
+```
+
+```{r fig.width = 10, fig.height=8}
+ggplot(data=fit.daily, aes(x=GPP_mean, y=ER_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+```
+
+```{r fig.width = 10, fig.height=8}
+ggplot(data=fit.daily, aes(x=GPP_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+```
+
+```{r fig.width = 10, fig.height=8}
+ggplot(data=fit.daily, aes(x=ER_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+```
+
+```{r fig.width = 10, fig.height=10}
+mcmc <- get_mcmc(mm.test.salcha)
+k600mcmc <- rstan::traceplot(mcmc, pars='K600_daily', nrow=7)
+k600mcmc
+```
+
+
+```{r fig.width = 10, fig.height=10}
+gppmcmc <- rstan::traceplot(mcmc, pars='GPP_daily', nrow=7)
+gppmcmc
+```
+
+```{r fig.width = 10, fig.height=10}
+ermcmc <- rstan::traceplot(mcmc, pars='ER_daily', nrow=7)
+ermcmc
+```
+
+
+#DO r2
+
+```{r fig.width = 10, fig.height=8}
+salcha.DO.pred <- predict_DO(mm.test.salcha)
+salcha.DO.pred <- na.omit(salcha.DO.pred)
+lm(DO.obs~ DO.mod, data = salcha.DO.pred)
+salcha.DO.pred$SM.date <- as.Date(salcha.DO.pred$solar.time - 4*60*60)
+salcha.DO.pred$SM.date <- as.factor(salcha.DO.pred$SM.date)
+fit_model <- function(x, y) summary(lm(x ~ y))$adj.r.squared
+test.run <- salcha.DO.pred %>% group_by(SM.date) %>% summarise(adj.R2 = fit_model(DO.obs,DO.mod))
+salcha.DO.pred <- full_join(salcha.DO.pred, test.run)
+rsq <-  summary(lm(salcha.DO.pred$DO.mod~salcha.DO.pred$DO.obs))$r.squared
+
+p1 <- ggplot(salcha.DO.pred, aes(x = solar.time)) + geom_point(aes(y=DO.obs, colour = "Observed DO"), color = "darkcyan") + geom_line(aes(y = DO.mod, colour= "Modeled DO"), color = "blue4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) + labs(colour="Green", y = "DO (mg/L)") +  theme(legend.position="none") + ggtitle("Observed (points) and Modeled (lines)")
+p2 <- ggplot(salcha.DO.pred, aes(x = solar.time)) + geom_point(aes(y=adj.R2))
+q.fig <- ggplot(data = data.salcha.mm.all, aes(x = solar.time)) +geom_point(aes(y=discharge))
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2)))
+```             
+
+```{r fig.width = 10, fig.height=8}
+grid.newpage()
+grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), ggplotGrob(rhat),ggplotGrob(q.fig), ggplotGrob(k600),ggplotGrob(gpp), ggplotGrob(er)))
+
+```
+
+
+
+
+
+
+
+<!-- ``` {r} -->
+<!-- test <- get_fit(mm.test.salcha.new) -->
+
+<!-- test -->
+
+
+<!-- testkbin <- test$KQ_binned -->
+
+
+<!-- view(test$overall) -->
+<!-- view(test$daily) -->
+
+
+<!-- dev.off() -->
+<!-- dev.set(dev.next()) -->
+
+<!-- mcmc3 <- get_mcmc(mm.test.salcha.new) -->
+<!-- output79 <- rstan::traceplot(mcmc3, pars = "K600_daily" , nrow=3) -->
+<!-- output79 -->
+
+<!-- output78 <- rstan::traceplot(mcmc3, pars = "GPP_daily" , nrow=3) -->
+<!-- output78 -->
+
+<!-- output75 <- rstan::traceplot(mcmc3, pars = "ER_daily" , nrow=3) -->
+<!-- output75 -->
+
+
+<!-- test9 <- get_params(mm.test.salcha.new) -->
+
+
+<!-- write.csv(test9, here("burnin5000_2022_salcha.csv")) -->
+
+<!-- write.csv(test$daily, here("outputs", "burnin5000_2022_salcha_metrics.csv")) -->
+
+
+<!-- ggplot(data=test9, aes(x=GPP.daily, y=ER.daily)) + geom_point() -->
+<!-- ggplot(data=test9, aes(x=GPP.daily, y=K600.daily)) + geom_point() -->
+<!-- ggplot(data=test9, aes(x=ER.daily, y=K600.daily)) + geom_point() -->
+
+
+
+<!-- # # defining start date -->
+<!-- # start_date <- ymd_hms("2022/07/01 00:00:00") -->
+<!-- #  -->
+<!-- # # defining end date -->
+<!-- # end_date <- ymd_hms("2022/08/01 00:00:00") -->
+<!-- #  -->
+<!-- # # generating range of dates -->
+<!-- # range <- seq(start_date, end_date,"days") -->
+
+
+
+
+
+
+
+<!-- ``` -->

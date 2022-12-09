@@ -1,0 +1,3 @@
+"0","rhat <- ggplot(data=fit.salcha$daily, aes(x=date)) + geom_point(aes(y=GPP_Rhat, colour = ""GPP"")) + geom_point(aes(y=as.numeric(ER_Rhat), colour = ""ER"")) + geom_point(aes(y=K600_daily_Rhat, colour = ""K600"")) +"
+"0","  labs(y = ""RHAT"") + theme(legend.position=""top"") + geom_hline(yintercept=1.01, color = ""dark blue"")+ geom_hline(yintercept=1.1, color = ""dark red"", linetype = ""dashed"")"
+"0","rhat"
