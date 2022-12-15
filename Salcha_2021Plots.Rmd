@@ -1,0 +1,113 @@
+---
+title: "Salcha2021Plot"
+author: "Jacob Adams"
+date: "2022-12-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+library(ggpubr)
+library(anytime)
+library(googlesheets4)
+library(ggpmisc)
+library(plyr)
+
+library(dplyr)
+library(lubridate)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(scales)
+
+library(zoo)
+library(xts)
+library(forecast)
+library(googledrive)
+library(streamMetabolizer)
+library(readr)
+library(here)
+
+library(imputeTS)
+library(itsmr)
+library(purrr)
+
+```
+
+## R Markdown
+
+```{r fig.width= 10, fig.height= 10}
+
+salcha.2021.1.full <- read.csv(here("outputs", "salcha.2021.1.new.full.csv"))
+salcha.2021.1.data <- read.csv(here("outputs", "salcha.2021.1.new.model_data.csv"))
+
+salcha.2021.2.full <- read.csv(here("outputs", "salcha.2021.2.new.full.csv"))
+salcha.2021.2.data <- read.csv(here("outputs", "salcha.2021.2.new.model_data.csv"))
+
+
+
+salcha.all.2021 <- rbind(salcha.2021.1.full, salcha.2021.2.full)
+salcha.all.2021.data <- rbind(salcha.2021.1.data,salcha.2021.2.data)
+
+salcha.all.2021$date <- as.POSIXct(as.character(salcha.all.2021$date))
+salcha.all.2021.data$solar.time <- as.POSIXct(salcha.all.2021.data$solar.time, tz = "UTC")
+
+#Plots
+gpp <- ggplot(data=salcha.all.2021, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+er <- ggplot(data = salcha.all.2021, aes(x = date)) +geom_point(aes(y = ER_mean), color = "firebrick3") + geom_errorbar(aes(ymin=ER_mean-ER_sd, ymax=ER_mean+ER_sd), width=.2, position=position_dodge(0.05), color = "firebrick3")
+k600 <- ggplot(data=salcha.all.2021, aes(x=date, y=K600_daily_mean)) + geom_point(color = "orange") + geom_errorbar(aes(ymin=K600_daily_mean-K600_daily_sd, ymax=K600_daily_mean+K600_daily_sd), width=.2, position=position_dodge(0.05), color = "orange") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+rhat <- ggplot(data=salcha.all.2021, aes(x=date)) + geom_point(aes(y=GPP_Rhat, colour = "GPP")) + geom_point(aes(y=as.numeric(ER_Rhat), colour = "ER")) + geom_point(aes(y=K600_daily_Rhat, colour = "K600")) +
+  labs(y = "RHAT") + theme(legend.position="top") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ geom_hline(yintercept=1.01, color = "dark blue")+ geom_hline(yintercept=1.1, color = "dark red", linetype = "dashed")
+ggplot(data=salcha.all.2021, aes(x=GPP_mean, y=ER_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+ggplot(data=salcha.all.2021, aes(x=GPP_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+ggplot(data=salcha.all.2021, aes(x=ER_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+dev.set(dev.next())
+
+
+
+library(grid)
+grid.newpage()
+#DO r2
+
+salcha.all.2021.data <- na.omit(salcha.all.2021.data)
+lm(DO.obs~ DO.mod, data = salcha.all.2021.data)
+salcha.all.2021.data$SM.date <- as.Date(as.POSIXct(salcha.all.2021.data$solar.time) - 4*60*60)
+salcha.all.2021.data$SM.date <- as.factor(salcha.all.2021.data$SM.date)
+fit_model <- function(x, y) summary(lm(x ~ y))$adj.r.squared
+test.run <- salcha.all.2021.data %>% group_by(SM.date) %>% summarise(adj.R2 = fit_model(DO.obs,DO.mod))
+salcha.all.2021.data <- full_join(salcha.all.2021.data, test.run)
+
+```
+
+```{r fig.width= 15, fig.height= 8}
+
+ggplot(data = salcha.all.2021.data, aes(x = solar.time)) +geom_point(aes(y=depth))
+ggplot(data = salcha.all.2021.data, aes(x = solar.time)) +geom_point(aes(y=temp.water))
+
+```
+```{r fig.width= 15, fig.height=5}
+ggplot(data = salcha.all.2021.data, aes(x = solar.time)) +geom_line(aes(y=light))+ylab("Modeled Light")
+
+
+```
+
+
+
+```{r fig.width=15, fig.height=35}
+rsq <-  summary(lm(salcha.all.2021.data$DO.mod~salcha.all.2021.data$DO.obs))$r.squared
+library(ggplot2)
+p1 <- ggplot(salcha.all.2021.data, aes(x = solar.time)) + geom_point(aes(y=DO.obs, colour = "Observed DO"), color = "darkcyan") + geom_line(aes(y = DO.mod, colour= "Modeled DO"), color = "blue4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) + labs(colour="Green", y = "DO (mg/L)") +  theme(legend.position="none") + ggtitle("Observed (points) and Modeled (lines)")
+p2 <- ggplot(salcha.all.2021.data, aes(x = solar.time)) + geom_point(aes(y=adj.R2))
+q.fig <- ggplot(data = salcha.all.2021.data, aes(x = solar.time)) +geom_point(aes(y=discharge))
+grid.newpage()
+grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), ggplotGrob(rhat),ggplotGrob(q.fig), ggplotGrob(k600),ggplotGrob(gpp), ggplotGrob(er)))
+
+
+
+
+
+
+
+```

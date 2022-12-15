@@ -1,7 +1,0 @@
-"0",""
-"0","testPlotVAUL <- ggplot(data = All.years.vaul.MESSY,"
-"0","                       mapping = aes(x = datetimeAK, y = as.numeric(ODO.Psat))) + geom_point() + labs(x = ""Date"", y = ""Dissolved Oxygen (%Sat)"")"
-"0","testPlotVAUL"
-"2","Warning:"
-"2"," Removed 1702 rows containing missing values (geom_point).
-"

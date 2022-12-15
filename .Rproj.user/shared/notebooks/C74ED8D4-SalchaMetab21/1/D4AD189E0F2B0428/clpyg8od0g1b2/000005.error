@@ -1,1 +1,0 @@
-{"frames":[{"func":"save(mm.test.salcha, file = here(\"Outputs\", \"salcha.2019.2.new.RData\"))","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0}],"message":"Error in save(mm.test.salcha, file = here(\"Outputs\", \"salcha.2019.2.new.RData\")) : \n  error writing to connection\n"}

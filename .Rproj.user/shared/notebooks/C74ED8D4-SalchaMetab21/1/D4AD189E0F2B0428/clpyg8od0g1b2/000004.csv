@@ -1,5 +1,0 @@
-"0","save(mm.test.salcha, file = here(""Outputs"", ""salcha.2019.2.new.RData""))
-"
-"2","Error in save(mm.test.salcha, file = here(""Outputs"", ""salcha.2019.2.new.RData"")) : 
-  error writing to connection
-"

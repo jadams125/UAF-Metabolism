@@ -1,5 +1,0 @@
-"0",""
-"0","clean$datetimeAK <- force_tz(as.POSIXct(clean$datetimeAK), ""America/Anchorage"")"
-"0",""
-"0","clean$solar.time <- calc_solar_time(as.POSIXct(clean$datetimeAK), longitude = -146.916364)"
-"0",""

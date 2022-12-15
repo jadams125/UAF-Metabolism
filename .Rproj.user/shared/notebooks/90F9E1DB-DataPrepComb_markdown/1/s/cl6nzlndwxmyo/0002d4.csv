@@ -1,3 +1,0 @@
-"0","ggsave(""plots/frch_Q_wr_graph.png"", width = 15, height = 10, units = ""cm"", scale = 1.3)"
-"2","`geom_smooth()` using formula 'y ~ x'
-"

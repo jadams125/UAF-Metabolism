@@ -1,1 +1,0 @@
-"0","plot(POKE.ALL.Q$DateTime, POKE.ALL.Q$Q, main = ""Poke Discharge"", xlab = ""Date"", ylab = ""Predicted Discahrge (m^3/s)"")"

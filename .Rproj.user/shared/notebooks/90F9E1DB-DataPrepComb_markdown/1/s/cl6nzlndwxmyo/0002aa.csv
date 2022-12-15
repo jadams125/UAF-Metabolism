@@ -1,1 +1,0 @@
-"0","plot(poke.combinded.par$DateTime, poke.combinded.par$Calibrated.Value, main = ""Poke PAR"", ylab = ""PAR (µmol of photons m-2 s-1)"", xlab = ""date"")"
