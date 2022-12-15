@@ -1,2 +1,0 @@
-"0","ermcmc <- rstan::traceplot(mcmc, pars='ER_daily', nrow=7)"
-"0","ermcmc"

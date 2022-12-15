@@ -1,3 +1,0 @@
-"0","mcmc <- get_mcmc(mm.test.salcha)"
-"0","k600mcmc <- rstan::traceplot(mcmc, pars='K600_daily', nrow=7)"
-"0","k600mcmc"

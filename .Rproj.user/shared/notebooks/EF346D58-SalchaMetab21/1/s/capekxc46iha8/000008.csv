@@ -1,1 +1,0 @@
-"0","ggplot(data=fit.daily, aes(x=GPP_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() "

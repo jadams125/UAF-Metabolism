@@ -1,3 +1,0 @@
-"0",""
-"0","#save with no axis for combined plot"
-"0","gpp <- ggplot(data=fit.salcha$daily, aes(x=date, y=GPP_mean)) + geom_point(color = ""chartreuse4"") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = ""chartreuse4"") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )"

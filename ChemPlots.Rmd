@@ -1,0 +1,65 @@
+---
+title: "ChemsPlots"
+author: "Jacob"
+date: "12/14/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggpubr)
+library(anytime)
+library(googlesheets4)
+library(ggpmisc)
+library(plyr)
+library(dplyr)
+library(lubridate)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(scales)
+library(zoo)
+library(xts)
+library(forecast)
+library(googledrive)
+library(streamMetabolizer)
+library(readr)
+library(here)
+library(rstan)
+library(imputeTS)
+library(itsmr)
+library(purrr)
+library(googlesheets4)
+library(naniar)
+library(data.table)
+library(grid)
+
+```
+
+## R Markdown
+
+
+
+```{r}
+
+
+chems_meta <- read.csv("C:/Users/jadams125/Documents/GitHub/DoD_chems_meta/chems_meta.csv")
+
+
+ chems_meta$Site[chems_meta$Site=="EPSCOR"] <- "EPSCoR"
+
+
+chems_meta$Location[which(chems_meta$Site == "EPSCoR")] <- "sensors"
+
+
+
+
+chems_meta %>% filter(Location == "sensors") %>%  ggplot(aes(x=as.POSIXct(DateTime, tz = "AKST"), y= NitrateN_mgL))+geom_point()+ facet_wrap(~Site)
+
+
+
+
+
+```
+
