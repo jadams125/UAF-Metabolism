@@ -572,19 +572,33 @@ bayes_specs
 mm.test.salcha.new <- metab(bayes_specs, data=salchaData)
 
 
-load(here("Outputs","salcha.2021.oct12model.2.mac.RData"))
+# load(here("Outputs","salcha.2021.oct12model.2.mac.RData"))
+# 
+# 
+# # save(mm.test.salcha.new, file = (here("Outputs","salcha.2021.oct12model.1.mac.RData")))
+# 
+# 
+# fit.salcha <- get_fit(mm.test.salcha.new)
+# fit.daily <- fit.salcha$daily
+# write.csv(fit.daily, here("outputs", "salcha.2021.2.new.full.csv"))
+# 
+# model_data <- get_data(mm.test.salcha.new)
+# write.csv(model_data, here("outputs", "salcha.2021.2.new.model_data.csv"))
+# 
 
 
-save(mm.test.salcha.new, file = (here("Outputs","salcha.2021.oct12model.1.mac.RData")))
+load(here("Outputs","salcha.2021.oct12model.1.mac.RData"))
+
+
+# save(mm.test.salcha.new, file = (here("Outputs","salcha.2021.oct12model.1.mac.RData")))
 
 
 fit.salcha <- get_fit(mm.test.salcha.new)
 fit.daily <- fit.salcha$daily
-write.csv(fit.daily, here("outputs", "salcha.2021.2.new.full.csv"))
+write.csv(fit.daily, here("outputs", "salcha.2021.1.new.full.csv"))
 
 model_data <- get_data(mm.test.salcha.new)
-write.csv(model_data, here("outputs", "salcha.2021.2.new.model_data.csv"))
-
+write.csv(model_data, here("outputs", "salcha.2021.1.new.model_data.csv"))
 
 
 
