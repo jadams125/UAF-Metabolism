@@ -1,0 +1,306 @@
+---
+title: "Stuart2019-Run_2023-01-03"
+author: "Jacob Adams"
+date: "2023-01-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r libs, warning=FALSE, message=FALSE}
+library(ggpubr)
+library(anytime)
+library(googlesheets4)
+library(ggpmisc)
+library(plyr)
+library(dplyr)
+library(lubridate)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(scales)
+library(zoo)
+library(xts)
+library(forecast)
+library(googledrive)
+library(streamMetabolizer)
+library(readr)
+library(here)
+library(rstan)
+library(imputeTS)
+library(itsmr)
+library(purrr)
+library(naniar)
+library(data.table)
+library(grid)
+```
+
+#Metab 2019
+```{r}
+
+bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
+
+bayes_specs <- specs(bayes_name,
+                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     GPP_daily_lower = 0, ER_daily_upper = 0,
+                     
+)
+
+```
+
+```{r fig.width=8, fig.height=10}
+
+data.strt.mm.all <- read.csv(here("outputs", "stuart.comb.readyforMetab.new.clean.csv"))
+
+data.strt.mm.all <- data.strt.mm.all %>% filter(solar.time < "2019-12-30 04:13:57")
+
+
+#Change light to modeled light
+data.strt.mm.all$solar.time <- as.POSIXct(data.strt.mm.all$solar.time, tz = "UTC")
+
+data.strt.mm.all$light <-  calc_light(data.strt.mm.all$solar.time, 64.7141530797916, -147.053919481172)
+
+
+#change Discharge to m3/s
+data.strt.mm.all$discharge <- data.strt.mm.all$discharge / 1000
+
+data.strt.mm.all <- data.strt.mm.all %>%  rename(DO.sat = DO.sat.EXO)
+data.strt.mm.all <- data.strt.mm.all %>% select(solar.time, DO.obs, DO.sat, light, discharge, depth, temp.water)
+
+startTime <- as.POSIXct(Sys.time())
+mm.test.strt <- metab(bayes_specs, data=data.strt.mm.all)
+endTime <- as.POSIXct(Sys.time())
+# 
+difftime(endTime, startTime)
+save(mm.test.strt, file = here("Outputs", "stuart2019-Run_2023-01-03.RData"))
+# 
+fit.strt <- get_fit(mm.test.strt)
+fit.daily <- fit.strt$daily
+write.csv(fit.daily, here("outputs", "stuart2019-Run_2023-01-03.csv"))
+
+```
+
+#Plot Input Data
+
+```{r fig.width = 13, fig.height=7}
+model_data <- get_data(mm.test.strt)
+write.csv(model_data, here("outputs", "stuart2019-Run_2023-01-03.csv"))
+
+plot_DO_preds(mm.test.strt)
+```
+
+```{r fig.width = 20, fig.height=10}
+
+light.fig <- ggplot(data=model_data, aes(x=solar.time, y=light)) + geom_point(color = "chartreuse4") +theme(text = element_text(size=20))
+q.fig<- ggplot(data=model_data, aes(x=solar.time, y=discharge)) + geom_point(color = "darksalmon")+theme(text = element_text(size=20))
+temp.fig<- ggplot(data=model_data, aes(x=solar.time, y=temp.water)) + geom_point(color = "turquoise4")+theme(text = element_text(size=20))
+depth.fig<- ggplot(data=model_data, aes(x=solar.time, y=depth)) + geom_point(color = "maroon")+theme(text = element_text(size=20))
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(light.fig), ggplotGrob(q.fig),ggplotGrob(depth.fig), ggplotGrob(temp.fig)))
+
+```
+
+
+
+
+
+```{r fig.width = 10, fig.height=8}
+gpp <- ggplot(data=fit.strt$daily, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")
+gpp
+
+#save with no axis for combined plot
+gpp <- ggplot(data=fit.strt$daily, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+```
+
+```{r fig.width = 10, fig.height=8}
+er <- ggplot(data = fit.daily, aes(x = date)) +geom_point(aes(y = ER_mean), color = "firebrick3") + geom_errorbar(aes(ymin=ER_mean-ER_sd, ymax=ER_mean+ER_sd), width=.2, position=position_dodge(0.05), color = "firebrick3")
+er
+```
+
+```{r fig.width = 10, fig.height=8}
+k600 <- ggplot(data=fit.strt$daily, aes(x=date, y=K600_daily_mean)) + geom_point(color = "orange") + geom_errorbar(aes(ymin=K600_daily_mean-K600_daily_sd, ymax=K600_daily_mean+K600_daily_sd), width=.2, position=position_dodge(0.05), color = "orange")
+k600
+#save with no axis for combined plot
+k600 <- ggplot(data=fit.strt$daily, aes(x=date, y=K600_daily_mean)) + geom_point(color = "orange") + geom_errorbar(aes(ymin=K600_daily_mean-K600_daily_sd, ymax=K600_daily_mean+K600_daily_sd), width=.2, position=position_dodge(0.05), color = "orange") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+```
+
+```{r fig.width = 10, fig.height=8}
+rhat <- ggplot(data=fit.strt$daily, aes(x=date)) + geom_point(aes(y=GPP_Rhat, colour = "GPP")) + geom_point(aes(y=as.numeric(ER_Rhat), colour = "ER")) + geom_point(aes(y=K600_daily_Rhat, colour = "K600")) +
+  labs(y = "RHAT") + theme(legend.position="top") + geom_hline(yintercept=1.01, color = "dark blue")+ geom_hline(yintercept=1.1, color = "dark red", linetype = "dashed")
+rhat
+
+rhat <- ggplot(data=fit.strt$daily, aes(x=date)) + geom_point(aes(y=GPP_Rhat, colour = "GPP")) + geom_point(aes(y=as.numeric(ER_Rhat), colour = "ER")) + geom_point(aes(y=K600_daily_Rhat, colour = "K600")) +
+  labs(y = "RHAT") + theme(legend.position="top") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ geom_hline(yintercept=1.01, color = "dark blue")+ geom_hline(yintercept=1.1, color = "dark red", linetype = "dashed")
+```
+
+```{r fig.width = 10, fig.height=8}
+ggplot(data=fit.daily, aes(x=GPP_mean, y=ER_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+```
+
+```{r fig.width = 10, fig.height=8}
+ggplot(data=fit.daily, aes(x=GPP_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq() 
+```
+
+```{r fig.width = 10, fig.height=8}
+ggplot(data=fit.daily, aes(x=ER_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+```
+
+```{r fig.width = 10, fig.height=10}
+mcmc <- get_mcmc(mm.test.strt)
+k600mcmc <- rstan::traceplot(mcmc, pars='K600_daily', nrow=7)
+k600mcmc
+```
+
+
+```{r fig.width = 10, fig.height=10}
+gppmcmc <- rstan::traceplot(mcmc, pars='GPP_daily', nrow=7)
+gppmcmc
+```
+
+```{r fig.width = 10, fig.height=10}
+ermcmc <- rstan::traceplot(mcmc, pars='ER_daily', nrow=7)
+ermcmc
+```
+
+
+#DO r2
+
+```{r fig.width = 10, fig.height=8}
+strt.DO.pred <- predict_DO(mm.test.strt)
+strt.DO.pred <- na.omit(strt.DO.pred)
+lm(DO.obs~ DO.mod, data = strt.DO.pred)
+strt.DO.pred$SM.date <- as.Date(strt.DO.pred$solar.time - 4*60*60)
+strt.DO.pred$SM.date <- as.factor(strt.DO.pred$SM.date)
+fit_model <- function(x, y) summary(lm(x ~ y))$adj.r.squared
+test.run <- strt.DO.pred %>% group_by(SM.date) %>% summarise(adj.R2 = fit_model(DO.obs,DO.mod))
+strt.DO.pred <- full_join(strt.DO.pred, test.run)
+rsq <-  summary(lm(strt.DO.pred$DO.mod~strt.DO.pred$DO.obs))$r.squared
+
+p1 <- ggplot(strt.DO.pred, aes(x = solar.time)) + geom_point(aes(y=DO.obs, colour = "Observed DO"), color = "darkcyan") + geom_line(aes(y = DO.mod, colour= "Modeled DO"), color = "blue4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) + labs(colour="Green", y = "DO (mg/L)") +  theme(legend.position="none") + ggtitle("Observed (points) and Modeled (lines)")
+p2 <- ggplot(strt.DO.pred, aes(x = solar.time)) + geom_point(aes(y=adj.R2))
+q.fig <- ggplot(data = data.strt.mm.all, aes(x = solar.time)) +geom_point(aes(y=discharge))
+
+grid.newpage()
+grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2)))
+```             
+
+```{r fig.width = 10, fig.height=8}
+grid.newpage()
+grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), ggplotGrob(rhat),ggplotGrob(q.fig), ggplotGrob(k600),ggplotGrob(gpp), ggplotGrob(er)))
+
+```
+
+
+```{r}
+
+
+gpp <- ggplot(data=fit.daily, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("2019")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(fit.daily$GPP_mean))
+
+
+
+
+er <- ggplot(data = fit.daily, aes(x = date)) +geom_point(aes(y = ER_mean), color = "firebrick3") + geom_errorbar(aes(ymin=ER_mean-ER_sd, ymax=ER_mean+ER_sd), width=.2, position=position_dodge(0.05), color = "firebrick3")+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("ER (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme( axis.title.y = element_text(size = 20)) +ylim(min(fit.daily$ER_daily_mean), 0)
+
+k600 <- ggplot(data=fit.daily, aes(x=date, y=K600_daily_mean)) + geom_point(color = "orange") + geom_errorbar(aes(ymin=K600_daily_mean-K600_daily_sd, ymax=K600_daily_mean+K600_daily_sd), width=.2, position=position_dodge(0.05), color = "orange") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+rhat <- ggplot(data=fit.daily, aes(x=date)) + geom_point(aes(y=GPP_Rhat, colour = "GPP")) + geom_point(aes(y=as.numeric(ER_Rhat), colour = "ER")) + geom_point(aes(y=K600_daily_Rhat, colour = "K600")) +
+  labs(y = "RHAT") + theme(legend.position="top") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ geom_hline(yintercept=1.01, color = "dark blue")+ geom_hline(yintercept=1.1, color = "dark red", linetype = "dashed")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme(axis.text.x=element_text(size=20))+theme( axis.title.y = element_text(size = 20))
+
+
+
+ggplot(data=fit.daily, aes(x=GPP_mean, y=ER_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+ggplot(data=fit.daily, aes(x=GPP_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+ggplot(data=fit.daily, aes(x=ER_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq(size = 10)+ ggtitle("2019")+labs(x = expression(paste("ER (g ", O[2] ," ", m^2, d^-1, ")")))+ labs(y = expression(paste("K600 (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.x=element_text(size=20))+theme( axis.title.x = element_text(size = 20)) +theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold"))
+
+dev.set(dev.next())
+
+
+mcmc <- get_mcmc(mm.test.strt)
+k600mcmc <- rstan::traceplot(mcmc, pars='K600_daily', ncol=8)
+k600mcmc
+gppmcmc <- rstan::traceplot(mcmc, pars='GPP_daily', ncol=8)
+gppmcmc
+ermcmc <- rstan::traceplot(mcmc, pars='ER_daily', ncol=8)
+ermcmc
+
+
+
+
+
+# library(grid)
+# grid.newpage()
+# grid.draw(rbind(ggplotGrob(k600mcmc), ggplotGrob(gppmcmc), ggplotGrob(ermcmc)))
+#DO r2
+strt.DO.pred <- predict_DO(mm.test.strt)
+
+
+strt.DO.pred <- na.omit(strt.DO.pred)
+lm(DO.obs~ DO.mod, data = strt.DO.pred)
+strt.DO.pred$SM.date <- as.Date(as.POSIXct(strt.DO.pred$solar.time) - 4*60*60)
+strt.DO.pred$SM.date <- as.factor(strt.DO.pred$SM.date)
+fit_model <- function(x, y) summary(lm(x ~ y))$adj.r.squared
+test.run <- strt.DO.pred %>% group_by(SM.date) %>% summarise(adj.R2 = fit_model(DO.obs,DO.mod))
+strt.DO.pred <- full_join(strt.DO.pred, test.run)
+
+
+p3 <- plot_metab_preds(mm.test.strt)
+
+p4 <- plot_DO_preds(mm.test.strt)
+
+
+rsq <-  summary(lm(strt.DO.pred$DO.mod~strt.DO.pred$DO.obs))$r.squared
+library(ggplot2)
+p1 <- ggplot(strt.DO.pred, aes(x = solar.time)) + geom_point(aes(y=DO.obs, colour = "Observed DO"), color = "darkcyan") + geom_line(aes(y = DO.mod, colour= "Modeled DO"), color = "blue4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) + labs(colour="Green", y = "DO (mg/L)") +  theme(legend.position="none") + ggtitle("Observed (points) and Modeled (lines)")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme(axis.text.x=element_text(size=20))+theme( axis.title.y = element_text(size = 20))
+p2 <- ggplot(strt.DO.pred, aes(x = solar.time)) + geom_point(aes(y=adj.R2))
+
+q.fig <- ggplot(data = model_data, aes(x = solar.time)) +geom_point(aes(y=discharge), color = "sienna4", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("Discharge ( ", m^3, s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(model_data$discharge))
+
+library(ggtext)
+T.fig <- ggplot(data = model_data, aes(x = solar.time)) +geom_point(aes(y=temp.water), color = "slateblue4", size=0.4)+ theme(axis.title.x=element_blank() )+ labs(y = "Temperature (°C)")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme(axis.text.x=element_text(size=20))+theme( axis.title.y = element_text(size = 20))+ylim(-0.004, 20)
+
+grid.newpage()
+
+plot1<- grid.draw(rbind(ggplotGrob(p4)))
+
+plot2<- grid.draw(rbind(ggplotGrob(p2), ggplotGrob(rhat),ggplotGrob(q.fig), ggplotGrob(k600)))
+
+plot3<- grid.draw(rbind(ggplotGrob(p3)))
+
+
+require(gridExtra)
+grid.arrange(plot1, ncol = 1, heights = c(1, 1))
+
+grid.arrange(gpp, er, q.fig, T.fig, ncol = 1)
+
+
+
+
+library(grid)
+library(ggeffects)
+library(gridExtra)
+library(gtable)
+# If that doesnt do it, add grid
+# Make each of the plots
+
+plotname1 <- ggplot (blah, blah)
+etc.
+# Two-panel figure: effect sizes
+panA <- ggplotGrob(gpp)
+panB <- ggplotGrob(er)
+panC <- ggplotGrob(q.fig)
+panD <- ggplotGrob(T.fig)
+panE <- ggplotGrob(p1)
+panF <- ggplotGrob(rhat)
+grid::grid.newpage()
+grid.draw(rbind(panA, panB, panC, panD,panE,panF, size="max"))
+fig2019 <- arrangeGrob(rbind(panA, panB, panC, panD,panE,panF, size="max"))
+ggsave(path = here("outputs"), file = "strt2019.pdf", fig2019, width = 12, height = 16, units = "in")
+
+grid.draw(rbind(fig2019, fig2022, size="max"))
+
+
+
+
+```
