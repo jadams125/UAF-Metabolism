@@ -40,9 +40,11 @@ library(grid)
 ```{r}
 
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
-bayes_name_AppEtAL <- "b_Kb_oipi_tr_plrckm.stan"
-bayes_specs <- specs(bayes_name, 
-                     burnin_steps=9000, saved_steps=5000, n_cores=4, n_chains = 4, GPP_daily_lower = 0, ER_daily_upper = 0
+
+bayes_specs <- specs(bayes_name,
+                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     GPP_daily_lower = 0, ER_daily_upper = 0,
+                     
 )
 
 ```
@@ -51,10 +53,19 @@ bayes_specs <- specs(bayes_name,
 
 data.moos.mm.all <- read.csv(here("outputs", "moose.comb.readyforMetab.new.clean.csv"))
 
-data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time >= "2020-05-01 04:13:57" & solar.time < "2020-07-14 04:13:57")
+data.moos.mm.all <- data.moos.mm.all %>% filter(solar.time < "2019-12-30 04:13:57")
+
+
+#Change light to modeled light
+data.moos.mm.all$solar.time <- as.POSIXct(data.moos.mm.all$solar.time, tz = "UTC")
+
+data.moos.mm.all$light <-  calc_light(data.moos.mm.all$solar.time, 64.7141530797916, -147.053919481172)
+
+
+#change Discharge to m3/s
+data.moos.mm.all$discharge <- data.moos.mm.all$discharge / 1000
 
 data.moos.mm.all <- data.moos.mm.all %>%  rename(DO.sat = DO.sat.EXO)
-data.moos.mm.all$solar.time <- as.POSIXct(data.moos.mm.all$solar.time, tz = "UTC")
 data.moos.mm.all <- data.moos.mm.all %>% select(solar.time, DO.obs, DO.sat, light, discharge, depth, temp.water)
 
 startTime <- as.POSIXct(Sys.time())
@@ -62,11 +73,11 @@ mm.test.moos <- metab(bayes_specs, data=data.moos.mm.all)
 endTime <- as.POSIXct(Sys.time())
 # 
 difftime(endTime, startTime)
-save(mm.test.moos, file = here("Outputs", "moos.2019.2.new.RData"))
+save(mm.test.moos, file = here("Outputs", "Moose2019-Run_2023-01-03.RData"))
 # 
 fit.moos <- get_fit(mm.test.moos)
 fit.daily <- fit.moos$daily
-write.csv(fit.daily, here("outputs", "moos.2019.2.new.full.csv"))
+write.csv(fit.daily, here("outputs", "Moose2019-Run_2023-01-03.csv"))
 
 ```
 
@@ -74,7 +85,7 @@ write.csv(fit.daily, here("outputs", "moos.2019.2.new.full.csv"))
 
 ```{r fig.width = 13, fig.height=7}
 model_data <- get_data(mm.test.moos)
-write.csv(model_data, here("outputs", "moos.2019.2.new.model_data.csv"))
+write.csv(model_data, here("outputs", "Moose2019-Run_2023-01-03.csv"))
 
 plot_DO_preds(mm.test.moos)
 ```
@@ -178,5 +189,118 @@ grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2)))
 ```{r fig.width = 10, fig.height=8}
 grid.newpage()
 grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), ggplotGrob(rhat),ggplotGrob(q.fig), ggplotGrob(k600),ggplotGrob(gpp), ggplotGrob(er)))
+
+```
+
+
+```{r}
+
+
+gpp <- ggplot(data=fit.daily, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("2019")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(fit.daily$GPP_mean))
+
+
+
+
+er <- ggplot(data = fit.daily, aes(x = date)) +geom_point(aes(y = ER_mean), color = "firebrick3") + geom_errorbar(aes(ymin=ER_mean-ER_sd, ymax=ER_mean+ER_sd), width=.2, position=position_dodge(0.05), color = "firebrick3")+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("ER (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme( axis.title.y = element_text(size = 20)) +ylim(min(fit.daily$ER_daily_mean), 0)
+
+k600 <- ggplot(data=fit.daily, aes(x=date, y=K600_daily_mean)) + geom_point(color = "orange") + geom_errorbar(aes(ymin=K600_daily_mean-K600_daily_sd, ymax=K600_daily_mean+K600_daily_sd), width=.2, position=position_dodge(0.05), color = "orange") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+rhat <- ggplot(data=fit.daily, aes(x=date)) + geom_point(aes(y=GPP_Rhat, colour = "GPP")) + geom_point(aes(y=as.numeric(ER_Rhat), colour = "ER")) + geom_point(aes(y=K600_daily_Rhat, colour = "K600")) +
+  labs(y = "RHAT") + theme(legend.position="top") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ geom_hline(yintercept=1.01, color = "dark blue")+ geom_hline(yintercept=1.1, color = "dark red", linetype = "dashed")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme(axis.text.x=element_text(size=20))+theme( axis.title.y = element_text(size = 20))
+
+
+
+ggplot(data=fit.daily, aes(x=GPP_mean, y=ER_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+ggplot(data=fit.daily, aes(x=GPP_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+ggplot(data=fit.daily, aes(x=ER_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq(size = 10)+ ggtitle("2019")+labs(x = expression(paste("ER (g ", O[2] ," ", m^2, d^-1, ")")))+ labs(y = expression(paste("K600 (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.x=element_text(size=20))+theme( axis.title.x = element_text(size = 20)) +theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold"))
+
+dev.set(dev.next())
+
+
+mcmc <- get_mcmc(mm.test.moos)
+k600mcmc <- rstan::traceplot(mcmc, pars='K600_daily', ncol=8)
+k600mcmc
+gppmcmc <- rstan::traceplot(mcmc, pars='GPP_daily', ncol=8)
+gppmcmc
+ermcmc <- rstan::traceplot(mcmc, pars='ER_daily', ncol=8)
+ermcmc
+
+
+
+
+
+library(grid)
+grid.newpage()
+grid.draw(rbind(ggplotGrob(k600mcmc), ggplotGrob(gppmcmc), ggplotGrob(ermcmc)))
+#DO r2
+moos.DO.pred <- predict_DO(mm.test.moos)
+
+
+moos.DO.pred <- na.omit(moos.DO.pred)
+lm(DO.obs~ DO.mod, data = moos.DO.pred)
+moos.DO.pred$SM.date <- as.Date(as.POSIXct(moos.DO.pred$solar.time) - 4*60*60)
+moos.DO.pred$SM.date <- as.factor(moos.DO.pred$SM.date)
+fit_model <- function(x, y) summary(lm(x ~ y))$adj.r.squared
+test.run <- moos.DO.pred %>% group_by(SM.date) %>% summarise(adj.R2 = fit_model(DO.obs,DO.mod))
+moos.DO.pred <- full_join(moos.DO.pred, test.run)
+
+
+p3 <- plot_metab_preds(mm.test.moos)
+
+p4 <- plot_DO_preds(mm.test.moos)
+
+
+rsq <-  summary(lm(moos.DO.pred$DO.mod~moos.DO.pred$DO.obs))$r.squared
+library(ggplot2)
+p1 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=DO.obs, colour = "Observed DO"), color = "darkcyan") + geom_line(aes(y = DO.mod, colour= "Modeled DO"), color = "blue4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) + labs(colour="Green", y = "DO (mg/L)") +  theme(legend.position="none") + ggtitle("Observed (points) and Modeled (lines)")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme(axis.text.x=element_text(size=20))+theme( axis.title.y = element_text(size = 20))
+p2 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=adj.R2))
+
+q.fig <- ggplot(data = model_data, aes(x = solar.time)) +geom_point(aes(y=discharge), color = "sienna4", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("Discharge ( ", m^3, s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(model_data$discharge))
+
+library(ggtext)
+T.fig <- ggplot(data = model_data, aes(x = solar.time)) +geom_point(aes(y=temp.water), color = "slateblue4", size=0.4)+ theme(axis.title.x=element_blank() )+ labs(y = "Temperature (°C)")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme(axis.text.x=element_text(size=20))+theme( axis.title.y = element_text(size = 20))+ylim(-0.004, 20)
+
+grid.newpage()
+
+plot1<- grid.draw(rbind(ggplotGrob(p4)))
+
+plot2<- grid.draw(rbind(ggplotGrob(p2), ggplotGrob(rhat),ggplotGrob(q.fig), ggplotGrob(k600)))
+
+plot3<- grid.draw(rbind(ggplotGrob(p3)))
+
+
+require(gridExtra)
+grid.arrange(plot1, ncol = 1, heights = c(1, 1))
+
+grid.arrange(gpp, er, q.fig, T.fig, ncol = 1)
+
+
+
+
+library(grid)
+library(ggeffects)
+library(gridExtra)
+library(gtable)
+# If that doesnt do it, add grid
+# Make each of the plots
+
+plotname1 <- ggplot (blah, blah)
+etc.
+# Two-panel figure: effect sizes
+panA <- ggplotGrob(gpp)
+panB <- ggplotGrob(er)
+panC <- ggplotGrob(q.fig)
+panD <- ggplotGrob(T.fig)
+panE <- ggplotGrob(p1)
+panF <- ggplotGrob(rhat)
+grid::grid.newpage()
+grid.draw(rbind(panA, panB, panC, panD,panE,panF, size="max"))
+fig2019 <- arrangeGrob(rbind(panA, panB, panC, panD,panE,panF, size="max"))
+ggsave(path = here("outputs"), file = "moos2019.pdf", fig2019, width = 12, height = 16, units = "in")
+
+grid.draw(rbind(fig2019, fig2022, size="max"))
+
+
+
 
 ```
