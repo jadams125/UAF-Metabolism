@@ -201,6 +201,8 @@ lapply(poke.exo.2021, summary)
 
 
 
+
+
 # 2022
 
 
@@ -1765,6 +1767,10 @@ poke.par.2022.Data$DateTime <- force_tz(poke.par.2022.Data$DateTime, "America/An
 poke.par.2022.Data$CalibratedValue <- poke.par.2022.Data$CalibratedValue * 0.035
 
 
+poke.par.2022.Data$DateTime <-  lubridate::round_date(poke.par.2022.Data$DateTime, "15 minutes") 
+
+
+
 
 #### VAUL 2022 ####
 PAR.2022.url <- "https://drive.google.com/drive/u/1/folders/1JW8NRBDT-I9oIOayp3i4kGef9cP3nO3k"
@@ -1818,6 +1824,7 @@ frch.par.2022.Data1 <- frch.par.2022.Data1 %>%
   dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
 
 
+
 frch_par_glist <- drive_ls(PAR_2022.prt1, pattern = "220802_11615_125_FRCH.CSV")
 walk(frch_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
 frch.par.2022.Data2 <- read.csv("220802_11615_125_FRCH.CSV",
@@ -1846,6 +1853,7 @@ frch.par.2022.Data$DateTime <- force_tz(frch.par.2022.Data$DateTime, "America/An
 frch.par.2022.Data$CalibratedValue <- frch.par.2022.Data$CalibratedValue * 0.031
 
 
+frch.par.2022.Data$DateTime <-  lubridate::round_date(frch.par.2022.Data$DateTime, "15 minutes") 
 
 
 

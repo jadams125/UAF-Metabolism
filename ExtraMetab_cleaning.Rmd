@@ -82,8 +82,25 @@ MOOS.comb.in <- MOOS.2019_comb_ts
 MOOS.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
 
 #Remove NA periods longer than 12 hours
+
 clean <- MOOS.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -134,11 +151,12 @@ Karen Filled
 # 
 # clean <- cleanTest
 
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_point()
+
 ```
 
 ```{r}
 
-clean$temp.water <- na_kalman(clean$temp.water, type = "level")
 clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
 clean$DO.obs <- na_kalman(clean$DO.obs, type = "level")
 
@@ -148,6 +166,18 @@ clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO)
 clean$depth <- na_kalman(clean$depth)
 clean$discharge <- na_kalman(clean$discharge)
 clean$light <- na_kalman(clean$light, type = "level")
+
+
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_point()
+
+cleaning.temp1 <- clean %>% filter(solar.time<="2019-08-17")
+cleaning.temp2 <- clean %>% filter(solar.time> "2019-08-17")
+
+
+cleaning.temp1$temp.water <- na_kalman(cleaning.temp1$temp.water, type = "level")
+cleaning.temp2$temp.water <- na_kalman(cleaning.temp2$temp.water, type = "level")
+
+clean <- rbind(cleaning.temp1,cleaning.temp2)
 
 
 clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_point()
@@ -269,6 +299,22 @@ MOOS.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss
 
 clean <- MOOS.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -282,7 +328,7 @@ Looks like nothing was taken out, meaning we had no large gaps.
 
 #fill the out of water points
 ```{r}
-clean$temp.water <- na_kalman(clean$temp.water)
+clean$temp.water <- na_kalman(clean$temp.water, type = "level")
 clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
 clean$DO.obs <- na_kalman(clean$DO.obs, type = "level")
 clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO, type = "level")
@@ -377,6 +423,22 @@ MOOS.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss
 
 clean <- MOOS.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -391,7 +453,7 @@ Looks like nothing was taken out, meaning we had no large gaps.
 #fill the out of water points
 ```{r}
 clean$temp.water <- na_kalman(clean$temp.water, type = "level")
-clean$ODO.Psat <- na_kalman(clean$ODO.Psat, type = "level")
+clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
 clean$DO.obs <- na_kalman(clean$DO.obs, type = "level")
 
 clean$DO.sat.EXO = clean$DO.obs /(clean$ODO.Psat/100)
@@ -442,7 +504,196 @@ write.csv(clean.moos.2021, here("outputs", "clean.moos.2021.csv"))
 ```
 
 
-#ADD IN 2022 WHEN Q is CLEANED 
+
+
+
+#Set year of 2022
+```{r}
+MOOS.comb.in <- read.csv(here("outputs", "moos.comb.csv"))
+
+
+MOOS.comb.in <- MOOS.comb.in %>% filter(datetimeAK >= "2022-03-31 15:45:00" & datetimeAK < "2022-11-22 07:30:00")
+
+MOOS.comb.in$datetimeAK <- as.POSIXct(MOOS.comb.in$datetimeAK, tz = "America/Anchorage")
+MOOS.comb.in$solar.time <- as.POSIXct(MOOS.comb.in$solar.time, tz = "UTC")
+
+anyNA(MOOS.comb.in, recursive = TRUE)
+lapply(MOOS.comb.in, summary)
+```
+```{r}
+
+#Create NAs where there arent any 
+
+ts_2022.moos <- data.frame(datetimeAK = force_tz(as.POSIXct(seq(ymd_hm("2022-05-10 13:15"),ymd_hm("2022-10-10 12:15"), by = '15 mins')), tz = "America/Anchorage"))
+MOOS.2022_comb_ts <- full_join(MOOS.comb.in, ts_2022.moos, by = "datetimeAK")
+
+MOOS.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+MOOS.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_point()
+MOOS.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.sat.EXO)) + geom_miss_point()
+MOOS.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = depth)) + geom_miss_point()
+MOOS.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = light)) + geom_miss_point()
+MOOS.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+
+MOOS.comb.in <- MOOS.2022_comb_ts
+
+```
+
+
+
+```{r}
+MOOS.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+
+#Remove NA periods longer than 12 hours
+
+clean <- MOOS.comb.in %>%
+   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+   group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+   ungroup() %>% 
+   group_by(DO.obs,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+```
+
+```{r}
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+
+#NOTE: In these plots, Missing means NA. Data is still missing, but NAs have been removed. This removes those rows from the whole TS. Since the gap is greater than 12 hours, we cannot gap fill any of these slots anyway
+
+```
+
+
+#fill the out of water points
+Karen Filled
+
+
+```{r}
+
+# adjust that weird Q data in july
+
+# 
+# 
+# clean1 <- clean %>% filter(as.character(datetimeAK)< "2022-07-08 21:15:00")
+# clean2 <- clean %>% filter(as.character(datetimeAK) >"2022-07-09 16:30:00")
+# 
+# cleanAdjust <- clean %>% filter(as.character(datetimeAK)>= "2022-07-08 21:15:00"& as.character(datetimeAK) <="2022-07-09 16:30:00")
+# 
+# cleanAdjust$discharge = cleanAdjust$discharge - (648.3557 - 433.9846)
+# cleanAdjust$depth = cleanAdjust$depth - (0.4084102-0.3518778)
+# 
+# cleanTest <- rbind(clean1, cleanAdjust, clean2)
+# 
+# 
+# cleanTest <- cleanTest %>%
+#   mutate(across(c(discharge,depth),
+#                 ~ifelse(as.character(datetimeAK) >= "2022-07-09 08:00:00" & as.character(datetimeAK) <= "2022-07-09 09:15:00", NA, .)))
+# cleanTest <- cleanTest %>%
+#   mutate(across(c(discharge, depth),
+#                 ~ifelse(as.character(datetimeAK) == "2022-07-08 13:00:00", NA, .)))
+# 
+# 
+# 
+# cleanTest %>% filter(as.character(datetimeAK) > "2022-07-04 00:00:00" & as.character(datetimeAK) < "2022-07-14 00:00:00") %>%ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+# 
+# clean <- cleanTest
+
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_point()
+
+```
+
+```{r}
+
+clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
+clean$DO.obs <- na_kalman(clean$DO.obs)
+
+clean$DO.sat.EXO = clean$DO.obs/ (clean$ODO.Psat/100)
+
+clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO)
+clean$depth <- na_kalman(clean$depth)
+clean$discharge <- na_kalman(clean$discharge)
+clean$light <- na_kalman(clean$light, type = "level")
+
+
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.sat.EXO)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = depth)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = light)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+
+ 
+
+```
+
+
+
+# Identify where Metab Shuts off
+
+```{r fig.width=10, fig.height=10}
+
+ggplot() +
+  geom_point(data=clean, aes(x=datetimeAK,y=DO.obs))+
+  geom_point(data=clean, aes(x=datetimeAK,y=discharge/500), color = "dark blue")+
+  scale_y_continuous(sec.axis = sec_axis(trans = ~.*500))
+
+
+```
+
+
+
+# Looks like we can cut out before that large storm
+
+# Lets say before August
+
+
+#lets first try the whole year, without cutting off potential shutoff
+
+
+``` {r}
+# #Filtering only works properly as character
+# clean %>% filter(as.character(solar.time) <= "2022-08-01 04:13:57") %>% ggplot() +
+#   geom_point(aes(x=solar.time,y=DO.obs))+
+#   geom_point(aes(x=solar.time,y=discharge/500), color = "dark blue")+
+#   scale_y_continuous(sec.axis = sec_axis(trans = ~.*500))
+# 
+# 
+# 
+clean.moos.2022 <- clean 
+# %>% filter(as.character(solar.time) < "2022-08-01 04:13:57")
+
+
+write.csv(clean.moos.2022, here("outputs", "clean.moos.2022.csv"))
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -587,10 +838,14 @@ CRREL_MOOS.2021$ParMetCor <- CRREL_MOOS.2021$ParWm2 *multiplyFactor.2021
 
 
 ```
+
+
+
+
 #save for analysis
 
 ```{r}
-data.moos.mm.all <- rbind(CRREL_MOOS.2019, CRREL_MOOS.2020, CRREL_MOOS.2021)
+data.moos.mm.all <- rbind(CRREL_MOOS.2019, CRREL_MOOS.2020, CRREL_MOOS.2021, clean.moos.2022)
 
 data.moos.mm.all$light <- data.moos.mm.all$ParMetCor
 
@@ -653,14 +908,31 @@ FRCH.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_m
 FRCH.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
 
 #Remove NA periods longer than 12 hours
+
+
 clean <- FRCH.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
    filter(n()<48) %>% 
    select(-new)
-
 ```
 It looks like there are no large gaps in the data. 
 ```{r}
@@ -675,7 +947,7 @@ clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point(
 
 ```{r}
 
-clean <- clean %>% mutate(across(c(DO.sat, DO.sat.EXO), ~ifelse(as.character(datetimeAK) >= "2019-06-13 13:45:00" & as.character(datetimeAK) <= "2019-06-13 16:00:00", NA, .)))
+clean <- clean %>% mutate(across(c(DO.sat.EXO), ~ifelse(as.character(datetimeAK) >= "2019-06-13 13:45:00" & as.character(datetimeAK) <= "2019-06-13 16:00:00", NA, .)))
 
 
 clean$temp.water <- na_kalman(clean$temp.water, type = "level")
@@ -772,8 +1044,26 @@ FRCH.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_m
 ```{r}
 
 FRCH.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+
+
 clean <- FRCH.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -832,7 +1122,7 @@ We have no summer data, to compare to but it looks like there could still be som
 #   geom_point(aes(x=solar.time,y=discharge/500), color = "dark blue")+
 #   scale_y_continuous(sec.axis = sec_axis(trans = ~.*500))
 
-clean.frch.2020 <- clean %>% filter(as.character(solar.time) < "2020-09-03 04:13:57")
+clean.frch.2020 <- clean
 
 write.csv(clean.frch.2020, here("outputs", "clean.frch.2020.csv"))
 
@@ -880,8 +1170,26 @@ Remove NA chunks larger than 12 hours which cannot be gap filled.
 ```{r}
 FRCH.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
 
+
+
 clean <- FRCH.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -948,13 +1256,196 @@ write.csv(clean.frch.2021, here("outputs", "clean.frch.2021.csv"))
 #ADD IN 2022 WHEN Q is CLEANED 
 
 
+#Set year of 2022
+```{r}
+FRCH.comb.in <- read.csv(here("outputs", "frch.comb.csv"))
+
+
+FRCH.comb.in <- FRCH.comb.in %>% filter(datetimeAK >= "2022-03-31 15:45:00" & datetimeAK < "2022-11-22 07:30:00")
+
+FRCH.comb.in$datetimeAK <- as.POSIXct(FRCH.comb.in$datetimeAK, tz = "America/Anchorage")
+FRCH.comb.in$solar.time <- as.POSIXct(FRCH.comb.in$solar.time, tz = "UTC")
+
+anyNA(FRCH.comb.in, recursive = TRUE)
+lapply(FRCH.comb.in, summary)
+```
+```{r}
+
+#Create NAs where there arent any 
+
+ts_2022.frch <- data.frame(datetimeAK = force_tz(as.POSIXct(seq(ymd_hm("2022-05-10 13:15"),ymd_hm("2022-10-10 12:15"), by = '15 mins')), tz = "America/Anchorage"))
+FRCH.2022_comb_ts <- full_join(FRCH.comb.in, ts_2022.frch, by = "datetimeAK")
+
+FRCH.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+FRCH.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_point()
+FRCH.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.sat.EXO)) + geom_miss_point()
+FRCH.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = depth)) + geom_miss_point()
+FRCH.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = light)) + geom_miss_point()
+FRCH.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+
+FRCH.comb.in <- FRCH.2022_comb_ts
+
+```
+
+
+
+```{r}
+FRCH.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+
+#Remove NA periods longer than 12 hours
+
+clean <- FRCH.comb.in %>%
+   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+   group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+   ungroup() %>% 
+   group_by(DO.obs,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+```
+
+```{r}
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+
+#NOTE: In these plots, Missing means NA. Data is still missing, but NAs have been removed. This removes those rows from the whole TS. Since the gap is greater than 12 hours, we cannot gap fill any of these slots anyway
+
+```
+
+
+#fill the out of water points
+Karen Filled
+
+
+```{r}
+
+# adjust that weird Q data in july
+
+# 
+# 
+# clean1 <- clean %>% filter(as.character(datetimeAK)< "2022-07-08 21:15:00")
+# clean2 <- clean %>% filter(as.character(datetimeAK) >"2022-07-09 16:30:00")
+# 
+# cleanAdjust <- clean %>% filter(as.character(datetimeAK)>= "2022-07-08 21:15:00"& as.character(datetimeAK) <="2022-07-09 16:30:00")
+# 
+# cleanAdjust$discharge = cleanAdjust$discharge - (648.3557 - 433.9846)
+# cleanAdjust$depth = cleanAdjust$depth - (0.4084102-0.3518778)
+# 
+# cleanTest <- rbind(clean1, cleanAdjust, clean2)
+# 
+# 
+# cleanTest <- cleanTest %>%
+#   mutate(across(c(discharge,depth),
+#                 ~ifelse(as.character(datetimeAK) >= "2022-07-09 08:00:00" & as.character(datetimeAK) <= "2022-07-09 09:15:00", NA, .)))
+# cleanTest <- cleanTest %>%
+#   mutate(across(c(discharge, depth),
+#                 ~ifelse(as.character(datetimeAK) == "2022-07-08 13:00:00", NA, .)))
+# 
+# 
+# 
+# cleanTest %>% filter(as.character(datetimeAK) > "2022-07-04 00:00:00" & as.character(datetimeAK) < "2022-07-14 00:00:00") %>%ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+# 
+# clean <- cleanTest
+
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_point()
+
+```
+
+```{r}
+
+clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
+clean$DO.obs <- na_kalman(clean$DO.obs)
+clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO)
+clean$depth <- na_kalman(clean$depth)
+clean$discharge <- na_kalman(clean$discharge)
+clean$temp.water <- na_kalman(clean$temp.water)
+clean$light <- na_kalman(clean$light, type = "level")
+
+
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.sat.EXO)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = depth)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = light)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+
+ 
+
+```
+
+
+
+# Identify where Metab Shuts off
+
+```{r fig.width=10, fig.height=10}
+
+ggplot() +
+  geom_point(data=clean, aes(x=datetimeAK,y=DO.obs))+
+  geom_point(data=clean, aes(x=datetimeAK,y=discharge/500), color = "dark blue")+
+  scale_y_continuous(sec.axis = sec_axis(trans = ~.*500))
+
+
+```
+
+
+
+# Looks like we can cut out before that large storm
+
+# Lets say before August
+
+
+#lets first try the whole year, without cutting off potential shutoff
+
+
+``` {r}
+# #Filtering only works properly as character
+# clean %>% filter(as.character(solar.time) <= "2022-08-01 04:13:57") %>% ggplot() +
+#   geom_point(aes(x=solar.time,y=DO.obs))+
+#   geom_point(aes(x=solar.time,y=discharge/500), color = "dark blue")+
+#   scale_y_continuous(sec.axis = sec_axis(trans = ~.*500))
+# 
+# 
+# 
+clean.frch.2022 <- clean 
+# %>% filter(as.character(solar.time) < "2022-08-01 04:13:57")
+
+
+write.csv(clean.frch.2022, here("outputs", "clean.frch.2022.csv"))
+
+```
+
+
+
+
+
+
+
+
+
+
 
 # Add in Met Tower light and combine all
 
 
 ``` {r}
 
-data.frch.mm.all <- rbind(clean.frch.2019,clean.frch.2020, clean.frch.2021)
+data.frch.mm.all <- rbind(clean.frch.2019,clean.frch.2020, clean.frch.2021, clean.frch.2022)
 
 
 anyNA(data.frch.mm.all, recursive = TRUE)
@@ -1093,7 +1584,7 @@ CRREL_FRCH.2021$ParMetCor <- CRREL_FRCH.2021$ParWm2 *multiplyFactor.2021
 #save for analysis
 
 ```{r}
-data.frch.mm.all <- rbind(CRREL_FRCH.2019, CRREL_FRCH.2020, CRREL_FRCH.2021)
+data.frch.mm.all <- rbind(CRREL_FRCH.2019, CRREL_FRCH.2020, CRREL_FRCH.2021, clean.frch.2022)
 
 data.frch.mm.all$light <- data.frch.mm.all$ParMetCor
 
@@ -1169,14 +1660,30 @@ VAUL.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_m
 VAUL.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
 
 #Remove NA periods longer than 12 hours
+
 clean <- VAUL.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
    filter(n()<48) %>% 
    select(-new)
-
 
 ```
 It looks like quite a few gaps were removed... 
@@ -1286,8 +1793,25 @@ VAUL.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_m
 ```{r}
 
 VAUL.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+
 clean <- VAUL.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -1406,6 +1930,22 @@ VAUL.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss
 
 clean <- VAUL.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -1494,7 +2034,191 @@ write.csv(clean.vaul.2021, here("outputs", "clean.vaul.2021.csv"))
 ```
 
 
+
+
+
+
+
 #ADD IN 2022 WHEN Q is CLEANED 
+
+
+#Set year of 2022
+```{r}
+vaul.comb.in <- read.csv(here("outputs", "vaul.comb.csv"))
+
+
+vaul.comb.in <- vaul.comb.in %>% filter(datetimeAK >= "2022-08-09 13:00:00" & datetimeAK < "2022-11-22 07:30:00")
+
+vaul.comb.in$datetimeAK <- as.POSIXct(vaul.comb.in$datetimeAK, tz = "America/Anchorage")
+vaul.comb.in$solar.time <- as.POSIXct(vaul.comb.in$solar.time, tz = "UTC")
+
+anyNA(vaul.comb.in, recursive = TRUE)
+lapply(vaul.comb.in, summary)
+```
+```{r}
+
+#Create NAs where there arent any 
+
+ts_2022.vaul <- data.frame(datetimeAK = force_tz(as.POSIXct(seq(ymd_hm("2022-08-09 13:00"),ymd_hm("2022-10-11 14:00"), by = '15 mins')), tz = "America/Anchorage"))
+vaul.2022_comb_ts <- full_join(vaul.comb.in, ts_2022.vaul, by = "datetimeAK")
+
+vaul.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+vaul.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_point()
+vaul.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.sat.EXO)) + geom_miss_point()
+vaul.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = depth)) + geom_miss_point()
+vaul.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = light)) + geom_miss_point()
+vaul.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+
+vaul.comb.in <- vaul.2022_comb_ts
+
+```
+
+
+
+```{r}
+vaul.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+
+#Remove NA periods longer than 12 hours
+
+clean <- vaul.comb.in %>%
+   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+   group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+   ungroup() %>% 
+   group_by(DO.obs,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+```
+
+```{r}
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+
+#NOTE: In these plots, Missing means NA. Data is still missing, but NAs have been removed. This removes those rows from the whole TS. Since the gap is greater than 12 hours, we cannot gap fill any of these slots anyway
+
+```
+
+
+#fill the out of water points
+Karen Filled
+
+
+```{r}
+
+# adjust that weird Q data in july
+
+# 
+# 
+# clean1 <- clean %>% filter(as.character(datetimeAK)< "2022-07-08 21:15:00")
+# clean2 <- clean %>% filter(as.character(datetimeAK) >"2022-07-09 16:30:00")
+# 
+# cleanAdjust <- clean %>% filter(as.character(datetimeAK)>= "2022-07-08 21:15:00"& as.character(datetimeAK) <="2022-07-09 16:30:00")
+# 
+# cleanAdjust$discharge = cleanAdjust$discharge - (648.3557 - 433.9846)
+# cleanAdjust$depth = cleanAdjust$depth - (0.4084102-0.3518778)
+# 
+# cleanTest <- rbind(clean1, cleanAdjust, clean2)
+# 
+# 
+# cleanTest <- cleanTest %>%
+#   mutate(across(c(discharge,depth),
+#                 ~ifelse(as.character(datetimeAK) >= "2022-07-09 08:00:00" & as.character(datetimeAK) <= "2022-07-09 09:15:00", NA, .)))
+# cleanTest <- cleanTest %>%
+#   mutate(across(c(discharge, depth),
+#                 ~ifelse(as.character(datetimeAK) == "2022-07-08 13:00:00", NA, .)))
+# 
+# 
+# 
+# cleanTest %>% filter(as.character(datetimeAK) > "2022-07-04 00:00:00" & as.character(datetimeAK) < "2022-07-14 00:00:00") %>%ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+# 
+# clean <- cleanTest
+
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_point()
+
+```
+
+```{r}
+
+clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
+clean$DO.obs <- na_kalman(clean$DO.obs)
+clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO)
+clean$depth <- na_kalman(clean$depth)
+clean$discharge <- na_kalman(clean$discharge, type = "level")
+clean$temp.water <- na_kalman(clean$temp.water, type = "level")
+clean$light <- na_kalman(clean$light, type = "level")
+
+
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.sat.EXO)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = depth)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = light)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+
+ 
+
+```
+
+
+
+# Identify where Metab Shuts off
+
+```{r fig.width=10, fig.height=10}
+
+ggplot() +
+  geom_point(data=clean, aes(x=datetimeAK,y=DO.obs))+
+  geom_point(data=clean, aes(x=datetimeAK,y=discharge/500), color = "dark blue")+
+  scale_y_continuous(sec.axis = sec_axis(trans = ~.*500))
+
+
+```
+
+
+
+# Looks like we can cut out before that large storm
+
+# Lets say before August
+
+
+#lets first try the whole year, without cutting off potential shutoff
+
+
+``` {r}
+# #Filtering only works properly as character
+# clean %>% filter(as.character(solar.time) <= "2022-08-01 04:13:57") %>% ggplot() +
+#   geom_point(aes(x=solar.time,y=DO.obs))+
+#   geom_point(aes(x=solar.time,y=discharge/500), color = "dark blue")+
+#   scale_y_continuous(sec.axis = sec_axis(trans = ~.*500))
+# 
+# 
+# 
+clean.vaul.2022 <- clean 
+# %>% filter(as.character(solar.time) < "2022-08-01 04:13:57")
+
+
+write.csv(clean.vaul.2022, here("outputs", "clean.vaul.2022.csv"))
+
+```
+
+
+
+
 
 
 
@@ -1503,7 +2227,7 @@ write.csv(clean.vaul.2021, here("outputs", "clean.vaul.2021.csv"))
 
 ``` {r}
 
-data.vaul.mm.all <- rbind(clean.vaul.2019,clean.vaul.2020, clean.vaul.2021)
+data.vaul.mm.all <- rbind(clean.vaul.2019,clean.vaul.2020, clean.vaul.2021,clean.vaul.2022)
 
 
 anyNA(data.vaul.mm.all, recursive = TRUE)
@@ -1642,7 +2366,7 @@ CRREL_VAUL.2021$ParMetCor <- CRREL_VAUL.2021$ParWm2 *multiplyFactor.2021
 #save for analysis
 
 ```{r}
-data.vaul.mm.all <- rbind(CRREL_VAUL.2019, CRREL_VAUL.2020, CRREL_VAUL.2021)
+data.vaul.mm.all <- rbind(CRREL_VAUL.2019, CRREL_VAUL.2020, CRREL_VAUL.2021, clean.vaul.2022)
 
 data.vaul.mm.all$light <- data.vaul.mm.all$ParMetCor
 
@@ -1724,15 +2448,31 @@ STRT.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_m
 STRT.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
 
 #Remove NA periods longer than 12 hours
+
+
 clean <- STRT.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
    filter(n()<48) %>% 
    select(-new)
-
-
 ```
 It looks like two gaps were removed... 
 
@@ -1753,8 +2493,8 @@ clean$temp.water <- na_kalman(clean$temp.water, type = "level")
 clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
 clean$DO.obs <- na_kalman(clean$DO.obs, type = "level")
 clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO, type = "level")
-clean$depth <- na_kalman(clean$depth, type = "level")
-clean$discharge <- na_kalman(clean$discharge)
+clean$depth <- na_kalman(clean$depth)
+clean$discharge <- na_kalman(clean$discharge, type = "level")
 clean$light <- na_kalman(clean$light, type = "level")
 
 
@@ -1840,13 +2580,31 @@ STRT.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_m
 ```{r}
 
 STRT.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+
 clean <- STRT.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
    filter(n()<48) %>% 
    select(-new)
+
 clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
 
 ```
@@ -1957,11 +2715,28 @@ STRT.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss
 
 clean <- STRT.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
    filter(n()<48) %>% 
    select(-new)
+
 
 clean <- clean%>% filter(solar.time<="2021-09-28 06:30:00")
 
@@ -2032,12 +2807,195 @@ write.csv(clean.strt.2021, here("outputs", "clean.strt.2021.csv"))
 
 
 
+#Set year of 2022
+```{r}
+strt.comb.in <- read.csv(here("outputs", "strt.comb.csv"))
+
+
+strt.comb.in <- strt.comb.in %>% filter(datetimeAK >= "2022-06-03 00:15:00" & datetimeAK < "2022-10-08 14:00:00")
+
+strt.comb.in$datetimeAK <- as.POSIXct(strt.comb.in$datetimeAK, tz = "America/Anchorage")
+strt.comb.in$solar.time <- as.POSIXct(strt.comb.in$solar.time, tz = "UTC")
+
+anyNA(strt.comb.in, recursive = TRUE)
+lapply(strt.comb.in, summary)
+```
+```{r}
+
+#Create NAs where there arent any 
+
+ts_2022.strt <- data.frame(datetimeAK = force_tz(as.POSIXct(seq(ymd_hm("2022-06-03 00:15"),ymd_hm("2022-10-08 14:00"), by = '15 mins')), tz = "America/Anchorage"))
+strt.2022_comb_ts <- full_join(strt.comb.in, ts_2022.strt, by = "datetimeAK")
+
+strt.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+strt.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_point()
+strt.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.sat.EXO)) + geom_miss_point()
+strt.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = depth)) + geom_miss_point()
+strt.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = light)) + geom_miss_point()
+strt.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+
+strt.comb.in <- strt.2022_comb_ts
+
+```
+
+
+
+```{r}
+strt.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+
+#Remove NA periods longer than 12 hours
+
+clean <- strt.comb.in %>%
+   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+   group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+   ungroup() %>% 
+   group_by(DO.obs,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+```
+
+```{r}
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+
+#NOTE: In these plots, Missing means NA. Data is still missing, but NAs have been removed. This removes those rows from the whole TS. Since the gap is greater than 12 hours, we cannot gap fill any of these slots anyway
+
+```
+
+
+#fill the out of water points
+Karen Filled
+
+
+```{r}
+
+# adjust that weird Q data in july
+
+# 
+# 
+# clean1 <- clean %>% filter(as.character(datetimeAK)< "2022-07-08 21:15:00")
+# clean2 <- clean %>% filter(as.character(datetimeAK) >"2022-07-09 16:30:00")
+# 
+# cleanAdjust <- clean %>% filter(as.character(datetimeAK)>= "2022-07-08 21:15:00"& as.character(datetimeAK) <="2022-07-09 16:30:00")
+# 
+# cleanAdjust$discharge = cleanAdjust$discharge - (648.3557 - 433.9846)
+# cleanAdjust$depth = cleanAdjust$depth - (0.4084102-0.3518778)
+# 
+# cleanTest <- rbind(clean1, cleanAdjust, clean2)
+# 
+# 
+# cleanTest <- cleanTest %>%
+#   mutate(across(c(discharge,depth),
+#                 ~ifelse(as.character(datetimeAK) >= "2022-07-09 08:00:00" & as.character(datetimeAK) <= "2022-07-09 09:15:00", NA, .)))
+# cleanTest <- cleanTest %>%
+#   mutate(across(c(discharge, depth),
+#                 ~ifelse(as.character(datetimeAK) == "2022-07-08 13:00:00", NA, .)))
+# 
+# 
+# 
+# cleanTest %>% filter(as.character(datetimeAK) > "2022-07-04 00:00:00" & as.character(datetimeAK) < "2022-07-14 00:00:00") %>%ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+# 
+# clean <- cleanTest
+
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_point()
+
+```
+
+```{r}
+
+clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
+clean$DO.obs <- na_kalman(clean$DO.obs, type = "level")
+
+clean$DO.sat.EXO  = clean$DO.obs /(clean$ODO.Psat/100)
+
+
+clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO)
+clean$depth <- na_kalman(clean$depth)
+clean$discharge <- na_kalman(clean$discharge, type = "level")
+clean$temp.water <- na_kalman(clean$temp.water, type = "level")
+clean$light <- na_kalman(clean$light, type = "level")
+
+
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.sat.EXO)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = depth)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = light)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+
+ 
+
+```
+
+
+
+# Identify where Metab Shuts off
+
+```{r fig.width=10, fig.height=10}
+
+ggplot() +
+  geom_point(data=clean, aes(x=datetimeAK,y=DO.obs))+
+  geom_point(data=clean, aes(x=datetimeAK,y=discharge/500), color = "dark blue")+
+  scale_y_continuous(sec.axis = sec_axis(trans = ~.*500))
+
+
+```
+
+
+
+# Looks like we can cut out before that large storm
+
+# Lets say before August
+
+
+#lets first try the whole year, without cutting off potential shutoff
+
+
+``` {r}
+# #Filtering only works properly as character
+# clean %>% filter(as.character(solar.time) <= "2022-08-01 04:13:57") %>% ggplot() +
+#   geom_point(aes(x=solar.time,y=DO.obs))+
+#   geom_point(aes(x=solar.time,y=discharge/500), color = "dark blue")+
+#   scale_y_continuous(sec.axis = sec_axis(trans = ~.*500))
+# 
+# 
+# 
+clean.strt.2022 <- clean 
+# %>% filter(as.character(solar.time) < "2022-08-01 04:13:57")
+
+
+write.csv(clean.strt.2022, here("outputs", "clean.strt.2022.csv"))
+
+```
+
+
+
+
+
+
 # Add in Met Tower light and combine all
 
 
 ``` {r}
 
-data.strt.mm.all <- rbind(clean.strt.2019,clean.strt.2020, clean.strt.2021)
+data.strt.mm.all <- rbind(clean.strt.2019,clean.strt.2020, clean.strt.2021,clean.strt.2022)
 
 
 anyNA(data.strt.mm.all, recursive = TRUE)
@@ -2176,7 +3134,7 @@ CRREL_STRT.2021$ParMetCor <- CRREL_STRT.2021$ParWm2 *multiplyFactor.2021
 #save for analysis
 
 ```{r}
-data.strt.mm.all <- rbind(CRREL_STRT.2019, CRREL_STRT.2020, CRREL_STRT.2021)
+data.strt.mm.all <- rbind(CRREL_STRT.2019, CRREL_STRT.2020, CRREL_STRT.2021, clean.strt.2022)
 
 data.strt.mm.all$light <- data.strt.mm.all$ParMetCor
 
@@ -2194,8 +3152,6 @@ write.csv(data.strt.mm.all, here("outputs", "stuart.comb.readyforMetab.new.clean
 
 
 # NO 2022 yet bc Q data is funky. Not at 15 min interval yet.
-
-
 
 
 
@@ -2259,6 +3215,22 @@ clean <- POKE.comb.in %>%
    group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
    ungroup() %>% 
    group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+   group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+   ungroup() %>% 
+   group_by(DO.obs,new) %>% 
    filter(n()<48) %>% 
    select(-new)
 
@@ -2364,13 +3336,31 @@ POKE.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_m
 ```{r}
 
 POKE.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+
 clean <- POKE.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
    filter(n()<48) %>% 
    select(-new)
+
 clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
 
 ```
@@ -2385,7 +3375,7 @@ clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
 clean$DO.obs <- na_kalman(clean$DO.obs, type = "level")
 clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO, type = "level")
 clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO)
-clean$depth <- na_kalman(clean$depth, type = "level")
+clean$depth <- na_kalman(clean$depth)
 clean$discharge <- na_kalman(clean$discharge)
 clean$light <- na_kalman(clean$light, type = "level")
 
@@ -2503,6 +3493,8 @@ POKE.comb.in$DO.sat.EXO = POKE.comb.in$DO.obs /(POKE.comb.in$ODO.Psat/100)
 POKE.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
 POKE.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = ODO.Psat)) + geom_miss_point()
 POKE.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_point()
+POKE.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+
 
 ```
 
@@ -2511,15 +3503,37 @@ Remove NA chunks larger than 12 hours which cannot be gap filled.
 ```{r}
 POKE.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
 
+POKE.comb.in <- POKE.comb.in %>%  filter(datetimeAK >"2021-05-10 17:00:00")
+
+# try with discharge chunks
 clean <- POKE.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
    filter(n()<48) %>% 
    select(-new)
 
+
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
 clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+
 
 ```
 
@@ -2527,7 +3541,7 @@ clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point(
 
 #fill the out of water points
 ```{r}
-clean$temp.water <- na_kalman(clean$temp.water, type = "level")
+clean$temp.water <- na_kalman(clean$temp.water)
 clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
 clean$DO.obs <- na_kalman(clean$DO.obs)
 clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO, type = "level")
@@ -2579,13 +3593,188 @@ write.csv(clean.poke.2021, here("outputs", "clean.poke.2021.csv"))
 #ADD IN 2022 WHEN Q is CLEANED 
 
 
+#Set year of 2022
+```{r}
+poke.comb.in <- read.csv(here("outputs", "poke.comb.csv"))
+
+poke.comb.in <- poke.comb.in %>% filter(datetimeAK >= "2022-05-18 00:00:00" & datetimeAK < "2022-10-07 10:15:00")
+
+poke.comb.in$datetimeAK <- as.POSIXct(poke.comb.in$datetimeAK, tz = "America/Anchorage")
+poke.comb.in$solar.time <- as.POSIXct(poke.comb.in$solar.time, tz = "UTC")
+
+anyNA(poke.comb.in, recursive = TRUE)
+lapply(poke.comb.in, summary)
+```
+```{r}
+
+#Create NAs where there arent any 
+
+ts_2022.poke <- data.frame(datetimeAK = force_tz(as.POSIXct(seq(ymd_hm("2022-05-18 00:00"),ymd_hm("2022-10-07 10:15"), by = '15 mins')), tz = "America/Anchorage"))
+poke.2022_comb_ts <- full_join(poke.comb.in, ts_2022.poke, by = "datetimeAK")
+
+poke.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+poke.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_point()
+poke.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.sat.EXO)) + geom_miss_point()
+poke.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = depth)) + geom_miss_point()
+poke.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = light)) + geom_miss_point()
+poke.2022_comb_ts %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+
+poke.comb.in <- poke.2022_comb_ts
+
+```
+
+
+
+```{r}
+poke.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+
+#Remove NA periods longer than 12 hours
+
+clean <- poke.comb.in %>%
+   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+# clean <- clean1 %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    ungroup() %>% 
+#    group_by(DO.obs,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
+
+
+clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+   group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+   ungroup() %>% 
+   group_by(DO.obs,new) %>% 
+   filter(n()<48) %>% 
+   select(-new)
+
+```
+
+```{r}
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+
+#NOTE: In these plots, Missing means NA. Data is still missing, but NAs have been removed. This removes those rows from the whole TS. Since the gap is greater than 12 hours, we cannot gap fill any of these slots anyway
+
+```
+
+
+#fill the out of water points
+Karen Filled
+
+
+```{r}
+
+# adjust that weird Q data in july
+
+# 
+# 
+# clean1 <- clean %>% filter(as.character(datetimeAK)< "2022-07-08 21:15:00")
+# clean2 <- clean %>% filter(as.character(datetimeAK) >"2022-07-09 16:30:00")
+# 
+# cleanAdjust <- clean %>% filter(as.character(datetimeAK)>= "2022-07-08 21:15:00"& as.character(datetimeAK) <="2022-07-09 16:30:00")
+# 
+# cleanAdjust$discharge = cleanAdjust$discharge - (648.3557 - 433.9846)
+# cleanAdjust$depth = cleanAdjust$depth - (0.4084102-0.3518778)
+# 
+# cleanTest <- rbind(clean1, cleanAdjust, clean2)
+# 
+# 
+# cleanTest <- cleanTest %>%
+#   mutate(across(c(discharge,depth),
+#                 ~ifelse(as.character(datetimeAK) >= "2022-07-09 08:00:00" & as.character(datetimeAK) <= "2022-07-09 09:15:00", NA, .)))
+# cleanTest <- cleanTest %>%
+#   mutate(across(c(discharge, depth),
+#                 ~ifelse(as.character(datetimeAK) == "2022-07-08 13:00:00", NA, .)))
+# 
+# 
+# 
+# cleanTest %>% filter(as.character(datetimeAK) > "2022-07-04 00:00:00" & as.character(datetimeAK) < "2022-07-14 00:00:00") %>%ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+# 
+# clean <- cleanTest
+
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_point()
+
+```
+
+```{r}
+
+clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
+clean$DO.obs <- na_kalman(clean$DO.obs)
+clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO)
+clean$depth <- na_kalman(clean$depth, type = "level")
+clean$discharge <- na_kalman(clean$discharge, type = "level")
+clean$temp.water <- na_kalman(clean$temp.water)
+clean$light <- na_kalman(clean$light)
+
+
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.sat.EXO)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = depth)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = light)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+
+ 
+
+```
+
+
+
+# Identify where Metab Shuts off
+
+```{r fig.width=10, fig.height=10}
+
+ggplot() +
+  geom_point(data=clean, aes(x=datetimeAK,y=DO.obs))+
+  geom_point(data=clean, aes(x=datetimeAK,y=discharge/500), color = "dark blue")+
+  scale_y_continuous(sec.axis = sec_axis(trans = ~.*500))
+
+
+```
+
+
+
+# Looks like we can cut out before that large storm
+
+# Lets say before August
+
+
+#lets first try the whole year, without cutting off potential shutoff
+
+
+``` {r}
+# #Filtering only works properly as character
+# clean %>% filter(as.character(solar.time) <= "2022-08-01 04:13:57") %>% ggplot() +
+#   geom_point(aes(x=solar.time,y=DO.obs))+
+#   geom_point(aes(x=solar.time,y=discharge/500), color = "dark blue")+
+#   scale_y_continuous(sec.axis = sec_axis(trans = ~.*500))
+# 
+# 
+# 
+clean.poke.2022 <- clean 
+# %>% filter(as.character(solar.time) < "2022-08-01 04:13:57")
+
+
+write.csv(clean.poke.2022, here("outputs", "clean.poke.2022.csv"))
+
+```
+
+
+
 
 # Add in Met Tower light and combine all
 
 
 ``` {r}
 
-data.poke.mm.all <- rbind(clean.poke.2019,clean.poke.2020, clean.poke.2021)
+data.poke.mm.all <- rbind(clean.poke.2019,clean.poke.2020, clean.poke.2021, clean.poke.2022)
 
 
 anyNA(data.poke.mm.all, recursive = TRUE)
@@ -2724,7 +3913,7 @@ CRREL_POKE.2021$ParMetCor <- CRREL_POKE.2021$ParWm2 *multiplyFactor.2021
 #save for analysis
 
 ```{r}
-data.poke.mm.all <- rbind(CRREL_POKE.2019, CRREL_POKE.2020, CRREL_POKE.2021)
+data.poke.mm.all <- rbind(CRREL_POKE.2019, CRREL_POKE.2020, CRREL_POKE.2021, clean.poke.2022)
 
 data.poke.mm.all$light <- data.poke.mm.all$ParMetCor
 
