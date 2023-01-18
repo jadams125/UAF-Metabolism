@@ -1,0 +1,194 @@
+---
+title: "Q_2022_Epscor"
+author: "Jacob Adams"
+date: "1/10/2023"
+output: html_document
+---
+
+The purpose of this script is to read in pressure transducer data from 2022 and generate rating curves to ultimately generate predicted continuous discharge records throughout the whole season.
+
+Read in most updated merged files from each site from the google drive (DoD Project->2022 AK sensors->Discharge->site->"merged_date_file" )
+
+
+```{r setup, include = FALSE}
+# Load packages #
+library(tidyverse)
+library(lubridate)
+library(data.table)
+library(rio)
+library(ggplot2)
+library(scales)
+library(psych)
+library(here)
+library(googledrive)
+library(readxl)
+library(cowplot)
+library(zoo)
+library(readr)
+library(dplyr)
+library(RColorBrewer)
+library(gridExtra)
+library(ggpmisc)
+library(birk)
+library(imputeTS)
+library(neonUtilities)
+```
+
+
+
+### ALL Sites ###
+
+```{r, warning = FALSE, message = FALSE}
+# Import data from google drive #
+discharge.2022 <- "https://docs.google.com/spreadsheets/d/e/2PACX-1vShT-LAI5cw0hJmCnrIv-cxTsltXr1piGZsC4tKucqOdo3QMRx5vcD6dNXw6PjM-OBDOLt5_7g3-o4z/pub?output=csv"
+QSummary.2022 <- read.csv(url(discharge.2022))
+
+### Format Time ###
+QSummary.2022$Date <- mdy(QSummary.2022$Date)
+QSummary.2022$DateTimeAK <- as.POSIXct(paste(QSummary.2022$Date, QSummary.2022$Time), format = "%Y-%m-%d %H:%M", tz = "America/Anchorage")
+QSummary.2022$DateTimeAK <- lubridate::round_date(QSummary.2022$DateTimeAK, "60 minutes")
+
+### ALL Sites ###
+QSummary.2022 %>% ggplot() +
+  geom_point(aes(x=DateTimeAK, y=MeasuredQ_Ls, color=Site, shape=Method), size=3) +
+  theme_classic() +
+  scale_color_manual(values=c("#FF7F00","#A6761D", "#6A3D9A", "#66C2A5", "#E7298A")) + ggtitle("ALL SITES") 
+
+
+
+```
+Import 2022 STRT and POKE Q to make a rating curve off of 
+
+```{r}
+
+
+read.csv()
+
+
+```
+
+
+```{r}
+# rating curve # 
+vaul.formula <- y ~ x
+
+Vault1comb.2022  %>% ggplot(aes(x = difference, y = MeasuredQ_Ls)) +
+  geom_point(aes(color = Method), size = 3) +
+  geom_smooth(method = "lm", se=FALSE, formula = vaul.formula) +
+  stat_poly_eq(formula = vaul.formula,
+               aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+               parse = TRUE) +
+  theme_light() +
+  ggtitle("Vault all measured Q")
+```
+
+That very high difference could be accurate, but necessary to remove for curve. Let's also remove the two low difference, high Q points.
+
+```{r}
+# Remove high difference point
+Vault1comb.2022.2 <- Vault1comb.2022 %>% filter(MeasuredQ_Ls < 200)
+
+# rating curve # 
+vaul.formula <- y ~ x
+
+Vault1comb.2022.2  %>% ggplot(aes(x = difference, y = MeasuredQ_Ls)) +
+  geom_point(aes(color = Method), size = 3) +
+  geom_smooth(method = "lm", se=FALSE, formula = vaul.formula) +
+  stat_poly_eq(formula = vaul.formula,
+               aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+               parse = TRUE) +
+  theme_light() +
+  ggtitle("Vault measured Q")
+
+```
+
+Let's try curve with wading rod and YSI averaged by date.
+
+```{r}
+Vault1comb.2022.3 <- Vault1comb.2022.2 %>% group_by(Date) %>% summarise(MeasuredQ_Ls = mean(MeasuredQ_Ls),
+difference = mean(difference))
+
+# rating curve # 
+vaul.formula <- y ~ x
+
+Vault1comb.2022.3 %>% filter(MeasuredQ_Ls < 150) %>% ggplot(aes(x = difference, y = MeasuredQ_Ls)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se=FALSE, formula = vaul.formula) +
+  stat_poly_eq(formula = vaul.formula,
+               aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+               parse = TRUE) +
+  theme_light() +
+  ggtitle("Vault measured Q averaged by date")
+```
+
+Let's try separate curves for YSI and wading rod
+
+```{r}
+
+# rating curve # 
+vaul.formula <- y ~ x
+
+Vault1comb.2022.2  %>% ggplot(aes(x = difference, y = MeasuredQ_Ls)) +
+  geom_point(aes(color = Method), size = 3) +
+  geom_smooth(method = "lm", se=FALSE, formula = vaul.formula) +
+  stat_poly_eq(formula = vaul.formula,
+               aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+               parse = TRUE) +
+  #xlim(216, 216.4) +
+  #ylim(0,1500) +
+  theme_light() +
+  ggtitle("Vault measured Q by method") + facet_wrap(~Method)
+```
+
+Maybe the best we can do is using the wading rod points with a couple low YSI points.
+
+```{r}
+# Remove high difference point
+Vault1comb.2022.3 <- Vault1comb.2022 %>% filter(MeasuredQ_Ls < 130)
+
+# rating curve # 
+vaul.formula <- y ~ x
+
+Vault1comb.2022.3  %>% ggplot(aes(x = difference, y = MeasuredQ_Ls)) +
+  geom_point(aes(color = Method), size = 3) +
+  geom_smooth(method = "lm", se=FALSE, formula = vaul.formula) +
+  stat_poly_eq(formula = vaul.formula,
+               aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+               parse = TRUE) +
+  theme_light() +
+  ggtitle("Vault measured Q")
+
+```
+
+```{r, message = FALSE, warning = FALSE}
+## Predict VAUL Q
+VAUL.lm.2022 <- lm(Vault1comb.2022.3$MeasuredQ_Ls ~ Vault1comb.2022.3$difference)
+summary(VAUL.lm.2022)
+
+VAUL.2022.dt$pred.vaul.Q <- coef(VAUL.lm.2022)[2] * VAUL.2022.dt$difference + coef(VAUL.lm.2022)[1]
+
+VAUL.2022.dt <- VAUL.2022.dt %>% select(DateTimeAK, pred.vaul.Q) %>% na.omit()
+
+VAUL.2022.dt %>% ggplot(aes(x = DateTimeAK, y = pred.vaul.Q)) +
+  geom_line(color="#A6CEE3", size=1.25) +
+  geom_point(data = Vault1comb.2022, aes(x = DateTimeAK, y = MeasuredQ_Ls, color = Method), size=3) +
+  theme_classic() +
+  ggtitle("VAUL predicted and measured Q") +
+  xlab("Date") +
+  ylab("Discharge (L/s)")
+
+```
+
+
+### Export 2022 predicted Q
+```{r}
+names(FRCH.2022.dt)
+pred_Q.1 <- full_join(VAUL.2022.dt, MOOS.2022.dt)
+pred_Q.2 <- full_join(pred_Q.1, POKE.2022.dt)
+pred_Q.3 <- full_join(STRT.2022.dt[,c(1,10)], FRCH.2022.dt[,c(1,12)])
+pred_Q_2022 <- full_join(pred_Q.2, pred_Q.3)
+
+names(pred_Q_2022) <- c("DateTimeAK", "pred.vaul.Q", "pred.moos.Q", "pred.poke.Q", "pred.strt.Q", "pred.frch.Q")
+write.csv(pred_Q_2022, "Predicted_Q_2022.csv")
+pred_Q_2022 %>% ggplot() + geom_line(aes(DateTimeAK, pred.vaul.Q), col = 1)+ geom_line(aes(DateTimeAK, pred.moos.Q), col = 2)+ geom_line(aes(DateTimeAK, pred.poke.Q), col = 3)+ geom_line(aes(DateTimeAK, pred.strt.Q), col = 4)+ geom_line(aes(DateTimeAK, pred.frch.Q), col = 5) + ylab("Predicted Q")
+```
