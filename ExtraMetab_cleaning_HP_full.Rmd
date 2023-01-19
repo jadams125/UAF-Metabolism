@@ -3574,7 +3574,10 @@ clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point(
 clean$temp.water <- na_kalman(clean$temp.water)
 clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
 clean$DO.obs <- na_kalman(clean$DO.obs)
-clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO, type = "level")
+
+clean$DO.sat.EXO = clean$DO.obs /(clean$ODO.Psat/100)
+
+
 clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO)
 clean$depth <- na_kalman(clean$depth, type = "level")
 clean$discharge <- na_kalman(clean$discharge, type = "level")

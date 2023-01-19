@@ -341,7 +341,7 @@ bayes_specs <- specs(bayes_name,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
-data.frch.mm.all <- read.csv(here("outputs", "french.comb.readyforMetab.new.clean.csv"))
+data.frch.mm.all <- read.csv(here("outputs", "clean.frch.2019.full.csv"))
 
 data.frch.mm.all <- data.frch.mm.all %>% filter(solar.time < "2019-12-30 04:13:57")
 
@@ -363,11 +363,11 @@ mm.test.frch <- metab(bayes_specs, data=data.frch.mm.all)
 endTime <- as.POSIXct(Sys.time())
 # 
 difftime(endTime, startTime)
-save(mm.test.frch, file = here("Outputs", "french2019-Run_2023-01-09.RData"))
+save(mm.test.frch, file = here("Outputs", "french2019-Run_2023-01-18_full.RData"))
 # 
 fit.frch <- get_fit(mm.test.frch)
 fit.daily <- fit.frch$daily
-write.csv(fit.daily, here("outputs", "french2019-Run_2023-01-09.csv"))
+write.csv(fit.daily, here("outputs", "french2019-Run_2023-01-18_full.csv"))
 
 model_data <- get_data(mm.test.frch)
 
