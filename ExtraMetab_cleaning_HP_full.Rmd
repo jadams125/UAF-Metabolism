@@ -82,14 +82,14 @@ MOOS.comb.in <- MOOS.2019_comb_ts
 MOOS.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
 
 #Remove NA periods longer than 12 hours
-
-clean <- MOOS.comb.in %>%
-   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new) %>% 
-   filter(n()<48) %>% 
-   select(-new)
+# 
+# clean <- MOOS.comb.in %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+#    ungroup() %>% 
+#    group_by(discharge,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
 
 # clean <- clean1 %>%
 #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
@@ -100,7 +100,7 @@ clean <- MOOS.comb.in %>%
 #    select(-new)
 
 
-clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+clean <- MOOS.comb.in %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -111,6 +111,8 @@ clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs,
 
 ```{r}
 clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+
 
 #NOTE: In these plots, Missing means NA. Data is still missing, but NAs have been removed. This removes those rows from the whole TS. Since the gap is greater than 12 hours, we cannot gap fill any of these slots anyway
 
@@ -297,13 +299,13 @@ MOOS.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = depth)) + geom_miss_
 
 ```{r}
 MOOS.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
-
+# 
 clean <- MOOS.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new) %>% 
-   filter(n()<48) %>% 
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>%
+   ungroup() %>%
+   group_by(discharge,new) %>%
+   filter(n()<96) %>%
    select(-new)
 
 # clean <- clean1 %>%
@@ -316,11 +318,11 @@ clean <- MOOS.comb.in %>%
 
 
 clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
-   group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+   group_by(datetimeAK, new2 = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
-   group_by(DO.obs,new) %>% 
+   group_by(DO.obs,new2) %>% 
    filter(n()<48) %>% 
-   select(-new)
+   select(-new2)
 
 ```
 
@@ -426,10 +428,10 @@ MOOS.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss
 
 clean <- MOOS.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new) %>% 
-   filter(n()<48) %>% 
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>%
+   ungroup() %>%
+   group_by(discharge,new) %>%
+   filter(n()<96) %>%
    select(-new)
 
 # clean <- clean1 %>%
@@ -442,11 +444,11 @@ clean <- MOOS.comb.in %>%
 
 
 clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
-   group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+   group_by(datetimeAK, new2 = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
-   group_by(DO.obs,new) %>% 
+   group_by(DO.obs,new2) %>% 
    filter(n()<48) %>% 
-   select(-new)
+   select(-new2)
 
 ```
 
@@ -552,10 +554,10 @@ MOOS.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss
 
 clean <- MOOS.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new) %>% 
-   filter(n()<48) %>% 
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>%
+   ungroup() %>%
+   group_by(discharge,new) %>%
+   filter(n()<96) %>%
    select(-new)
 
 # clean <- clean1 %>%
@@ -567,12 +569,12 @@ clean <- MOOS.comb.in %>%
 #    select(-new)
 
 
-clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
-   group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+clean <- MOOS.comb.in %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+   group_by(datetimeAK, new2 = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
-   group_by(DO.obs,new) %>% 
+   group_by(DO.obs,new2) %>% 
    filter(n()<48) %>% 
-   select(-new)
+   select(-new2)
 
 ```
 
@@ -626,7 +628,7 @@ clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_po
 ```{r}
 
 clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
-clean$DO.obs <- na_kalman(clean$DO.obs)
+clean$DO.obs <- na_kalman(clean$DO.obs, type = "level")
 
 clean$DO.sat.EXO = clean$DO.obs/ (clean$ODO.Psat/100)
 
@@ -916,24 +918,24 @@ FRCH.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss
 #Remove NA periods longer than 12 hours
 
 
-clean <- FRCH.comb.in %>%
-   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new) %>% 
-   filter(n()<48) %>% 
-   select(-new)
-
-# clean <- clean1 %>%
+# clean <- FRCH.comb.in %>%
 #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
 #    ungroup() %>% 
-#    group_by(DO.obs,new) %>% 
+#    group_by(discharge,new) %>% 
 #    filter(n()<48) %>% 
 #    select(-new)
+# 
+# # clean <- clean1 %>%
+# #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+# #    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+# #    ungroup() %>% 
+# #    group_by(DO.obs,new) %>% 
+# #    filter(n()<48) %>% 
+# #    select(-new)
 
 
-clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+clean <- FRCH.comb.in %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -1053,24 +1055,24 @@ FRCH.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_m
 FRCH.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
 
 
-clean <- FRCH.comb.in %>%
-   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new) %>% 
-   filter(n()<48) %>% 
-   select(-new)
-
-# clean <- clean1 %>%
+# clean <- FRCH.comb.in %>%
 #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
 #    ungroup() %>% 
-#    group_by(DO.obs,new) %>% 
+#    group_by(discharge,new) %>% 
 #    filter(n()<48) %>% 
 #    select(-new)
+# 
+# # clean <- clean1 %>%
+# #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+# #    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+# #    ungroup() %>% 
+# #    group_by(DO.obs,new) %>% 
+# #    filter(n()<48) %>% 
+# #    select(-new)
 
 
-clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+clean <- FRCH.comb.in %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -1182,27 +1184,27 @@ FRCH.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss
 
 clean <- FRCH.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new) %>% 
-   filter(n()<48) %>% 
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>%
+   ungroup() %>%
+   group_by(discharge,new) %>%
+   filter(n()<96) %>%
    select(-new)
 
-# clean <- clean1 %>%
-#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
-#    ungroup() %>% 
-#    group_by(DO.obs,new) %>% 
-#    filter(n()<48) %>% 
-#    select(-new)
+# # clean <- clean1 %>%
+# #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+# #    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+# #    ungroup() %>% 
+# #    group_by(DO.obs,new) %>% 
+# #    filter(n()<48) %>% 
+# #    select(-new)
 
 
 clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
-   group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+   group_by(datetimeAK, new2 = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
-   group_by(DO.obs,new) %>% 
+   group_by(DO.obs,new2) %>% 
    filter(n()<48) %>% 
-   select(-new)
+   select(-new2)
 
 clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
 
@@ -1307,27 +1309,27 @@ FRCH.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss
 
 clean <- FRCH.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new) %>% 
-   filter(n()<48) %>% 
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>%
+   ungroup() %>%
+   group_by(discharge,new) %>%
+   filter(n()<96) %>%
    select(-new)
 
-# clean <- clean1 %>%
-#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
-#    ungroup() %>% 
-#    group_by(DO.obs,new) %>% 
-#    filter(n()<48) %>% 
-#    select(-new)
+# # clean <- clean1 %>%
+# #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+# #    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+# #    ungroup() %>% 
+# #    group_by(DO.obs,new) %>% 
+# #    filter(n()<48) %>% 
+# #    select(-new)
 
 
 clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
-   group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+   group_by(datetimeAK, new2 = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
-   group_by(DO.obs,new) %>% 
+   group_by(DO.obs,new2) %>% 
    filter(n()<48) %>% 
-   select(-new)
+   select(-new2)
 
 ```
 
@@ -1383,7 +1385,7 @@ clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_po
 clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
 clean$DO.obs <- na_kalman(clean$DO.obs)
 clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO)
-clean$depth <- na_kalman(clean$depth)
+clean$depth <- na_kalman(clean$depth, type = "level")
 clean$discharge <- na_kalman(clean$discharge)
 clean$temp.water <- na_kalman(clean$temp.water)
 clean$light <- na_kalman(clean$light, type = "level")
@@ -1674,24 +1676,24 @@ VAUL.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss
 
 #Remove NA periods longer than 12 hours
 
-clean <- VAUL.comb.in %>%
-   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new) %>% 
-   filter(n()<48) %>% 
-   select(-new)
-
-# clean <- clean1 %>%
+# clean <- VAUL.comb.in %>%
 #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
 #    ungroup() %>% 
-#    group_by(DO.obs,new) %>% 
+#    group_by(discharge,new) %>% 
 #    filter(n()<48) %>% 
 #    select(-new)
+# 
+# # clean <- clean1 %>%
+# #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+# #    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+# #    ungroup() %>% 
+# #    group_by(DO.obs,new) %>% 
+# #    filter(n()<48) %>% 
+# #    select(-new)
 
 
-clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+clean <- VAUL.comb.in %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -1717,7 +1719,9 @@ It looks like quite a few gaps were removed...
 clean$temp.water <- na_kalman(clean$temp.water, type = "level")
 clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
 clean$DO.obs <- na_kalman(clean$DO.obs, type = "level")
-clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO, type = "level")
+
+clean$DO.sat.EXO = clean$DO.obs/ (clean$ODO.Psat/100)
+
 clean$depth <- na_kalman(clean$depth, type = "level")
 clean$discharge <- na_kalman(clean$discharge)
 clean$light <- na_kalman(clean$light, type = "level")
@@ -1809,24 +1813,24 @@ VAUL.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_m
 
 VAUL.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
 
-clean <- VAUL.comb.in %>%
-   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new) %>% 
-   filter(n()<48) %>% 
-   select(-new)
-
-# clean <- clean1 %>%
+# clean <- VAUL.comb.in %>%
 #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
 #    ungroup() %>% 
-#    group_by(DO.obs,new) %>% 
+#    group_by(discharge,new) %>% 
 #    filter(n()<48) %>% 
 #    select(-new)
+# 
+# # clean <- clean1 %>%
+# #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+# #    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+# #    ungroup() %>% 
+# #    group_by(DO.obs,new) %>% 
+# #    filter(n()<48) %>% 
+# #    select(-new)
+# 
 
-
-clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+clean <- VAUL.comb.in %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -1841,7 +1845,7 @@ Two sections were removed. No DO data for those days.
 
 #fill the out of water points
 ```{r}
-clean$temp.water <- na_kalman(clean$temp.water)
+clean$temp.water <- na_kalman(clean$temp.water, type = "level")
 clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
 clean$DO.obs <- na_kalman(clean$DO.obs, type = "level")
 clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO, type = "level")
@@ -1945,24 +1949,24 @@ Remove NA chunks larger than 12 hours which cannot be gap filled.
 ```{r}
 VAUL.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
 
-clean <- VAUL.comb.in %>%
-   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new) %>% 
-   filter(n()<48) %>% 
-   select(-new)
-
-# clean <- clean1 %>%
+# clean <- VAUL.comb.in %>%
 #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
 #    ungroup() %>% 
-#    group_by(DO.obs,new) %>% 
+#    group_by(discharge,new) %>% 
 #    filter(n()<48) %>% 
 #    select(-new)
+# 
+# # clean <- clean1 %>%
+# #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+# #    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+# #    ungroup() %>% 
+# #    group_by(DO.obs,new) %>% 
+# #    filter(n()<48) %>% 
+# #    select(-new)
 
 
-clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+clean <- VAUL.comb.in %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -2116,7 +2120,7 @@ clean <- vaul.comb.in %>%
 #    select(-new)
 
 
-clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+clean <- vaul.comb.in %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -2176,8 +2180,10 @@ clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = temp.water)) + geom_miss_po
 
 clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
 clean$DO.obs <- na_kalman(clean$DO.obs)
-clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO)
-clean$depth <- na_kalman(clean$depth)
+clean$DO.sat.EXO = clean$DO.obs/ (clean$ODO.Psat/100)
+
+
+clean$depth <- na_kalman(clean$depth, type = "level")
 clean$discharge <- na_kalman(clean$discharge, type = "level")
 clean$temp.water <- na_kalman(clean$temp.water, type = "level")
 clean$light <- na_kalman(clean$light, type = "level")
@@ -2469,25 +2475,25 @@ STRT.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss
 
 #Remove NA periods longer than 12 hours
 
-
-clean <- STRT.comb.in %>%
-   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new) %>% 
-   filter(n()<48) %>% 
-   select(-new)
-
-# clean <- clean1 %>%
+# 
+# clean <- STRT.comb.in %>%
 #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
 #    ungroup() %>% 
-#    group_by(DO.obs,new) %>% 
+#    group_by(discharge,new) %>% 
 #    filter(n()<48) %>% 
 #    select(-new)
+# 
+# # clean <- clean1 %>%
+# #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+# #    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+# #    ungroup() %>% 
+# #    group_by(DO.obs,new) %>% 
+# #    filter(n()<48) %>% 
+# #    select(-new)
 
 
-clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+clean <- STRT.comb.in %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -2512,7 +2518,9 @@ It looks like two gaps were removed...
 clean$temp.water <- na_kalman(clean$temp.water, type = "level")
 clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
 clean$DO.obs <- na_kalman(clean$DO.obs, type = "level")
-clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO, type = "level")
+clean$DO.sat.EXO  = clean$DO.obs /(clean$ODO.Psat/100)
+
+
 clean$depth <- na_kalman(clean$depth)
 clean$discharge <- na_kalman(clean$discharge, type = "level")
 clean$light <- na_kalman(clean$light, type = "level")
@@ -2603,13 +2611,13 @@ STRT.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_m
 
 STRT.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
 
-clean <- STRT.comb.in %>%
-   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new) %>% 
-   filter(n()<48) %>% 
-   select(-new)
+# clean <- STRT.comb.in %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
+#    ungroup() %>% 
+#    group_by(discharge,new) %>% 
+#    filter(n()<48) %>% 
+#    select(-new)
 
 # clean <- clean1 %>%
 #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
@@ -2620,7 +2628,7 @@ clean <- STRT.comb.in %>%
 #    select(-new)
 
 
-clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+clean <- STRT.comb.in %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -2735,25 +2743,25 @@ STRT.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_m
 Remove NA chunks larger than 12 hours which cannot be gap filled.
 ```{r}
 STRT.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
-
-clean <- STRT.comb.in %>%
-   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new) %>% 
-   filter(n()<48) %>% 
-   select(-new)
-
-# clean <- clean1 %>%
+# 
+# clean <- STRT.comb.in %>%
 #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
 #    ungroup() %>% 
-#    group_by(DO.obs,new) %>% 
+#    group_by(discharge,new) %>% 
 #    filter(n()<48) %>% 
 #    select(-new)
+# 
+# # clean <- clean1 %>%
+# #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+# #    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+# #    ungroup() %>% 
+# #    group_by(DO.obs,new) %>% 
+# #    filter(n()<48) %>% 
+# #    select(-new)
 
 
-clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+clean <- STRT.comb.in %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -2869,25 +2877,25 @@ strt.comb.in <- strt.2022_comb_ts
 strt.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
 
 #Remove NA periods longer than 12 hours
-
-clean <- strt.comb.in %>%
-   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new) %>% 
-   filter(n()<48) %>% 
-   select(-new)
-
-# clean <- clean1 %>%
+# 
+# clean <- strt.comb.in %>%
 #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
 #    ungroup() %>% 
-#    group_by(DO.obs,new) %>% 
+#    group_by(discharge,new) %>% 
 #    filter(n()<48) %>% 
 #    select(-new)
+# 
+# # clean <- clean1 %>%
+# #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+# #    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+# #    ungroup() %>% 
+# #    group_by(DO.obs,new) %>% 
+# #    filter(n()<48) %>% 
+# #    select(-new)
 
 
-clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+clean <- strt.comb.in %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -3238,19 +3246,19 @@ POKE.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_m
 #Remove NA periods longer than 12 hours
 clean <- POKE.comb.in %>%
    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new) %>% 
-   filter(n()<48) %>% 
+   group_by(datetimeAK, new = rleid(is.na(discharge))) %>%
+   ungroup() %>%
+   group_by(discharge,new) %>%
+   filter(n()<48) %>%
    select(-new)
 
-# clean <- clean1 %>%
-#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
-#    ungroup() %>% 
-#    group_by(DO.obs,new) %>% 
-#    filter(n()<48) %>% 
-#    select(-new)
+# # clean <- clean1 %>%
+# #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+# #    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+# #    ungroup() %>% 
+# #    group_by(DO.obs,new) %>% 
+# #    filter(n()<48) %>% 
+# #    select(-new)
 
 
 clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
@@ -3265,7 +3273,7 @@ clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs,
 It looks like one gap was removed
 
 ```{r}
-clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_miss_point()
+clean %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
 
 #NOTE: In these plots, Missing means NA. Data is still missing, but NAs have been removed. This removes those rows from the whole TS. Since the gap is greater than 12 hours, we cannot gap fill any of these slots anyway
 
@@ -3276,9 +3284,22 @@ It looks like one gap was removed
 
 ```{r}
 
-clean$temp.water <- na_kalman(clean$temp.water, type = "level")
+clean$temp.water <- na_kalman(clean$temp.water)
 clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
-clean$DO.obs <- na_kalman(clean$DO.obs, type = "level")
+
+cleaning.DO1 <-  clean %>% filter(solar.time>="2019-05-20"&solar.time<="2019-08-01")
+cleaning.DO2 <- clean %>% filter(solar.time<"2019-05-20")
+cleaning.DO3 <- clean %>% filter(solar.time>"2019-08-01")
+
+cleaning.DO1$DO.obs <- na_kalman(cleaning.DO1$DO.obs, type = "level")
+cleaning.DO2$DO.obs <- na_kalman(cleaning.DO2$DO.obs)
+cleaning.DO3$DO.obs <- na_kalman(cleaning.DO3$DO.obs, type = "level")
+
+
+clean <- rbind(cleaning.DO2,cleaning.DO1 , cleaning.DO3)
+
+
+
 clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO, type = "level")
 clean$depth <- na_kalman(clean$depth, type = "level")
 clean$discharge <- na_kalman(clean$discharge, type = "level")
@@ -3364,24 +3385,24 @@ POKE.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_m
 
 POKE.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss_point()
 
-clean <- POKE.comb.in %>%
-   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new) %>% 
-   filter(n()<48) %>% 
-   select(-new)
-
-# clean <- clean1 %>%
+# clean <- POKE.comb.in %>%
 #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
 #    ungroup() %>% 
-#    group_by(DO.obs,new) %>% 
+#    group_by(discharge,new) %>% 
 #    filter(n()<48) %>% 
 #    select(-new)
+# 
+# # clean <- clean1 %>%
+# #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+# #    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+# #    ungroup() %>% 
+# #    group_by(DO.obs,new) %>% 
+# #    filter(n()<48) %>% 
+# #    select(-new)
 
 
-clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+clean <- POKE.comb.in %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -3536,24 +3557,24 @@ POKE.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss
 POKE.comb.in <- POKE.comb.in %>%  filter(datetimeAK >"2021-05-10 17:00:00")
 
 # try with discharge chunks
-clean <- POKE.comb.in %>%
-   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new) %>% 
-   filter(n()<48) %>% 
-   select(-new)
-
-# clean <- clean1 %>%
+# clean <- POKE.comb.in %>%
 #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
 #    ungroup() %>% 
-#    group_by(DO.obs,new) %>% 
+#    group_by(discharge,new) %>% 
 #    filter(n()<48) %>% 
 #    select(-new)
+# 
+# # clean <- clean1 %>%
+# #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+# #    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+# #    ungroup() %>% 
+# #    group_by(DO.obs,new) %>% 
+# #    filter(n()<48) %>% 
+# #    select(-new)
 
 
-clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+clean <- POKE.comb.in %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 
@@ -3664,24 +3685,24 @@ poke.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = DO.obs)) + geom_miss
 
 #Remove NA periods longer than 12 hours
 
-clean <- poke.comb.in %>%
-   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new) %>% 
-   filter(n()<48) %>% 
-   select(-new)
-
-# clean <- clean1 %>%
+# clean <- poke.comb.in %>%
 #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-#    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+#    group_by(datetimeAK, new = rleid(is.na(discharge))) %>% 
 #    ungroup() %>% 
-#    group_by(DO.obs,new) %>% 
+#    group_by(discharge,new) %>% 
 #    filter(n()<48) %>% 
 #    select(-new)
+# 
+# # clean <- clean1 %>%
+# #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+# #    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
+# #    ungroup() %>% 
+# #    group_by(DO.obs,new) %>% 
+# #    filter(n()<48) %>% 
+# #    select(-new)
 
 
-clean <- clean %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
+clean <- poke.comb.in %>% select(X, datetimeAK, temp.water, ODO.Psat, ODO.Ploc, DO.obs, discharge, depth, light, DO.sat.EXO, solar.time) %>% 
    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
    ungroup() %>% 
    group_by(DO.obs,new) %>% 

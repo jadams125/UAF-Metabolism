@@ -559,6 +559,35 @@ shovPivot <- shov.both %>% select(datetimeAK, DO.obs.SDS, DO.obs.SUS) %>%  pivot
 testMerge <- rbind(crawPivot, mastPivot, shovPivot)
 
 
+
+
+
+crawPivot_T <- craw.both %>% select(datetimeAK, temp.water.CDS, temp.water.CUS) %>%  pivot_longer(cols=c('temp.water.CDS', 'temp.water.CUS'),
+                                                                                        names_to='Location',
+                                                                                        values_to='temp.water')
+
+
+mastPivot_T <- mast.both %>% select(datetimeAK, temp.water.MDS, temp.water.MUS) %>%  pivot_longer(cols=c('temp.water.MDS', 'temp.water.MUS'),
+                                                                                        names_to='Location',
+                                                                                        values_to='temp.water')
+
+
+
+shovPivot_T <- shov.both %>% select(datetimeAK, temp.water.SDS, temp.water.SUS) %>%  pivot_longer(cols=c('temp.water.SDS', 'temp.water.SUS'),
+                                                                                        names_to='Location',
+                                                                                        values_to='temp.water')
+
+testMerge_T <- rbind(crawPivot_T, mastPivot_T, shovPivot_T)
+
+
+
+
+
+
+
+
+
+
 write.csv(testMerge, here("outputs", "EpscorMiniDOT.comb.csv"))
 
 testMerge %>% filter(Location %in% c("DO.obs.MDS", "DO.obs.SDS", "DO.obs.CDS")) %>%  ggplot(aes(x = datetimeAK, y = DO.obs, color = Location)) +geom_point(size = 0.01)+ xlab("Date")+ylab("DO (mg/L)")+geom_line()+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme( axis.title.x = element_text(size = 20))+theme(axis.text.x=element_text(size=20))+ scale_color_discrete(name = "Site", labels = c("Crawford", "Mastodon", "Shovel")) +
@@ -570,7 +599,7 @@ testMerge %>% filter(Location %in% c("DO.obs.MDS", "DO.obs.SDS", "DO.obs.CDS")) 
 
 
 
-testMerge %>% filter(Location %in% c("DO.obs.MDS", "DO.obs.SDS", "DO.obs.CDS")) %>%  ggplot(aes(x = datetimeAK, y = DO.obs, color = Location)) +geom_point(size = 0.01)+ xlab("Date")+ylab("DO (mg/L)")+geom_line()+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme( axis.title.x = element_text(size = 20))+theme(axis.text.x=element_text(size=20))+ scale_color_discrete(name = "Site", labels = c("Crawford", "Mastodon", "Shovel")) +
+testMerge_T %>% filter(Location %in% c("temp.water.MDS", "temp.water.SDS", "temp.water.CDS")) %>%  ggplot(aes(x = datetimeAK, y = temp.water, color = Location)) +geom_point(size = 0.01)+ xlab("Date")+ylab("Water Temperature (°C)")+geom_line()+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme( axis.title.x = element_text(size = 20))+theme(axis.text.x=element_text(size=20))+ scale_color_discrete(name = "Site", labels = c("Crawford", "Mastodon", "Shovel")) +
   theme(legend.key.size = unit(1, 'cm'), #change legend key size
         legend.key.height = unit(1, 'cm'), #change legend key height
         legend.key.width = unit(1, 'cm'), #change legend key width

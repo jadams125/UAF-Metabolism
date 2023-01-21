@@ -52,45 +52,42 @@ bayes_specs <- specs(bayes_name,
                      
 )
 
+######### moos
 
-######### STRT
-
-data.strt.mm.all <- read.csv(here("outputs", "stuart.comb.readyforMetab.new.clean.csv"))
-
-data.strt.mm.all <- data.strt.mm.all %>% filter(solar.time < "2019-12-30 04:13:57")
+data.moos.mm.all <- read.csv(here("outputs", "clean.moos.2022.full.csv"))
 
 
 #Change light to modeled light
-data.strt.mm.all$solar.time <- as.POSIXct(data.strt.mm.all$solar.time, tz = "UTC")
+data.moos.mm.all$solar.time <- as.POSIXct(data.moos.mm.all$solar.time, tz = "UTC")
 
-data.strt.mm.all$light <-  calc_light(data.strt.mm.all$solar.time, 64.75408, -146.479933)
+data.moos.mm.all$light <-  calc_light(data.moos.mm.all$solar.time, 64.75408, -146.479933)
 
 
 #change Discharge to m3/s
-data.strt.mm.all$discharge <- data.strt.mm.all$discharge / 1000
+data.moos.mm.all$discharge <- data.moos.mm.all$discharge / 1000
 
-data.strt.mm.all <- data.strt.mm.all %>%  rename(DO.sat = DO.sat.EXO)
-data.strt.mm.all <- data.strt.mm.all %>% select(solar.time, DO.obs, DO.sat, light, discharge, depth, temp.water)
+data.moos.mm.all <- data.moos.mm.all %>%  rename(DO.sat = DO.sat.EXO)
+data.moos.mm.all <- data.moos.mm.all %>% select(solar.time, DO.obs, DO.sat, light, discharge, depth, temp.water)
 
 startTime <- as.POSIXct(Sys.time())
-mm.test.strt <- metab(bayes_specs, data=data.strt.mm.all)
+mm.test.moos <- metab(bayes_specs, data=data.moos.mm.all)
 endTime <- as.POSIXct(Sys.time())
 # 
 difftime(endTime, startTime)
-save(mm.test.strt, file = here("Outputs", "stuart2019-Run_2023-01-09.RData"))
+save(mm.test.moos, file = here("Outputs", "Moose2022-Run_2023-01-19_gapfillQ.RData"))
 # 
-fit.strt <- get_fit(mm.test.strt)
-fit.daily <- fit.strt$daily
-write.csv(fit.daily, here("outputs", "stuart2019-Run_2023-01-09.csv"))
+fit.moos <- get_fit(mm.test.moos)
+fit.daily <- fit.moos$daily
+write.csv(fit.daily, here("outputs", "Moose2022-Run_2023-01-19_gapfillQ.csv"))
 
-model_data <- get_data(mm.test.strt)
+model_data <- get_data(mm.test.moos)
 
 
 
 ######### Plot
 
 
-gpp <- ggplot(data=fit.daily, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("Stuart 2019")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(fit.daily$GPP_mean))
+gpp <- ggplot(data=fit.daily, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("Moose 2019")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(fit.daily$GPP_mean))
 
 er <- ggplot(data = fit.daily, aes(x = date)) +geom_point(aes(y = ER_mean), color = "firebrick3") + geom_errorbar(aes(ymin=ER_mean-ER_sd, ymax=ER_mean+ER_sd), width=.2, position=position_dodge(0.05), color = "firebrick3")+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("ER (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme( axis.title.y = element_text(size = 20)) +ylim(min(fit.daily$ER_daily_mean), 0)
 
@@ -106,9 +103,9 @@ q.fig <- ggplot(data = model_data, aes(x = solar.time)) +geom_point(aes(y=discha
 
 T.fig <- ggplot(data = model_data, aes(x = solar.time)) +geom_point(aes(y=temp.water), color = "slateblue4", size=0.4)+ theme(axis.title.x=element_blank() )+ labs(y = "Temperature (°C)")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme(axis.text.x=element_text(size=20))+theme( axis.title.y = element_text(size = 20))+ylim(-0.004, 20)
 
-p1 <- ggplot(strt.DO.pred, aes(x = solar.time)) + geom_point(aes(y=DO.obs, colour = "Observed DO"), color = "darkcyan") + geom_line(aes(y = DO.mod, colour= "Modeled DO"), color = "blue4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) + labs(colour="Green", y = "DO (mg/L)") +  theme(legend.position="none") + ggtitle("Observed (points) and Modeled (lines)")
+p1 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=DO.obs, colour = "Observed DO"), color = "darkcyan") + geom_line(aes(y = DO.mod, colour= "Modeled DO"), color = "blue4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) + labs(colour="Green", y = "DO (mg/L)") +  theme(legend.position="none") + ggtitle("Observed (points) and Modeled (lines)")
 
-p2 <- ggplot(strt.DO.pred, aes(x = solar.time)) + geom_point(aes(y=adj.R2))
+p2 <- ggplot(moos.DO.pred, aes(x = solar.time)) + geom_point(aes(y=adj.R2))
 
 library(grid)
 library(ggeffects)
@@ -130,8 +127,10 @@ panG <- ggplotGrob(er_k)
 grid::grid.newpage()
 grid.draw(rbind(panA, panB,panK600, panC, panD,panE,panp2,panF, panG,size="max"))
 fig2019 <- arrangeGrob(rbind(panA, panB,panK600, panC, panD,panE,panp2,panF,panG, size="max"))
-ggsave(path = here("outputs"), file = "strt2019.pdf", fig2019, width = 30, height = 55, units = "in", limitsize = FALSE)
+ggsave(path = here("outputs"), file = "moos2022_gapfill_q_full.pdf", fig2019, width = 30, height = 55, units = "in", limitsize = FALSE)
 
 
 
 rm(list=ls())
+
+```

@@ -53,7 +53,7 @@ library(data.table)
 ### 2019 ###
 #Read cleaned CSVs from DoD 2019 Script 
 
-SondeData2019 <- read_csv("/Users/jadams125/Documents/GitHub/DoD_2019/processed_sensor_dat/SUNA.EXO.int.corr.lab_2019.csv")
+SondeData2019 <- read_csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2019/processed_sensor_dat/SUNA.EXO.int.corr.lab_2019.csv")
 
 SondeData2019$datetimeAK <- force_tz(as.POSIXct(SondeData2019$datetimeAK), "America/Anchorage")
 
@@ -67,7 +67,7 @@ POKE_EXO_cl.2019.renamed <- SondeData2019.renamed %>% filter(site.ID == "POKE")
 
 # 
 # 
-# POKE_EXO_cl.2019 <- read_csv("/Users/jadams125/Documents/GitHub/DoD_2019/EXO_processed/POKE.EXO.cl.csv")
+# POKE_EXO_cl.2019 <- read_csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2019/EXO_processed/POKE.EXO.cl.csv")
 # 
 # POKE_EXO_cl.2019$datetimeAK <- force_tz(as.POSIXct(POKE_EXO_cl.2019$datetimeAK), "America/Anchorage")
 # # Have to rename rows so they dont have "mean" in them so it can be combined for three straight years. Data is not cleaned.
@@ -128,7 +128,7 @@ poke.exo.telemFilled.2019$ODO.mgL <- as.numeric(poke.exo.telemFilled.2019$ODO.Ps
 
 # #Plot It
 # 
-# pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/poke19filled.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/poke19filled.pdf")
 # 
 # plot(POKE_EXO_cl.2019.renamed$datetimeAK, POKE_EXO_cl.2019.renamed$ODO.Psat ,type="l",col="black", xlab = "date", ylab = "ODO %Sat",  ylim=c(93,107),)
 # 
@@ -165,7 +165,7 @@ final.Poke.DO.2019 <- final.Poke.DO.2019 %>% filter(datetimeAK < "2019-10-17 11:
 # walk(exo.all.2020.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
 # exo.all.2020 <- read.csv("EXO.ALL.csv",)
 
-exo.2020 <- read_csv("/Users/jadams125/Documents/GitHub/DoD_2020/processed_sensor_dat/SUNA.EXO.int.corr.lab_2020.csv")
+exo.2020 <- read_csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2020/processed_sensor_dat/SUNA.EXO.int.corr.lab_2020.csv")
 exo.2020$datetimeAK <- force_tz(as.POSIXct(exo.2020$datetimeAK), "America/Anchorage")
 
 
@@ -189,7 +189,7 @@ plot(poke.exo.2020$datetimeAK, poke.exo.2020$ODO.mgL)
 
 ### 2021 ###
 
-exo.2021 <- read_csv("/Users/jadams125/Documents/GitHub/DoD_2021/processed_sensor_dat/SUNA.EXO.int.corr.lab_2021.csv")
+exo.2021 <- read_csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2021/processed_sensor_dat/SUNA.EXO.int.corr.lab_2021.csv")
 exo.2021$datetimeAK <- force_tz(as.POSIXct(exo.2021$datetimeAK), "America/Anchorage")
 
 
@@ -206,7 +206,7 @@ lapply(poke.exo.2021, summary)
 # 2022
 
 
-exo.2022 <- read_csv("/Users/jadams125/Documents/GitHub/DoD_2022/processed_sensor_dat/SUNA.EXO.int.corr.lab_2022.csv")
+exo.2022 <- read_csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2022/processed_sensor_dat/SUNA.EXO.int.corr.lab_2022.csv")
 exo.2022$datetimeAK <- force_tz(as.POSIXct(exo.2022$datetimeAK), "America/Anchorage")
 
 
@@ -245,7 +245,7 @@ All.years.poke.MESSY <- All.years.poke.MESSY %>%
 #plot all
 
 # #keep in mind 2019 and 2020 is clean data and 2021 is not.
-# pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/PokerODO.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/PokerODO.pdf")
 # 
 # testPlotPoke <- ggplot(data = All.years.poke.MESSY,
 #                        mapping = aes(x = datetimeAK, y = as.numeric(ODO.Psat))) + geom_point() + labs(x = "Date", y = "Percent Saturation")
@@ -389,7 +389,7 @@ All.years.strt.MESSY <- All.years.strt.MESSY %>%
 
 
 # #keep in mind 2019 and 2020 is clean data and 2021 are not.
-# pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/StuartODO.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/StuartODO.pdf")
 # 
 # testPlotSTRT <- ggplot(data = All.years.strt.MESSY,
 #                        mapping = aes(x = datetimeAK, y = as.numeric(ODO.Psat))) + geom_point() + labs(x = "Date", y = "Dissolved Oxygen (%Sat)")
@@ -502,7 +502,7 @@ lapply(vaul.exo.2021, summary)
 
 vaul.exo.2022 <- exo.2022 %>% filter(site.ID == "VAUL")
 
-vaul.exo.2022 <- vaul.exo.2022 %>% select(datetimeAK, Temp.C.int, ODO.mgL.mn.adj, ODO.Psat.mn.adj, ODO.Ploc.mn.adj, site.ID) %>% dplyr::rename(ODO.mgL = ODO.mgL.mn.adj, ODO.Psat = ODO.Psat.mn.adj, ODO.Ploc = ODO.Ploc.mn.adj, Temp.C = Temp.C.int)
+vaul.exo.2022 <- vaul.exo.2022 %>% select(datetimeAK, Temp.C.int, ODO.mgL.mn, ODO.Psat.mn.adj, ODO.Ploc.mn.adj, site.ID) %>% dplyr::rename(ODO.mgL = ODO.mgL.mn, ODO.Psat = ODO.Psat.mn.adj, ODO.Ploc = ODO.Ploc.mn.adj, Temp.C = Temp.C.int)
 
 lapply(vaul.exo.2022, summary)
 
@@ -535,7 +535,7 @@ All.years.vaul.MESSY <- All.years.vaul.MESSY %>%
 
 
 # #keep in mind 2019 and 2020 is clean data and 2021 is not.
-# pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/VaultODO.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/VaultODO.pdf")
 # 
 # testPlotVAUL <- ggplot(data = All.years.vaul.MESSY,
 #                        mapping = aes(x = datetimeAK, y = as.numeric(ODO.Psat))) + geom_point() + labs(x = "Date", y = "Dissolved Oxygen (%Sat)")
@@ -552,6 +552,31 @@ All.years.vaul.MESSY <- All.years.vaul.MESSY %>%
 
 
 MOOS_EXO_cl.2019.renamed <- SondeData2019.renamed %>% filter(site.ID == "MOOS")
+
+
+#in this case, we are finding the DO mg/L per percent saturation, and multiplying it by our percent sat from telem. This percent sat accounts for pressure as well I believe. 
+
+
+MOOS_EXO_cl.2019.renamed$ODO.mgL.Calc <-as.numeric(MOOS_EXO_cl.2019.renamed$ODO.Psat) * 
+  #DO mg/L per sat
+  (0.01* exp(
+    #p1
+    (-862194900000*(1/(MOOS_EXO_cl.2019.renamed$Temp.C+273.15))^4+12438000000*(1/(MOOS_EXO_cl.2019.renamed$Temp.C+273.15))^3-66423080*(1/(MOOS_EXO_cl.2019.renamed$Temp.C+273.15))^2+157570.1*(1/(MOOS_EXO_cl.2019.renamed$Temp.C+273.15))-139.344)
+    #salinity
+    -0* 
+      #p2
+      (2140.7*(1/(MOOS_EXO_cl.2019.renamed$Temp.C+273.15))^2-10.754*(1/(MOOS_EXO_cl.2019.renamed$Temp.C+273.15))+0.017674 )))
+
+
+MOOS_EXO_cl.2019.renamed <- MOOS_EXO_cl.2019.renamed %>% 
+  mutate(ODO.mgL = coalesce(ODO.mgL,ODO.mgL.Calc))
+
+
+MOOS_EXO_cl.2019.renamed <- MOOS_EXO_cl.2019.renamed %>% 
+  mutate(ODO.mgL = coalesce(ODO.mgL,ODO.mgL.Calc))
+
+
+
 
 
 
@@ -621,7 +646,7 @@ All.years.moos.MESSY <- All.years.moos.MESSY %>%
 
 
 # #keep in mind 2019 and 2020 is clean data and 2021 are not.
-# pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/MoosODO.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/MoosODO.pdf")
 # 
 # testPlotMOOS <- ggplot(data = All.years.moos.MESSY,
 #                        mapping = aes(x = datetimeAK, y = as.numeric(ODO.Psat))) + geom_point() + labs(x = "Date", y = "Dissolved Oxygen (%Sat)")
@@ -731,7 +756,7 @@ All.years.frch.MESSY <- All.years.frch.MESSY %>%
 
 
 # #keep in mind 2019 and 2020 is clean data and 2021 are not.
-# pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/MoosODO.pdf")
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/MoosODO.pdf")
 # 
 # testPlotMOOS <- ggplot(data = All.years.moos.MESSY,
 #                        mapping = aes(x = datetimeAK, y = as.numeric(ODO.Psat))) + geom_point() + labs(x = "Date", y = "Dissolved Oxygen (%Sat)")
@@ -783,7 +808,7 @@ library(here)
 # Q_2019 <- read.csv("Q_2019.csv",)
 
 
-Q_2019 <- read.csv("/Users/jadams125/Documents/GitHub/DoD_Discharge/Predicted_Discharge/2019/Q_2019.csv")
+Q_2019 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2019/Q_2019.csv")
 Q_2019$DateTime <-  force_tz(as.POSIXct(ymd_hms(Q_2019$DateTime)), tz = "America/Anchorage")
 #### Breaking up into sites ####
 POKE_Q_2019 <- Q_2019 %>% filter(Site == "POKE")
@@ -796,7 +821,7 @@ FRCH_Q_2019 <- Q_2019 %>% filter(Site == "FRCH")
 
 
 #change poke discharge becuase of gaps
-# POKE_Q_2019 <- read.csv("/Users/jadams125/Documents/GitHub/DoD_Discharge/Predicted_Discharge/2019/POKE/POKE.Q.csv")
+# POKE_Q_2019 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2019/POKE/POKE.Q.csv")
 
 #Select needed columns 
 POKE.2019.Q <- POKE_Q_2019 %>%
@@ -817,7 +842,7 @@ FRCH.2019.Q <- FRCH_Q_2019 %>%
 
 ####### 2020 #######
 
-Q_2020 <- read.csv("/Users/jadams125/Documents/GitHub/DoD_Discharge/Predicted_Discharge/2020/Q_2020.csv")
+Q_2020 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2020/Q_2020.csv")
 Q_2020$DateTime <-  force_tz(as.POSIXct(ymd_hms(Q_2020$DateTime)), tz = "America/Anchorage")
 
 #### Breaking up into sites ####
@@ -831,7 +856,7 @@ FRCH_Q_2020 <- Q_2020 %>% filter(Site == "FRCH")
 
 
 #change poke discharge becuase of gaps
-# POKE_Q_2020 <- read.csv("/Users/jadams125/Documents/GitHub/DoD_Discharge/Predicted_Discharge/2020/POKE/POKE.Q.csv")
+# POKE_Q_2020 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2020/POKE/POKE.Q.csv")
 
 #Select needed columns 
 POKE.2020.Q <- POKE_Q_2020%>% filter(DateTime >= "2020-01-01 00:00:00") %>% 
@@ -852,7 +877,7 @@ FRCH.2020.Q <- FRCH_Q_2020%>% filter(DateTime >= "2020-01-01 00:00:00") %>%
 
 #### 2021
 
-Q_2021 <- read.csv("/Users/jadams125/Documents/GitHub/DoD_Discharge/Predicted_Discharge/2021/Q_2021.csv")
+Q_2021 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2021/Q_2021.csv")
 Q_2021$DateTime <-  force_tz(as.POSIXct(ymd_hms(Q_2021$DateTime)), tz = "America/Anchorage")
 
 #### Breaking up into sites ####
@@ -866,7 +891,7 @@ FRCH_Q_2021 <- Q_2021 %>% filter(Site == "FRCH")
 
 
 #change poke discharge becuase of gaps
-# POKE_Q_2021 <- read.csv("/Users/jadams125/Documents/GitHub/DoD_Discharge/Predicted_Discharge/2021/POKE/POKE.Q.csv")
+# POKE_Q_2021 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2021/POKE/POKE.Q.csv")
 
 #Select needed columns 
 POKE.2021.Q <- POKE_Q_2021 %>%
@@ -890,17 +915,27 @@ FRCH.2021.Q <- FRCH_Q_2021 %>%
 
 #### 2022
 
-Q_2022 <- read.csv("/Users/jadams125/Documents/GitHub/DoD_Discharge/Predicted_Discharge/2022/Predicted_Q_2022.csv")
+Q_2022 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2022/Predicted_Q_2022_gapfill.csv")
 
 Q_2022 <- Q_2022 %>% rename(DateTime = DateTimeAK)
 Q_2022$DateTime <-  force_tz(as.POSIXct(ymd_hms(Q_2022$DateTime)), tz = "America/Anchorage")
 
 #### Breaking up into sites ####
-POKE_Q_2022 <- Q_2022 %>% filter(Site == "POKE") 
-VAUL_Q_2022 <- Q_2022 %>% filter(Site == "VAUL") 
-STRT_Q_2022 <- Q_2022 %>% filter(Site == "STRT") 
-MOOS_Q_2022 <- Q_2022 %>% filter(Site == "MOOS") 
-FRCH_Q_2022 <- Q_2022 %>% filter(Site == "FRCH") 
+POKE_Q_2022 <- Q_2022 %>% select(DateTime, POKE.Q.int) %>% rename(Q = POKE.Q.int)
+POKE_Q_2022$Site <- "POKE"
+
+MOOS_Q_2022 <- Q_2022 %>% select(DateTime, MOOS.Q.int) %>% rename(Q = MOOS.Q.int)
+MOOS_Q_2022$Site <- "MOOS"
+
+STRT_Q_2022 <- Q_2022 %>% select(DateTime, STRT.Q.int) %>% rename(Q = STRT.Q.int)
+STRT_Q_2022$Site <- "STRT"
+
+VAUL_Q_2022 <- Q_2022 %>% select(DateTime, VAUL) %>% rename(Q = VAUL)
+VAUL_Q_2022$Site <- "VAUL"
+
+
+FRCH_Q_2022 <- Q_2022 %>% select(DateTime, FRCH) %>% rename(Q = FRCH)
+FRCH_Q_2022$Site <- "FRCH"
 
 
 
@@ -2262,19 +2297,12 @@ plot(meanDepth~discharge, data = rounded.dates_strt19_WR_Q)
 
 #extract slope of model and develop rating curve
 strt.2019.q.dt$RatingCurveDepth <- strt19_depth_mod$coefficients[1]+(strt19_depth_mod$coefficients[2])*strt.2019.q.dt$Q
-
-
-######
-
-
-# Frch 2019:
-
 #download flowmeter data
 WR_19.url <- "https://drive.google.com/drive/u/1/folders/1bm62_JO1dKrFPyUCz8E88K5q7IHElXPP"
 WR.19.1 <- drive_get(as_id(WR_19.url))
-frch.wr19_glist <- drive_ls(WR.19.1, pattern = "frch_2019_flowmeter_Q_for_R_JAA.csv")
+frch.wr19_glist <- drive_ls(WR.19.1, pattern = "Frch_2019_flowmeter_Q_for_R_JAA.csv")
 walk(frch.wr19_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
-frch_WR_19.Data <- read.csv("frch_2019_flowmeter_Q_for_R_JAA.csv",
+frch_WR_19.Data <- read.csv("Frch_2019_flowmeter_Q_for_R_JAA.csv",
                             skip = 1, header = TRUE, na.strings=c("","NA","blank"))
 
 frch_WR_19.Data <- frch_WR_19.Data %>% tidyr::fill(Date, .direction = ("down"))
@@ -2283,6 +2311,13 @@ frch_WR_19.Data <- frch_WR_19.Data %>% tidyr::fill(Time, .direction = ("down"))
 
 
 frch_WR_19.Data$datetimeAK <- as.POSIXct(paste(frch_WR_19.Data$Date, frch_WR_19.Data$Time), format="%m/%d/%Y %H:%M")
+
+
+######
+
+
+# Frch 2019:
+
 
 
 frch_WR_19.Data <- frch_WR_19.Data %>%
@@ -2547,7 +2582,7 @@ WR.20.1 <- drive_get(as_id(WR_20.url))
 vaul.wr20_glist <- drive_ls(WR.20.1, pattern = "R_Flowmeter Q calculation_VAUL_for_R_JAA.csv")
 walk(vaul.wr20_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
 vaul_WR_20.Data <- read.csv("R_Flowmeter Q calculation_VAUL_for_R_JAA.csv",
-                          header = TRUE, na.strings=c("","NA","blank"))
+                          header = TRUE, na.strings=c("","NA","blank")) %>% rename(Date = ï..Date)
 
 # vaul_WR_20.Data <- vaul_WR_20.Data %>% rename(Date = ï..Date)
 
@@ -2636,7 +2671,7 @@ WR.20.1 <- drive_get(as_id(WR_20.url))
 strt.wr20_glist <- drive_ls(WR.20.1, pattern = "R_Flowmeter Q calculation_STRT_for_R_JAA.csv")
 walk(strt.wr20_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
 strt_WR_20.Data <- read.csv("R_Flowmeter Q calculation_STRT_for_R_JAA.csv",
-                             header = TRUE, na.strings=c("","NA","blank"))
+                             header = TRUE, na.strings=c("","NA","blank"))%>% rename(Date = ï..Date)
 
 strt_WR_20.Data <- strt_WR_20.Data %>% tidyr::fill(Date, .direction = ("down"))
 
@@ -2809,7 +2844,7 @@ WR.20.1 <- drive_get(as_id(WR_20.url))
 moos.wr20_glist <- drive_ls(WR.20.1, pattern = "R_Flowmeter Q calculation_MOOS_for_R_JAA.csv")
 walk(moos.wr20_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
 moos_WR_20.Data <- read.csv("R_Flowmeter Q calculation_MOOS_for_R_JAA.csv",
-                             header = TRUE, na.strings=c("","NA","blank"))
+                             header = TRUE, na.strings=c("","NA","blank"))%>% rename(Date = ï..Date)
 
 moos_WR_20.Data <- moos_WR_20.Data %>% tidyr::fill(Date, .direction = ("down"))
 
@@ -2897,7 +2932,7 @@ WR.20.1 <- drive_get(as_id(WR_20.url))
 poke.wr20_glist <- drive_ls(WR.20.1, pattern = "R_Flowmeter Q calculation_POKE_for_R_JAA.csv")
 walk(poke.wr20_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
 poke_WR_20.Data <- read.csv("R_Flowmeter Q calculation_POKE_for_R_JAA.csv",
-                           header = TRUE, na.strings=c("","NA","blank"))
+                           header = TRUE, na.strings=c("","NA","blank"))%>% rename(Date = ï..Date)
 
 poke_WR_20.Data <- poke_WR_20.Data %>% tidyr::fill(Date, .direction = ("down"))
 
@@ -2996,7 +3031,7 @@ WR.21.1 <- drive_get(as_id(WR_21.url))
 vaul.wr21_glist <- drive_ls(WR.21.1, pattern = "R_Flowmeter Q calculation_VAUL_for_R_JAA_2021.csv")
 walk(vaul.wr21_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
 vaul_WR_21.Data <- read.csv("R_Flowmeter Q calculation_VAUL_for_R_JAA_2021.csv",
-                             header = TRUE, na.strings=c("","NA","blank"))
+                             header = TRUE, na.strings=c("","NA","blank")) %>% rename(Date = ï..Date)
 
 vaul_WR_21.Data <- vaul_WR_21.Data %>% tidyr::fill(Date, .direction = ("down"))
 
@@ -3171,7 +3206,7 @@ WR.21.1 <- drive_get(as_id(WR_21.url))
 frch.wr21_glist <- drive_ls(WR.21.1, pattern = "R_Flowmeter_Q_calulation_FRCH_for_R_JAA_2021.csv")
 walk(frch.wr21_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
 frch_WR_21.Data <- read.csv("R_Flowmeter_Q_calulation_FRCH_for_R_JAA_2021.csv",
-                          header = TRUE, na.strings=c("","NA","blank"))
+                          header = TRUE, na.strings=c("","NA","blank"))%>% rename(Date = ï..Date)
 
 frch_WR_21.Data <- frch_WR_21.Data %>% tidyr::fill(Date, .direction = ("down"))
 
@@ -3261,7 +3296,7 @@ WR.21.1 <- drive_get(as_id(WR_21.url))
 moos.wr21_glist <- drive_ls(WR.21.1, pattern = "R_Flowmeter Q calculation_MOOS_for_R_JAA_2021.csv")
 walk(moos.wr21_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
 moos_WR_21.Data <- read.csv("R_Flowmeter Q calculation_MOOS_for_R_JAA_2021.csv",
-                            header = TRUE, na.strings=c("","NA","blank"))
+                            header = TRUE, na.strings=c("","NA","blank")) %>% rename(Date = ï..Date)
 
 moos_WR_21.Data <- moos_WR_21.Data %>% tidyr::fill(Date, .direction = ("down"))
 
@@ -3352,7 +3387,7 @@ WR.21.1 <- drive_get(as_id(WR_21.url))
 poke.wr21_glist <- drive_ls(WR.21.1, pattern = "R_Flowmeter Q calculation_POKE_for_R_JAA_2021.csv")
 walk(poke.wr21_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
 poke_WR_21.Data <- read.csv("R_Flowmeter Q calculation_POKE_for_R_JAA_2021.csv",
-                             header = TRUE, na.strings=c("","NA","blank"))
+                             header = TRUE, na.strings=c("","NA","blank")) %>% rename(Date = ï..Date)
 
 poke_WR_21.Data <- poke_WR_21.Data %>% tidyr::fill(Date, .direction = ("down"))
 
@@ -4144,7 +4179,7 @@ frchPlot2 <- FRCH.comb %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/FRCH_comb_2019-2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/FRCH_comb_2019-2021.pdf", height= 8.5)
 ggarrange(frch.plot1, frchPlot2, ncol = 1, nrow = 2)
 dev.off()
 
@@ -4172,7 +4207,7 @@ frchPlot2.19 <- FRCH.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/FRCH_comb.2019.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/FRCH_comb.2019.pdf", height= 8.5)
 ggarrange(frch.plot1.19, frchPlot2.19, ncol = 1, nrow = 2)
 dev.off()
 
@@ -4199,7 +4234,7 @@ frchPlot2.20 <- FRCH.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/FRCH_comb.2020.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/FRCH_comb.2020.pdf", height= 8.5)
 ggarrange(frch.plot1.20, frchPlot2.20, ncol = 1, nrow = 2)
 dev.off()
 
@@ -4226,7 +4261,7 @@ frchPlot2.21 <- FRCH.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/FRCH_comb.2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/FRCH_comb.2021.pdf", height= 8.5)
 ggarrange(frch.plot1.21, frchPlot2.21, ncol = 1, nrow = 2)
 dev.off()
 
@@ -4255,7 +4290,7 @@ frchPlot2.22 <- FRCH.comb %>% filter(datetimeAK >= "2022-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/FRCH_comb.2022.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/FRCH_comb.2022.pdf", height= 8.5)
 ggarrange(frch.plot1.22, frchPlot2.22, ncol = 1, nrow = 2)
 dev.off()
 
@@ -4362,7 +4397,7 @@ moosPlot2 <- MOOS.comb %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/MOOS_comb_2019-2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/MOOS_comb_2019-2021.pdf", height= 8.5)
 ggarrange(moos.plot1, moosPlot2, ncol = 1, nrow = 2)
 dev.off()
 
@@ -4390,7 +4425,7 @@ moosPlot2.19 <- MOOS.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/MOOS_comb.2019.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/MOOS_comb.2019.pdf", height= 8.5)
 ggarrange(moos.plot1.19, moosPlot2.19, ncol = 1, nrow = 2)
 dev.off()
 
@@ -4417,7 +4452,7 @@ moosPlot2.20 <- MOOS.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/MOOS_comb.2020.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/MOOS_comb.2020.pdf", height= 8.5)
 ggarrange(moos.plot1.20, moosPlot2.20, ncol = 1, nrow = 2)
 dev.off()
 
@@ -4444,7 +4479,7 @@ moosPlot2.21 <- MOOS.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/MOOS_comb.2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/MOOS_comb.2021.pdf", height= 8.5)
 ggarrange(moos.plot1.21, moosPlot2.21, ncol = 1, nrow = 2)
 dev.off()
 
@@ -4473,7 +4508,7 @@ moosPlot2.22 <- MOOS.comb %>% filter(datetimeAK >= "2022-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/MOOS_comb.2022.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/MOOS_comb.2022.pdf", height= 8.5)
 ggarrange(moos.plot1.22, moosPlot2.22, ncol = 1, nrow = 2)
 dev.off()
 
@@ -4647,7 +4682,7 @@ strtPlot2 <- STRT.comb %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/STRT_comb_2019-2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/STRT_comb_2019-2021.pdf", height= 8.5)
 ggarrange(strt.plot1, strtPlot2, ncol = 1, nrow = 2)
 dev.off()
 
@@ -4675,7 +4710,7 @@ strtPlot2.19 <- STRT.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/STRT_comb.2019.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/STRT_comb.2019.pdf", height= 8.5)
 ggarrange(strt.plot1.19, strtPlot2.19, ncol = 1, nrow = 2)
 dev.off()
 
@@ -4702,7 +4737,7 @@ strtPlot2.20 <- STRT.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/STRT_comb.2020.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/STRT_comb.2020.pdf", height= 8.5)
 ggarrange(strt.plot1.20, strtPlot2.20, ncol = 1, nrow = 2)
 dev.off()
 
@@ -4729,7 +4764,7 @@ strtPlot2.21 <- STRT.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/STRT_comb.2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/STRT_comb.2021.pdf", height= 8.5)
 ggarrange(strt.plot1.21, strtPlot2.21, ncol = 1, nrow = 2)
 dev.off()
 
@@ -4756,7 +4791,7 @@ strtPlot2.22 <- STRT.comb %>% filter(datetimeAK >= "2022-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/STRT_comb.2022.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/STRT_comb.2022.pdf", height= 8.5)
 ggarrange(strt.plot1.22, strtPlot2.22, ncol = 1, nrow = 2)
 dev.off()
 
@@ -4869,7 +4904,7 @@ pokePlot2 <- POKE.comb %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/POKE_comb_2019-2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/POKE_comb_2019-2021.pdf", height= 8.5)
 ggarrange(poke.plot1, pokePlot2, ncol = 1, nrow = 2)
 dev.off()
 
@@ -4897,7 +4932,7 @@ pokePlot2.19 <- POKE.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/POKE_comb.2019.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/POKE_comb.2019.pdf", height= 8.5)
 ggarrange(poke.plot1.19, pokePlot2.19, ncol = 1, nrow = 2)
 dev.off()
 
@@ -4924,7 +4959,7 @@ pokePlot2.20 <- POKE.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/POKE_comb.2020.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/POKE_comb.2020.pdf", height= 8.5)
 ggarrange(poke.plot1.20, pokePlot2.20, ncol = 1, nrow = 2)
 dev.off()
 
@@ -4951,7 +4986,7 @@ pokePlot2.21 <- POKE.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/POKE_comb.2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/POKE_comb.2021.pdf", height= 8.5)
 ggarrange(poke.plot1.21, pokePlot2.21, ncol = 1, nrow = 2)
 dev.off()
 
@@ -4979,7 +5014,7 @@ pokePlot2.22 <- POKE.comb %>% filter(datetimeAK >= "2022-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/POKE_comb.2022.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/POKE_comb.2022.pdf", height= 8.5)
 ggarrange(poke.plot1.22, pokePlot2.22, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5099,7 +5134,7 @@ vaulPlot2 <- VAUL.comb %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/VAUL_comb_2019-2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/VAUL_comb_2019-2021.pdf", height= 8.5)
 ggarrange(vaul.plot1, vaulPlot2, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5127,7 +5162,7 @@ vaulPlot2.19 <- VAUL.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>%
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/VAUL_comb.2019.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/VAUL_comb.2019.pdf", height= 8.5)
 ggarrange(vaul.plot1.19, vaulPlot2.19, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5154,7 +5189,7 @@ vaulPlot2.20 <- VAUL.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/VAUL_comb.2020.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/VAUL_comb.2020.pdf", height= 8.5)
 ggarrange(vaul.plot1.20, vaulPlot2.20, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5181,7 +5216,7 @@ vaulPlot2.21 <- VAUL.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/VAUL_comb.2021.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/VAUL_comb.2021.pdf", height= 8.5)
 ggarrange(vaul.plot1.21, vaulPlot2.21, ncol = 1, nrow = 2)
 dev.off()
 
@@ -5208,7 +5243,7 @@ vaulPlot2.22 <- VAUL.comb %>% filter(datetimeAK >= "2022-01-01 00:00:00") %>% fi
   facet_grid(units ~ ., scale='free_y') + theme_bw() +
   scale_color_discrete('variable')
 
-pdf(file = "/Users/jadams125/Documents/GitHub/UAF-Metabolism/Plots/VAUL_comb.2022.pdf", height= 8.5)
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/VAUL_comb.2022.pdf", height= 8.5)
 ggarrange(vaul.plot1.22, vaulPlot2.22, ncol = 1, nrow = 2)
 dev.off()
 

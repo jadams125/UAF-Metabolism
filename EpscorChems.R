@@ -79,12 +79,32 @@ TDP_mean_final <- TDP_mean_final %>% rename(Order = Group.1, Site = Group.2, TDP
 
 TDP_mean_final$TDP_uM_mean[TDP_mean_final$TDP_uM_mean<0.1] <- 0.025
 
-TDP_mean_final %>% ggplot(aes(x = Order, y = TDP_uM_mean, color = Site)) +geom_point()+ xlab("Date")+ylab("TDP (uM)")+geom_line()+geom_errorbar(aes(ymin=TDP_uM_mean-TDP_uM_SE, ymax=TDP_uM_mean+TDP_uM_SE), width=.2, position=position_dodge(.9)) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme( axis.title.x = element_text(size = 20))+theme(axis.text.x=element_text(size=20))+ scale_color_manual(labels = c("Crawford", "Mastodon", "Shovel"), values = c("blue", "red", "forestgreen"))+
+
+TDP_mean_final$TDP_ugPL <- TDP_mean_final$TDP_uM_mean * 31
+TDP_mean_final$TDP_ugPL_SE <- TDP_mean_final$TDP_uM_SE * 31
+
+TDP_mean_final$TDP_mgPL <- TDP_mean_final$TDP_uM_mean * 31 * 0.001
+TDP_mean_final$TDP_mgPL_SE <- TDP_mean_final$TDP_uM_SE * 31* 0.001
+
+TDP_mean_final %>% ggplot(aes(x = Order, y = TDP_ugPL, color = Site)) +geom_point()+ xlab("Date")+ylab("TDP (μg P/L)")+geom_line()+geom_errorbar(aes(ymin=TDP_ugPL-TDP_ugPL_SE, ymax=TDP_ugPL+TDP_ugPL_SE), width=.2, position=position_dodge(.9)) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme( axis.title.x = element_text(size = 20))+theme(axis.text.x=element_text(size=20))+ scale_color_manual(labels = c("Crawford", "Mastodon", "Shovel"), values = c("blue", "red", "forestgreen"))+
   theme(legend.key.size = unit(1, 'cm'), #change legend key size
         legend.key.height = unit(1, 'cm'), #change legend key height
         legend.key.width = unit(1, 'cm'), #change legend key width
         legend.title = element_text(size=15), #change legend title font size
         legend.text = element_text(size=15)) #change legend text font size
+
+
+mast_TDP <- TDP_mean_final %>% filter(Site=="MAST")
+
+mean(mast_TDP$TDP_ugPL)
+
+shov_TDP <- TDP_mean_final %>% filter(Site=="SHOV")
+
+mean(shov_TDP$TDP_ugPL)
+
+craw_TDP <- TDP_mean_final %>% filter(Site=="CRAW")
+
+mean(craw_TDP$TDP_ugPL)
 
 
 
@@ -170,14 +190,14 @@ NO3_Data_SE <- aggregate(x = NO3_Data_join$NitrateN_mgL,                # Specif
                          FUN = std.error)                           # Specify function (i.e. mean)              #                                                                Specify function
 
 
-DOC_mean_final <- inner_join( DOC_Data_mean, DOC_Data_SE, by=c('Group.1','Group.2'))
+NO3_mean_final <- inner_join( NO3_Data_mean, NO3_Data_SE, by=c('Group.1','Group.2'))
 
 
 
-DOC_mean_final <- DOC_mean_final %>% rename(Date = Group.1, Site = Group.2, DOC_mgL_mean = x.x, DOC_mgL_SE = x.y )
+NO3_mean_final <- NO3_mean_final %>% rename(Date = Group.1, Site = Group.2, NO3_mgL_mean = x.x, NO3_mgL_SE = x.y )
 
 
-DOC_mean_final %>% ggplot(aes(x = Date, y = DOC_mgL_mean, color = Site)) +geom_point()+ xlab("Date")+ylab("DOC (mg/L)")+geom_line()+geom_errorbar(aes(ymin=DOC_mgL_mean-DOC_mgL_SE, ymax=DOC_mgL_mean+DOC_mgL_SE), width=.2, position=position_dodge(.9)) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme( axis.title.x = element_text(size = 20))+theme(axis.text.x=element_text(size=20))+ scale_color_manual(labels = c("Crawford", "Mastodon", "Shovel"), values = c("blue", "red", "forestgreen"))+
+NO3_mean_final %>% ggplot(aes(x = Date, y = NO3_mgL_mean, color = Site)) +geom_point()+ xlab("Date")  + labs(y = expression(paste(NO[3], "- (mg N/L)")))+geom_line()+geom_errorbar(aes(ymin=NO3_mgL_mean-NO3_mgL_SE, ymax=NO3_mgL_mean+NO3_mgL_SE), width=.2, position=position_dodge(.9)) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme( axis.title.x = element_text(size = 20))+theme(axis.text.x=element_text(size=20))+ scale_color_manual(labels = c("Crawford", "Mastodon", "Shovel"), values = c("blue", "red", "forestgreen"))+
   theme(legend.key.size = unit(1, 'cm'), #change legend key size
         legend.key.height = unit(1, 'cm'), #change legend key height
         legend.key.width = unit(1, 'cm'), #change legend key width
@@ -185,5 +205,15 @@ DOC_mean_final %>% ggplot(aes(x = Date, y = DOC_mgL_mean, color = Site)) +geom_p
         legend.text = element_text(size=15)) #change legend text font size
 
 
+mast_No3 <- NO3_mean_final %>% filter(Site=="MAST")
 
+mean(mast_No3$NO3_mgL_mean)
+
+shov_No3 <- NO3_mean_final %>% filter(Site=="SHOV")
+
+mean(shov_No3$NO3_mgL_mean)
+
+craw_No3 <- NO3_mean_final %>% filter(Site=="CRAW")
+
+mean(craw_No3$NO3_mgL_mean)
 
