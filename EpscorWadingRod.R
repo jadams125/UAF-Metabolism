@@ -93,8 +93,7 @@ str(craw_discharge)
 depth.pl.craw <- craw_discharge %>% 
   ggplot(aes(x = Distance_cm, y = reorder(depth_cm, desc(depth_cm)))) +
   geom_point() +
-  geom_line() +
-  facet_wrap(~Date) 
+  facet_wrap(~Date)
 depth.pl.craw
 
 
