@@ -296,7 +296,7 @@ data.strt.mm.all <- data.strt.mm.all %>%  rename(DO.sat = DO.sat.EXO)
 data.strt.mm.all <- data.strt.mm.all %>% select(solar.time, DO.obs, DO.sat, light, discharge, depth, temp.water)
 
 startTime <- as.POSIXct(Sys.time())
-mm.test.strt <- metab(bayes_specs, data=data.strt.mm.all)
+mm.test.strt <- metab(bayes_specs, data= na.omit(data.strt.mm.all))
 endTime <- as.POSIXct(Sys.time())
 # 
 difftime(endTime, startTime)
