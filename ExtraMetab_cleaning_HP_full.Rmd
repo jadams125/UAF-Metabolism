@@ -180,7 +180,7 @@ cleaning.temp1 <- clean %>% filter(solar.time<="2019-09-15")
 cleaning.temp2 <- clean %>% filter(solar.time> "2019-09-15")
 
 
-cleaning.temp1$temp.water <- na_kalman(cleaning.temp1$temp.water, type = "level")
+cleaning.temp1$temp.water <- na_kalman(cleaning.temp1$temp.water)
 cleaning.temp2$temp.water <- na_kalman(cleaning.temp2$temp.water, type = "level")
 
 clean <- rbind(cleaning.temp1,cleaning.temp2)
@@ -1702,15 +1702,15 @@ VAUL.comb.in %>% ggplot(aes(x = as.POSIXct(datetimeAK), y = discharge)) + geom_m
 ```{r}
 
 #Remove NA periods longer than 12 hours
-
-clean <- VAUL.comb.in %>%
-   mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
-   group_by(datetimeAK, new = rleid(is.na(temp.water))) %>%
-   ungroup() %>%
-   group_by(temp.water,new) %>%
-   filter(n()<48) %>%
-   select(-new)
 # 
+# clean <- VAUL.comb.in %>%
+#    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
+#    group_by(datetimeAK, new = rleid(is.na(temp.water))) %>%
+#    ungroup() %>%
+#    group_by(temp.water,new) %>%
+#    filter(n()<48) %>%
+#    select(-new)
+# # 
 # # clean <- clean1 %>%
 # #    mutate(datetimeAK = lubridate::ymd_hms(datetimeAK)) %>%
 # #    group_by(datetimeAK, new = rleid(is.na(DO.obs))) %>% 
@@ -1750,8 +1750,20 @@ It looks like quite a few gaps were removed...
 ```{r}
 
 
-clean$temp.water <- na_kalman(clean$temp.water, type = "level")
+clean$temp.water <- na_kalman(clean$temp.water)
+
+
+cleaning.temp1 <- clean %>% filter(solar.time<="2019-09-15")
+cleaning.temp2 <- clean %>% filter(solar.time>"2021-09-15")
+
+cleaning.temp1$ODO.Psat <- na_kalman(cleaning.temp1$ODO.Psat, type = "level")
+cleaning.temp2$ODO.Psat <- na_kalman(cleaning.temp2$ODO.Psat, type = "level")
+
+clean <- rbind(cleaning.temp1,cleaning.temp2)
+
 clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
+
+
 clean$DO.obs <- na_kalman(clean$DO.obs, type = "level")
 
 clean$DO.sat.EXO = clean$DO.obs/ (clean$ODO.Psat/100)
@@ -2680,7 +2692,7 @@ Looks like nothing was removed.
 
 #fill the out of water points
 ```{r}
-clean$temp.water <- na_kalman(clean$temp.water, type = "level")
+clean$temp.water <- na_kalman(clean$temp.water)
 clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
 clean$DO.obs <- na_kalman(clean$DO.obs, type = "level")
 clean$DO.sat.EXO <- na_kalman(clean$DO.sat.EXO, type = "level")
@@ -3346,7 +3358,7 @@ It looks like one gap was removed
 
 ```{r}
 
-clean$temp.water <- na_kalman(clean$temp.water)
+clean$temp.water <- na_kalman(clean$temp.water, type = "level")
 clean$ODO.Psat <- na_kalman(clean$ODO.Psat)
 
 cleaning.DO1 <-  clean %>% filter(solar.time>="2019-05-20"&solar.time<="2019-08-01")
@@ -3355,7 +3367,7 @@ cleaning.DO3 <- clean %>% filter(solar.time>"2019-08-01")
 
 cleaning.DO1$DO.obs <- na_kalman(cleaning.DO1$DO.obs, type = "level")
 cleaning.DO2$DO.obs <- na_kalman(cleaning.DO2$DO.obs)
-cleaning.DO3$DO.obs <- na_kalman(cleaning.DO3$DO.obs)
+cleaning.DO3$DO.obs <- na_kalman(cleaning.DO3$DO.obs, type = "level")
 
 
 clean <- rbind(cleaning.DO2,cleaning.DO1 , cleaning.DO3)

@@ -808,14 +808,24 @@ library(here)
 # Q_2019 <- read.csv("Q_2019.csv",)
 
 
-Q_2019 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2019/Q_2019.csv")
+Q_2019 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2019/Predicted_Q_2019_gapfill.csv")
 Q_2019$DateTime <-  force_tz(as.POSIXct(ymd_hms(Q_2019$DateTime)), tz = "America/Anchorage")
 #### Breaking up into sites ####
-POKE_Q_2019 <- Q_2019 %>% filter(Site == "POKE")
-VAUL_Q_2019 <- Q_2019 %>% filter(Site == "VAUL")
-STRT_Q_2019 <- Q_2019 %>% filter(Site == "STRT")
-MOOS_Q_2019 <- Q_2019 %>% filter(Site == "MOOS")
-FRCH_Q_2019 <- Q_2019 %>% filter(Site == "FRCH")
+POKE_Q_2019 <- Q_2019 %>% select(DateTime, POKE.Q.int) %>% rename(Q = POKE.Q.int)
+POKE_Q_2019$Site <- "POKE"
+
+MOOS_Q_2019 <- Q_2019 %>% select(DateTime, MOOS) %>% rename(Q = MOOS)
+MOOS_Q_2019$Site <- "MOOS"
+
+STRT_Q_2019 <- Q_2019 %>% select(DateTime, STRT) %>% rename(Q = STRT)
+STRT_Q_2019$Site <- "STRT"
+
+VAUL_Q_2019 <- Q_2019 %>% select(DateTime, VAUL) %>% rename(Q = VAUL)
+VAUL_Q_2019$Site <- "VAUL"
+
+
+FRCH_Q_2019 <- Q_2019 %>% select(DateTime, FRCH) %>% rename(Q = FRCH)
+FRCH_Q_2019$Site <- "FRCH"
 
 
 
@@ -877,15 +887,25 @@ FRCH.2020.Q <- FRCH_Q_2020%>% filter(DateTime >= "2020-01-01 00:00:00") %>%
 
 #### 2021
 
-Q_2021 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2021/Q_2021.csv")
+Q_2021 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2021/Predicted_Q_2021_gapfill.csv")
 Q_2021$DateTime <-  force_tz(as.POSIXct(ymd_hms(Q_2021$DateTime)), tz = "America/Anchorage")
 
 #### Breaking up into sites ####
-POKE_Q_2021 <- Q_2021 %>% filter(Site == "POKE")
-VAUL_Q_2021 <- Q_2021 %>% filter(Site == "VAUL")
-STRT_Q_2021 <- Q_2021 %>% filter(Site == "STRT")
-MOOS_Q_2021 <- Q_2021 %>% filter(Site == "MOOS")
-FRCH_Q_2021 <- Q_2021 %>% filter(Site == "FRCH")
+POKE_Q_2021 <- Q_2021 %>% select(DateTime, POKE.Q.int) %>% rename(Q = POKE.Q.int)
+POKE_Q_2021$Site <- "POKE"
+
+MOOS_Q_2021 <- Q_2021 %>% select(DateTime, MOOS.Q.int) %>% rename(Q = MOOS.Q.int)
+MOOS_Q_2021$Site <- "MOOS"
+
+STRT_Q_2021 <- Q_2021 %>% select(DateTime, STRT.Q.int) %>% rename(Q = STRT.Q.int)
+STRT_Q_2021$Site <- "STRT"
+
+VAUL_Q_2021 <- Q_2021 %>% select(DateTime, VAUL.Q.int) %>% rename(Q = VAUL.Q.int)
+VAUL_Q_2021$Site <- "VAUL"
+
+
+FRCH_Q_2021 <- Q_2021 %>% select(DateTime, FRCH.Q.int) %>% rename(Q = FRCH.Q.int)
+FRCH_Q_2021$Site <- "FRCH"
 
 
 
@@ -3925,8 +3945,6 @@ poke.2022.q.dt$RatingCurveDepth <- poke22_depth_mod$coefficients[1]+(poke22_dept
 
 
 
-
-
 #### combine ####
 
 poke.2019.depth <- poke.2019.q.dt %>%
@@ -3945,6 +3963,8 @@ poke.depth <- rbind (poke.2019.depth, poke.2020.depth, poke.2021.depth, poke.202
 
 poke.depth = poke.depth[-1,]
 
+write.csv(poke.depth, here("outputs","pokeMeanDepth.csv"))
+
 
 vaul.2019.depth <- vaul.2019.q.dt %>%
   select(RatingCurveDepth, datetimeAK)
@@ -3962,6 +3982,7 @@ vaul.2022.depth <- vaul.2022.q.dt %>%
 
 vaul.depth <- rbind (vaul.2019.depth, vaul.2020.depth, vaul.2021.depth, vaul.2022.depth)
 
+write.csv(vaul.depth, here("outputs","vaulMeanDepth.csv"))
 
 
 moos.2019.depth <- moos.2019.q.dt %>%
@@ -3973,7 +3994,6 @@ moos.2020.depth <- moos.2020.q.dt %>%
 moos.2020.depth <- moos.2020.depth %>% filter(datetimeAK <= "2020-10-15 08:45:00")
 
 
-
 moos.2021.depth <- moos.2021.q.dt %>%
   select(RatingCurveDepth, datetimeAK)
 
@@ -3982,6 +4002,7 @@ moos.2022.depth <- moos.2022.q.dt %>%
 
 moos.depth <- rbind (moos.2019.depth, moos.2020.depth, moos.2021.depth, moos.2022.depth)
 
+write.csv(moos.depth, here("outputs","moosMeanDepth.csv"))
 
 
 
@@ -4001,6 +4022,7 @@ frch.2022.depth <- frch.2022.q.dt %>%
 
 frch.depth <- rbind (frch.2019.depth, frch.2020.depth, frch.2021.depth, frch.2022.depth)
 
+write.csv(frch.depth, here("outputs","frchMeanDepth.csv"))
 
 
 strt.2019.depth <- strt.2019.q.dt %>%
@@ -4019,6 +4041,7 @@ strt.2022.depth <- strt.2022.q.dt %>%
 
 strt.depth <- rbind (strt.2019.depth, strt.2020.depth, strt.2021.depth, strt.2022.depth)
 
+write.csv(strt.depth, here("outputs","strtMeanDepth.csv"))
 
 
 ```
