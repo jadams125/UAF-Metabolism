@@ -1,0 +1,5264 @@
+---
+title: "DataPrepRMD"
+author: "Jacob"
+date: "12/6/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+#DATA PREP SYNTHESIS
+
+
+```{r}
+###################### DO DATA ##############################################
+### Jacob Adams
+### Full DoD DO Record Script
+### 7/6/2022
+
+#Packages I think I might perhaps maybe need...
+library(ggpubr)
+library(anytime)
+library(googlesheets4)
+library(ggpmisc)
+library(plyr)
+
+library(dplyr)
+library(lubridate)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(scales)
+
+library(zoo)
+library(xts)
+library(forecast)
+library(googledrive)
+library(streamMetabolizer)
+library(readr)
+library(data.table)
+
+#calculate mg/L DO from Psat
+
+# Identify which records do not have proper DO data for METAB run
+
+
+
+
+########POKE ########
+
+### 2019 ###
+#Read cleaned CSVs from DoD 2019 Script 
+
+SondeData2019 <- read_csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2019/processed_sensor_dat/SUNA.EXO.int.corr.lab_2019.csv")
+
+SondeData2019$datetimeAK <- force_tz(as.POSIXct(SondeData2019$datetimeAK), "America/Anchorage")
+
+# Have to rename rows so they dont have "mean" in them so it can be combined for three straight years. Data is cleaned.
+
+SondeData2019.renamed <- SondeData2019 %>%
+  dplyr::rename(ODO.mgL = ODO.mgL.mn, ODO.Psat = ODO.Psat.mn, ODO.Ploc = ODO.Ploc.mn, Temp.C = Temp.C.mn) %>% select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc, site.ID)
+
+
+POKE_EXO_cl.2019.renamed <- SondeData2019.renamed %>% filter(site.ID == "POKE")
+
+# 
+# 
+# POKE_EXO_cl.2019 <- read_csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2019/EXO_processed/POKE.EXO.cl.csv")
+# 
+# POKE_EXO_cl.2019$datetimeAK <- force_tz(as.POSIXct(POKE_EXO_cl.2019$datetimeAK), "America/Anchorage")
+# # Have to rename rows so they dont have "mean" in them so it can be combined for three straight years. Data is not cleaned.
+# 
+# POKE_EXO_cl.2019.renamed <- POKE_EXO_cl.2019 %>%
+#   dplyr::rename(ODO.mgL = ODO.mgL.mn, ODO.Psat = ODO.Psat.mn, ODO.Ploc = ODO.Ploc.mn, Temp.C = Temp.C.mn) %>% select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+# 
+
+
+#ROUGHLY convert %LOC to mg/L with Air pressure at time of install
+poke.2019.air.P.url <- "https://drive.google.com/drive/u/1/folders/12-av--A9_rqcyvwOl9EiB0MSZdmWnPcj"
+poke_19.ap <- drive_get(as_id(poke.2019.air.P.url))
+poke_19.ap_glist <- drive_ls(poke_19.ap, pattern = "191017_20005936_POKE_ATM.csv")
+walk(poke_19.ap_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+poke.ap.2019.Data <- read.csv("191017_20005936_POKE_ATM.csv",
+                              skip = 1, header = TRUE)
+poke.ap.2019.Data$DateTime <- as.POSIXct(strptime(poke.ap.2019.Data$Date.Time..GMT.08.00, "%m/%d/%y %I:%M:%S %p"))
+
+poke.ap.2019.Data$DateTime <- lubridate::round_date(poke.ap.2019.Data$DateTime, "15 minutes") 
+
+#row 2 is not a real row
+poke.ap.2019.Data <- poke.ap.2019.Data[-c(2), ]
+
+
+#convert to mmHg
+poke.ap.2019.Data$pressure.mmHg <- poke.ap.2019.Data$Abs.Pres..kPa..LGR.S.N..20005936..SEN.S.N..20005936..LBL..P. * 7.50062
+
+#air pressure at start time: may 10, 2019 at 12:30
+airPressureInstall <- poke.ap.2019.Data %>% filter(DateTime == "2019-05-10 12:30:00")
+
+
+# #Get missed out of water point
+# POKE_EXO_cl.2019.renamed.1 <- POKE_EXO_cl.2019.renamed %>% filter(datetimeAK <= "2019-08-22 14:15:00")
+# 
+# 
+# POKE_EXO_cl.2019.renamed.2 <- POKE_EXO_cl.2019.renamed %>% filter(datetimeAK >= "2019-08-22 16:00:00")
+# 
+# POKE_EXO_cl.2019.renamed <- rbind(POKE_EXO_cl.2019.renamed.1,POKE_EXO_cl.2019.renamed.2)
+
+
+
+
+poke.exo.telemFilled.2019 <- POKE_EXO_cl.2019.renamed %>% filter(datetimeAK >= "2019-08-22 15:00:00" & datetimeAK <= "2019-09-11 11:30:00")
+
+#change pressure to match current record
+poke.exo.telemFilled.2019$ODO.Psat <-  758.85 / 760 *  poke.exo.telemFilled.2019$ODO.Ploc
+
+
+#convert from PSAT to mg/L using the formula the EXO uses
+poke.exo.telemFilled.2019$ODO.mgL <- as.numeric(poke.exo.telemFilled.2019$ODO.Psat) * (0.01* exp(
+  (-862194900000*(1/(poke.exo.telemFilled.2019$Temp.C+273.15))^4+12438000000*(1/(poke.exo.telemFilled.2019$Temp.C+273.15))^3-66423080*(1/(poke.exo.telemFilled.2019$Temp.C+273.15))^2+157570.1*(1/(poke.exo.telemFilled.2019$Temp.C+273.15))-139.344)
+  -0* (2140.7*(1/(poke.exo.telemFilled.2019$Temp.C+273.15))^2-10.754*(1/(poke.exo.telemFilled.2019$Temp.C+273.15))+0.017674 )))
+
+
+
+
+#combine
+
+# #Plot It
+# 
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/poke19filled.pdf")
+# 
+# plot(POKE_EXO_cl.2019.renamed$datetimeAK, POKE_EXO_cl.2019.renamed$ODO.Psat ,type="l",col="black", xlab = "date", ylab = "ODO %Sat",  ylim=c(93,107),)
+# 
+# lines(poke.exo.telemFilled.2019$datetimeAK, poke.exo.telemFilled.2019$ODO.Psat ,col="blue")
+# 
+# legend(2, 4, legend=c("Equation 1", "Equation 2"),
+#        fill = c("blue","red")
+# )
+# 
+# dev.off()
+
+#Put it together
+
+POKE_EXO_cl.2019.renamed.3 <- POKE_EXO_cl.2019.renamed %>% filter(datetimeAK <= "2019-08-22 14:45:00")
+POKE_EXO_cl.2019.renamed.4 <- POKE_EXO_cl.2019.renamed %>% filter(datetimeAK >= "2019-09-11 11:45:00")
+
+final.Poke.DO.2019 <- rbind(POKE_EXO_cl.2019.renamed.3,POKE_EXO_cl.2019.renamed.4, poke.exo.telemFilled.2019)
+
+final.Poke.DO.2019 <- dplyr::arrange(final.Poke.DO.2019, datetimeAK)
+
+plot(final.Poke.DO.2019$datetimeAK,final.Poke.DO.2019$ODO.Psat, type="l",col="black")
+# 
+
+
+final.Poke.DO.2019 <- final.Poke.DO.2019 %>% filter(datetimeAK < "2019-10-17 11:45:00")
+
+
+
+
+### 2020 ###
+# exo.all.2020.url <- "https://drive.google.com/drive/u/1/folders/1nNKoIdgP-fdCNRGUbGca_zVujF_16QEM"
+# exo.all.2020.prt1 <- drive_get(as_id(exo.all.2020.url))
+# exo.all.2020.glist <- drive_ls(exo.all.2020.prt1, pattern = "EXO.ALL.csv")
+# walk(exo.all.2020.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# exo.all.2020 <- read.csv("EXO.ALL.csv",)
+
+exo.2020 <- read_csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2020/processed_sensor_dat/SUNA.EXO.int.corr.lab_2020.csv")
+exo.2020$datetimeAK <- force_tz(as.POSIXct(exo.2020$datetimeAK), "America/Anchorage")
+
+
+
+poke.exo.2020 <- exo.2020 %>% filter(site.ID == "POKE")
+
+
+poke.exo.2020 <- poke.exo.2020 %>% select(datetimeAK, Temp.C.int, ODO.mgL.mn, ODO.Psat.mn, ODO.Ploc.mn, site.ID) %>% 
+  dplyr::rename(ODO.mgL = ODO.mgL.mn, ODO.Psat = ODO.Psat.mn, ODO.Ploc = ODO.Ploc.mn, Temp.C = Temp.C.int)
+
+lapply(poke.exo.2020, summary)
+
+
+poke.exo.2020$datetimeAK <- force_tz(as.POSIXct(poke.exo.2020$datetimeAK), "America/Anchorage")
+
+
+plot(poke.exo.2020$datetimeAK, poke.exo.2020$ODO.mgL)
+
+# salinity temp and do percent value 
+
+
+### 2021 ###
+
+exo.2021 <- read_csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2021/processed_sensor_dat/SUNA.EXO.int.corr.lab_2021.csv")
+exo.2021$datetimeAK <- force_tz(as.POSIXct(exo.2021$datetimeAK), "America/Anchorage")
+
+
+poke.exo.2021 <- exo.2021 %>% filter(site.ID == "POKE")
+
+poke.exo.2021 <- poke.exo.2021 %>% select(datetimeAK, Temp.C.int, ODO.mgL.mn.adj, ODO.Psat.mn.adj, ODO.Ploc.mn.adj, site.ID) %>% dplyr::rename(ODO.mgL = ODO.mgL.mn.adj, ODO.Psat = ODO.Psat.mn.adj, ODO.Ploc = ODO.Ploc.mn.adj, Temp.C = Temp.C.int)
+
+lapply(poke.exo.2021, summary)
+
+
+
+
+
+# 2022
+
+
+exo.2022 <- read_csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2022/processed_sensor_dat/SUNA.EXO.int.corr.lab_2022.csv")
+exo.2022$datetimeAK <- force_tz(as.POSIXct(exo.2022$datetimeAK), "America/Anchorage")
+
+
+
+poke.exo.2022 <- exo.2022 %>% filter(site.ID == "POKE")
+
+poke.exo.2022 <- poke.exo.2022 %>% select(datetimeAK, Temp.C.int, ODO.mgL.mn.adj, ODO.Psat.mn.adj, ODO.Ploc.mn.adj, site.ID) %>% dplyr::rename(ODO.mgL = ODO.mgL.mn.adj, ODO.Psat = ODO.Psat.mn.adj, ODO.Ploc = ODO.Ploc.mn.adj, Temp.C = Temp.C.int)
+
+lapply(poke.exo.2022, summary)
+
+
+
+#Put together
+final.Poke.DO.2019 <- final.Poke.DO.2019 %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+poke.exo.2020 <- poke.exo.2020 %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+poke.exo.2021 <- poke.exo.2021 %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+poke.exo.2022 <- poke.exo.2022 %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+
+All.years.poke.MESSY <- rbind(final.Poke.DO.2019, poke.exo.2020, poke.exo.2021, poke.exo.2022)
+
+All.years.poke.MESSY <- All.years.poke.MESSY %>%
+  dplyr::rename(DO.obs = ODO.mgL)
+
+All.years.poke.MESSY <- All.years.poke.MESSY %>%
+  dplyr::rename(temp.water = Temp.C)
+
+
+#plot all
+
+# #keep in mind 2019 and 2020 is clean data and 2021 is not.
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/PokerODO.pdf")
+# 
+# testPlotPoke <- ggplot(data = All.years.poke.MESSY,
+#                        mapping = aes(x = datetimeAK, y = as.numeric(ODO.Psat))) + geom_point() + labs(x = "Date", y = "Percent Saturation")
+# testPlotPoke
+# dev.off()
+
+
+
+
+
+
+###### STUART ######
+
+#### 2019 ####
+
+
+STRT_EXO_cl.2019.renamed <- SondeData2019.renamed %>% filter(site.ID == "STRT")
+
+
+#USE TELEM FILLED DATA TO CALCULATE MG/L 
+
+
+#calc from YSI %Sat to MGL spreadsheet
+
+# # DO data collected as concentrations can be 
+# converted to percent saturation using temperature and salinity data collected in conjunction with 
+# the DO measurements using the equations as provided in APHA, 1989:
+
+
+# DOsat = (Exp((-139.34411 + (157570.1/Temp) - (66423080/Temp2
+# ) + (12438000000/Temp3
+# ) - 
+#   (862194900000/Temp4
+#   )) - (Sal * (0.017674-(10.754/Temp)+(2140.7/Temp2
+#   )))))
+# % DO = (DOmeasure/ DOsat)*100 
+
+
+# Where:
+#   DOsat = DO concentration in mg/L at 100 % saturation, 
+# Temp = water temperature in °K (°C + 273.15 = °K) 
+# DOmeasure = Measured DO concentration in mg/L.
+# Sal = Salinity in part per thousand (ppt)
+
+#Constants: 
+# 862194900000
+# 12438000000
+# 66423080
+# 157570.1
+# 139.344
+#
+
+#We change this according to how YSI does it in the EXO
+
+
+
+#in this case, we are finding the DO mg/L per percent saturation, and multiplying it by our percent sat from telem. This percent sat accounts for pressure as well I believe. 
+
+
+STRT_EXO_cl.2019.renamed$ODO.mgL.Calc <-as.numeric(STRT_EXO_cl.2019.renamed$ODO.Psat) * 
+  #DO mg/L per sat
+  (0.01* exp(
+    #p1
+    (-862194900000*(1/(STRT_EXO_cl.2019.renamed$Temp.C+273.15))^4+12438000000*(1/(STRT_EXO_cl.2019.renamed$Temp.C+273.15))^3-66423080*(1/(STRT_EXO_cl.2019.renamed$Temp.C+273.15))^2+157570.1*(1/(STRT_EXO_cl.2019.renamed$Temp.C+273.15))-139.344)
+    #salinity
+    -0* 
+      #p2
+      (2140.7*(1/(STRT_EXO_cl.2019.renamed$Temp.C+273.15))^2-10.754*(1/(STRT_EXO_cl.2019.renamed$Temp.C+273.15))+0.017674 )))
+
+
+#fill missing rows with calculated MGL
+STRT_EXO_cl.2019.renamed <- STRT_EXO_cl.2019.renamed %>% 
+  mutate(ODO.mgL = coalesce(ODO.mgL,ODO.mgL.Calc))
+
+
+
+
+
+
+#### 2020 ####
+
+
+#### 2020 ####
+# exo.all.2020.url <- "https://drive.google.com/drive/u/1/folders/1nNKoIdgP-fdCNRGUbGca_zVujF_16QEM"
+# exo.all.2020.prt1 <- drive_get(as_id(exo.all.2020.url))
+# exo.all.2020.glist <- drive_ls(exo.all.2020.prt1, pattern = "EXO.ALL.csv")
+# walk(exo.all.2020.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# exo.all.2020 <- read.csv("EXO.ALL.csv",)
+
+
+strt.exo.2020 <- exo.2020 %>% filter(site.ID == "STRT")
+
+strt.exo.2020 <- strt.exo.2020 %>% select(datetimeAK, Temp.C.int, ODO.mgL.mn.adj, ODO.Psat.mn.adj, ODO.Ploc.mn.adj, site.ID) %>% dplyr::rename(ODO.mgL = ODO.mgL.mn.adj, ODO.Psat = ODO.Psat.mn.adj, ODO.Ploc = ODO.Ploc.mn.adj, Temp.C = Temp.C.int)
+
+lapply(strt.exo.2020, summary)
+
+
+### 2021 ###
+
+
+strt.exo.2021 <- exo.2021 %>% filter(site.ID == "STRT")
+
+strt.exo.2021 <- strt.exo.2021 %>% select(datetimeAK, Temp.C.int, ODO.mgL.mn.adj, ODO.Psat.mn.adj, ODO.Ploc.mn.adj, site.ID) %>% dplyr::rename(ODO.mgL = ODO.mgL.mn.adj, ODO.Psat = ODO.Psat.mn.adj, ODO.Ploc = ODO.Ploc.mn.adj, Temp.C = Temp.C.int)
+
+lapply(strt.exo.2021, summary)
+
+
+
+# 2022
+
+strt.exo.2022 <- exo.2022 %>% filter(site.ID == "STRT")
+
+strt.exo.2022 <- strt.exo.2022 %>% select(datetimeAK, Temp.C.int, ODO.mgL.mn.adj, ODO.Psat.mn.adj, ODO.Ploc.mn.adj, site.ID) %>% dplyr::rename(ODO.mgL = ODO.mgL.mn.adj, ODO.Psat = ODO.Psat.mn.adj, ODO.Ploc = ODO.Ploc.mn.adj, Temp.C = Temp.C.int)
+
+lapply(strt.exo.2022, summary)
+
+
+
+
+#Put together
+STRT_EXO_cl.2019.renamed <- STRT_EXO_cl.2019.renamed %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+strt.exo.2020 <- strt.exo.2020 %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+strt.exo.2021 <- strt.exo.2021 %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+strt.exo.2022 <- strt.exo.2022 %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+All.years.strt.MESSY <- rbind(STRT_EXO_cl.2019.renamed, strt.exo.2020, strt.exo.2021, strt.exo.2022)
+
+All.years.strt.MESSY <- All.years.strt.MESSY %>%
+  dplyr::rename(DO.obs = ODO.mgL)
+
+All.years.strt.MESSY <- All.years.strt.MESSY %>%
+  dplyr::rename(temp.water = Temp.C)
+
+
+
+# #keep in mind 2019 and 2020 is clean data and 2021 are not.
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/StuartODO.pdf")
+# 
+# testPlotSTRT <- ggplot(data = All.years.strt.MESSY,
+#                        mapping = aes(x = datetimeAK, y = as.numeric(ODO.Psat))) + geom_point() + labs(x = "Date", y = "Dissolved Oxygen (%Sat)")
+# testPlotSTRT
+# dev.next()
+
+
+
+
+
+
+
+
+####### VAULT #######
+
+### 2019 ###
+#Read cleaned CSVs from DoD 2019 Script 
+
+VAUL_EXO_cl.2019.renamed <- SondeData2019.renamed %>% filter(site.ID == "VAUL")
+
+
+
+#USE TELEM FILLED DATA TO CALCULATE MG/L 
+
+
+#calc from YSI %Sat to MGL spreadsheet
+
+# # DO data collected as concentrations can be 
+# converted to percent saturation using temperature and salinity data collected in conjunction with 
+# the DO measurements using the equations as provided in APHA, 1989:
+
+
+# DOsat = (Exp((-139.34411 + (157570.1/Temp) - (66423080/Temp2
+# ) + (12438000000/Temp3
+# ) - 
+#   (862194900000/Temp4
+#   )) - (Sal * (0.017674-(10.754/Temp)+(2140.7/Temp2
+#   )))))
+# % DO = (DOmeasure/ DOsat)*100 
+
+
+# Where:
+#   DOsat = DO concentration in mg/L at 100 % saturation, 
+# Temp = water temperature in °K (°C + 273.15 = °K) 
+# DOmeasure = Measured DO concentration in mg/L.
+# Sal = Salinity in part per thousand (ppt)
+
+#Constants: 
+# 862194900000
+# 12438000000
+# 66423080
+# 157570.1
+# 139.344
+#
+
+#We change this according to how YSI does it in the EXO
+
+
+
+#in this case, we are finding the DO mg/L per percent saturation, and multiplying it by our percent sat from telem. This percent sat accounts for pressure as well I believe. 
+
+
+VAUL_EXO_cl.2019.renamed$ODO.mgL.Calc <-as.numeric(VAUL_EXO_cl.2019.renamed$ODO.Psat) * 
+  #DO mg/L per sat
+  (0.01* exp(
+    #p1
+    (-862194900000*(1/(VAUL_EXO_cl.2019.renamed$Temp.C+273.15))^4+12438000000*(1/(VAUL_EXO_cl.2019.renamed$Temp.C+273.15))^3-66423080*(1/(VAUL_EXO_cl.2019.renamed$Temp.C+273.15))^2+157570.1*(1/(VAUL_EXO_cl.2019.renamed$Temp.C+273.15))-139.344)
+    #salinity
+    -0* 
+      #p2
+      (2140.7*(1/(VAUL_EXO_cl.2019.renamed$Temp.C+273.15))^2-10.754*(1/(VAUL_EXO_cl.2019.renamed$Temp.C+273.15))+0.017674 )))
+
+
+VAUL_EXO_cl.2019.renamed <- VAUL_EXO_cl.2019.renamed %>% 
+  mutate(ODO.mgL = coalesce(ODO.mgL,ODO.mgL.Calc))
+
+
+
+#### 2020 ####
+
+
+#### 2020 ####
+# exo.all.2020.url <- "https://drive.google.com/drive/u/1/folders/1nNKoIdgP-fdCNRGUbGca_zVujF_16QEM"
+# exo.all.2020.prt1 <- drive_get(as_id(exo.all.2020.url))
+# exo.all.2020.glist <- drive_ls(exo.all.2020.prt1, pattern = "EXO.ALL.csv")
+# walk(exo.all.2020.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# exo.all.2020 <- read.csv("EXO.ALL.csv",)
+
+
+
+vaul.exo.2020 <- exo.2020 %>% filter(site.ID == "VAUL")
+
+vaul.exo.2020 <- vaul.exo.2020 %>% select(datetimeAK, Temp.C.int, ODO.mgL.mn.adj, ODO.Psat.mn.adj, ODO.Ploc.mn.adj, site.ID) %>% dplyr::rename(ODO.mgL = ODO.mgL.mn.adj, ODO.Psat = ODO.Psat.mn.adj, ODO.Ploc = ODO.Ploc.mn.adj, Temp.C = Temp.C.int)
+
+lapply(vaul.exo.2020, summary)
+
+
+### 2021 ###
+
+vaul.exo.2021 <- exo.2021 %>% filter(site.ID == "VAUL")
+
+vaul.exo.2021 <- vaul.exo.2021 %>% select(datetimeAK, Temp.C.int, ODO.mgL.mn.adj, ODO.Psat.mn.adj, ODO.Ploc.mn.adj, site.ID) %>% dplyr::rename(ODO.mgL = ODO.mgL.mn.adj, ODO.Psat = ODO.Psat.mn.adj, ODO.Ploc = ODO.Ploc.mn.adj, Temp.C = Temp.C.int)
+
+lapply(vaul.exo.2021, summary)
+
+
+
+# 2022
+
+
+vaul.exo.2022 <- exo.2022 %>% filter(site.ID == "VAUL")
+
+vaul.exo.2022 <- vaul.exo.2022 %>% select(datetimeAK, Temp.C.int, ODO.mgL.mn, ODO.Psat.mn.adj, ODO.Ploc.mn.adj, site.ID) %>% dplyr::rename(ODO.mgL = ODO.mgL.mn, ODO.Psat = ODO.Psat.mn.adj, ODO.Ploc = ODO.Ploc.mn.adj, Temp.C = Temp.C.int)
+
+lapply(vaul.exo.2022, summary)
+
+
+
+
+#Put together
+VAUL_EXO_cl.2019.renamed <- VAUL_EXO_cl.2019.renamed %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+vaul.exo.2020 <- vaul.exo.2020 %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+vaul.exo.2021 <- vaul.exo.2021 %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+vaul.exo.2022 <- vaul.exo.2022 %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+All.years.vaul.MESSY <- rbind(VAUL_EXO_cl.2019.renamed, vaul.exo.2020, vaul.exo.2021, vaul.exo.2022)
+
+All.years.vaul.MESSY <- All.years.vaul.MESSY %>%
+  dplyr::rename(DO.obs = ODO.mgL)
+
+All.years.vaul.MESSY <- All.years.vaul.MESSY %>%
+  dplyr::rename(temp.water = Temp.C)
+
+
+# All.years.vaul.MESSY <- All.years.vaul.MESSY[-c(19166)]
+
+
+# #keep in mind 2019 and 2020 is clean data and 2021 is not.
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/VaultODO.pdf")
+# 
+# testPlotVAUL <- ggplot(data = All.years.vaul.MESSY,
+#                        mapping = aes(x = datetimeAK, y = as.numeric(ODO.Psat))) + geom_point() + labs(x = "Date", y = "Dissolved Oxygen (%Sat)")
+# testPlotVAUL
+# dev.next()
+
+
+
+
+
+####### MOOS #######
+
+#### 2019 ####
+
+
+MOOS_EXO_cl.2019.renamed <- SondeData2019.renamed %>% filter(site.ID == "MOOS")
+
+
+#in this case, we are finding the DO mg/L per percent saturation, and multiplying it by our percent sat from telem. This percent sat accounts for pressure as well I believe. 
+
+
+MOOS_EXO_cl.2019.renamed$ODO.mgL.Calc <-as.numeric(MOOS_EXO_cl.2019.renamed$ODO.Psat) * 
+  #DO mg/L per sat
+  (0.01* exp(
+    #p1
+    (-862194900000*(1/(MOOS_EXO_cl.2019.renamed$Temp.C+273.15))^4+12438000000*(1/(MOOS_EXO_cl.2019.renamed$Temp.C+273.15))^3-66423080*(1/(MOOS_EXO_cl.2019.renamed$Temp.C+273.15))^2+157570.1*(1/(MOOS_EXO_cl.2019.renamed$Temp.C+273.15))-139.344)
+    #salinity
+    -0* 
+      #p2
+      (2140.7*(1/(MOOS_EXO_cl.2019.renamed$Temp.C+273.15))^2-10.754*(1/(MOOS_EXO_cl.2019.renamed$Temp.C+273.15))+0.017674 )))
+
+
+MOOS_EXO_cl.2019.renamed <- MOOS_EXO_cl.2019.renamed %>% 
+  mutate(ODO.mgL = coalesce(ODO.mgL,ODO.mgL.Calc))
+
+
+MOOS_EXO_cl.2019.renamed <- MOOS_EXO_cl.2019.renamed %>% 
+  mutate(ODO.mgL = coalesce(ODO.mgL,ODO.mgL.Calc))
+
+
+
+
+
+
+#### 2020 ####
+
+
+#### 2020 ####
+# exo.all.2020.url <- "https://drive.google.com/drive/u/1/folders/1nNKoIdgP-fdCNRGUbGca_zVujF_16QEM"
+# exo.all.2020.prt1 <- drive_get(as_id(exo.all.2020.url))
+# exo.all.2020.glist <- drive_ls(exo.all.2020.prt1, pattern = "EXO.ALL.csv")
+# walk(exo.all.2020.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# exo.all.2020 <- read.csv("EXO.ALL.csv",)
+
+
+
+moos.exo.2020 <- exo.2020 %>% filter(site.ID == "MOOS")
+
+moos.exo.2020 <- moos.exo.2020 %>% select(datetimeAK, Temp.C.int, ODO.mgL.mn.adj, ODO.Psat.mn.adj, ODO.Ploc.mn.adj, site.ID) %>% dplyr::rename(ODO.mgL = ODO.mgL.mn.adj, ODO.Psat = ODO.Psat.mn.adj, ODO.Ploc = ODO.Ploc.mn.adj, Temp.C = Temp.C.int)
+
+lapply(moos.exo.2020, summary)
+
+
+### 2021 ###
+
+
+moos.exo.2021 <- exo.2021 %>% filter(site.ID == "MOOS")
+
+moos.exo.2021 <- moos.exo.2021 %>% select(datetimeAK, Temp.C.int, ODO.mgL.mn.adj, ODO.Psat.mn.adj, ODO.Ploc.mn.adj, site.ID) %>% dplyr::rename(ODO.mgL = ODO.mgL.mn.adj, ODO.Psat = ODO.Psat.mn.adj, ODO.Ploc = ODO.Ploc.mn.adj, Temp.C = Temp.C.int)
+
+lapply(moos.exo.2021, summary)
+
+
+
+# 2022
+
+
+moos.exo.2022 <- exo.2022 %>% filter(site.ID == "MOOS")
+
+moos.exo.2022 <- moos.exo.2022 %>% select(datetimeAK, Temp.C.int, ODO.mgL.mn.adj, ODO.Psat.mn.adj, ODO.Ploc.mn.adj, site.ID) %>% dplyr::rename(ODO.mgL = ODO.mgL.mn.adj, ODO.Psat = ODO.Psat.mn.adj, ODO.Ploc = ODO.Ploc.mn.adj, Temp.C = Temp.C.int)
+
+lapply(moos.exo.2022, summary)
+
+
+
+
+#Put together
+MOOS_EXO_cl.2019.renamed <- MOOS_EXO_cl.2019.renamed %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+moos.exo.2020 <- moos.exo.2020 %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+moos.exo.2021 <- moos.exo.2021 %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+moos.exo.2022 <- moos.exo.2022 %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+All.years.moos.MESSY <- rbind(MOOS_EXO_cl.2019.renamed, moos.exo.2020, moos.exo.2021, moos.exo.2022)
+
+All.years.moos.MESSY <- All.years.moos.MESSY %>%
+  dplyr::rename(DO.obs = ODO.mgL)
+
+All.years.moos.MESSY <- All.years.moos.MESSY %>%
+  dplyr::rename(temp.water = Temp.C)
+
+
+
+# #keep in mind 2019 and 2020 is clean data and 2021 are not.
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/MoosODO.pdf")
+# 
+# testPlotMOOS <- ggplot(data = All.years.moos.MESSY,
+#                        mapping = aes(x = datetimeAK, y = as.numeric(ODO.Psat))) + geom_point() + labs(x = "Date", y = "Dissolved Oxygen (%Sat)")
+# testPlotMOOS
+# dev.next()
+
+
+
+
+
+
+
+####### FRCH #######
+
+#### 2019 ####
+
+#Read cleaned CSVs from DoD 2019 Script 
+
+FRCH_EXO_cl.2019.renamed <- SondeData2019.renamed %>% filter(site.ID == "FRCH")
+
+
+#in this case, we are finding the DO mg/L per percent saturation, and multiplying it by our percent sat from telem. This percent sat accounts for pressure as well I believe. 
+
+
+FRCH_EXO_cl.2019.renamed$ODO.mgL.Calc <-as.numeric(FRCH_EXO_cl.2019.renamed$ODO.Psat) * 
+  #DO mg/L per sat
+  (0.01* exp(
+    #p1
+    (-862194900000*(1/(FRCH_EXO_cl.2019.renamed$Temp.C+273.15))^4+12438000000*(1/(FRCH_EXO_cl.2019.renamed$Temp.C+273.15))^3-66423080*(1/(FRCH_EXO_cl.2019.renamed$Temp.C+273.15))^2+157570.1*(1/(FRCH_EXO_cl.2019.renamed$Temp.C+273.15))-139.344)
+    #salinity
+    -0* 
+      #p2
+      (2140.7*(1/(FRCH_EXO_cl.2019.renamed$Temp.C+273.15))^2-10.754*(1/(FRCH_EXO_cl.2019.renamed$Temp.C+273.15))+0.017674 )))
+
+
+FRCH_EXO_cl.2019.renamed <- FRCH_EXO_cl.2019.renamed %>% 
+  mutate(ODO.mgL = coalesce(ODO.mgL,ODO.mgL.Calc))
+
+
+FRCH_EXO_cl.2019.renamed <- FRCH_EXO_cl.2019.renamed %>% 
+  mutate(ODO.mgL = coalesce(ODO.mgL,ODO.mgL.Calc))
+
+
+#### 2020 ####
+
+
+#### 2020 ####
+# exo.all.2020.url <- "https://drive.google.com/drive/u/1/folders/1nNKoIdgP-fdCNRGUbGca_zVujF_16QEM"
+# exo.all.2020.prt1 <- drive_get(as_id(exo.all.2020.url))
+# exo.all.2020.glist <- drive_ls(exo.all.2020.prt1, pattern = "EXO.ALL.csv")
+# walk(exo.all.2020.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# exo.all.2020 <- read.csv("EXO.ALL.csv",)
+
+
+
+frch.exo.2020 <- exo.2020 %>% filter(site.ID == "FRCH")
+
+frch.exo.2020 <- frch.exo.2020 %>% select(datetimeAK, Temp.C.int, ODO.mgL.mn.adj, ODO.Psat.mn.adj, ODO.Ploc.mn.adj, site.ID) %>% dplyr::rename(ODO.mgL = ODO.mgL.mn.adj, ODO.Psat = ODO.Psat.mn.adj, ODO.Ploc = ODO.Ploc.mn.adj, Temp.C = Temp.C.int)
+
+lapply(frch.exo.2020, summary)
+
+
+### 2021 ###
+
+
+frch.exo.2021 <- exo.2021 %>% filter(site.ID == "FRCH")
+
+frch.exo.2021 <- frch.exo.2021 %>% select(datetimeAK, Temp.C.int, ODO.mgL.mn.adj, ODO.Psat.mn.adj, ODO.Ploc.mn.adj, site.ID) %>% dplyr::rename(ODO.mgL = ODO.mgL.mn.adj, ODO.Psat = ODO.Psat.mn.adj, ODO.Ploc = ODO.Ploc.mn.adj, Temp.C = Temp.C.int)
+
+lapply(frch.exo.2021, summary)
+
+
+
+# 2022
+
+
+frch.exo.2022 <- exo.2022 %>% filter(site.ID == "FRCH")
+
+frch.exo.2022 <- frch.exo.2022 %>% select(datetimeAK, Temp.C.int, ODO.mgL.mn.adj, ODO.Psat.mn.adj, ODO.Ploc.mn.adj, site.ID) %>% dplyr::rename(ODO.mgL = ODO.mgL.mn.adj, ODO.Psat = ODO.Psat.mn.adj, ODO.Ploc = ODO.Ploc.mn.adj, Temp.C = Temp.C.int)
+
+lapply(frch.exo.2022, summary)
+
+
+
+
+#Put together
+FRCH_EXO_cl.2019.renamed <- FRCH_EXO_cl.2019.renamed %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+frch.exo.2020 <- frch.exo.2020 %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+frch.exo.2021 <- frch.exo.2021 %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+frch.exo.2022 <- frch.exo.2022 %>%
+  select(datetimeAK, Temp.C, ODO.mgL, ODO.Psat, ODO.Ploc)
+
+All.years.frch.MESSY <- rbind(FRCH_EXO_cl.2019.renamed, frch.exo.2020, frch.exo.2021, frch.exo.2022)
+
+All.years.frch.MESSY <- All.years.frch.MESSY %>%
+  dplyr::rename(DO.obs = ODO.mgL)
+
+All.years.frch.MESSY <- All.years.frch.MESSY %>%
+  dplyr::rename(temp.water = Temp.C)
+
+
+
+# #keep in mind 2019 and 2020 is clean data and 2021 are not.
+# pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/MoosODO.pdf")
+# 
+# testPlotMOOS <- ggplot(data = All.years.moos.MESSY,
+#                        mapping = aes(x = datetimeAK, y = as.numeric(ODO.Psat))) + geom_point() + labs(x = "Date", y = "Dissolved Oxygen (%Sat)")
+# testPlotMOOS
+# dev.next()
+
+
+
+
+```
+
+
+
+```{r}
+##################### DISCHARGE DATA ####################
+#### Combine and stitch discharge ####
+
+#Packages I think I might perhaps maybe need...
+library(ggpubr)
+library(anytime)
+library(googlesheets4)
+library(ggpmisc)
+library(plyr)
+
+library(dplyr)
+library(lubridate)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(scales)
+
+library(zoo)
+library(xts)
+library(forecast)
+library(googledrive)
+library(streamMetabolizer)
+library(readr)
+library(here)
+
+#Discharge data cleaned and scripted by Jake in DoD Discharge Repo
+
+
+####### 2019 #######
+
+# Q2019.url <- "https://drive.google.com/drive/u/1/folders/1ww0WENY9u_iHbx5RvVuOp1po9RvtzC7j"
+# q.2019.prt1 <- drive_get(as_id(Q2019.url))
+# q.2019.glist <- drive_ls(q.2019.prt1, pattern = "Q_2019.csv")
+# walk(q.2019.glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# Q_2019 <- read.csv("Q_2019.csv",)
+
+
+Q_2019 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2019/Q_2019.csv")
+Q_2019$DateTime <-  force_tz(as.POSIXct(ymd_hms(Q_2019$DateTime)), tz = "America/Anchorage")
+#### Breaking up into sites ####
+POKE_Q_2019 <- Q_2019 %>% filter(Site == "POKE")
+VAUL_Q_2019 <- Q_2019 %>% filter(Site == "VAUL")
+STRT_Q_2019 <- Q_2019 %>% filter(Site == "STRT")
+MOOS_Q_2019 <- Q_2019 %>% filter(Site == "MOOS")
+FRCH_Q_2019 <- Q_2019 %>% filter(Site == "FRCH")
+
+
+
+
+#change poke discharge becuase of gaps
+# POKE_Q_2019 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2019/POKE/POKE.Q.csv")
+
+#Select needed columns 
+POKE.2019.Q <- POKE_Q_2019 %>%
+  select(DateTime, Q, Site)
+
+VAUL.2019.Q <- VAUL_Q_2019 %>%
+  select(DateTime, Q, Site)
+
+STRT.2019.Q <- STRT_Q_2019 %>%
+  select(DateTime, Q, Site)
+
+MOOS.2019.Q <- MOOS_Q_2019 %>%
+  select(DateTime, Q, Site)
+
+FRCH.2019.Q <- FRCH_Q_2019 %>%
+  select(DateTime, Q, Site)
+
+
+####### 2020 #######
+
+Q_2020 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2020/Q_2020.csv")
+Q_2020$DateTime <-  force_tz(as.POSIXct(ymd_hms(Q_2020$DateTime)), tz = "America/Anchorage")
+
+#### Breaking up into sites ####
+POKE_Q_2020 <- Q_2020 %>% filter(Site == "POKE")
+VAUL_Q_2020 <- Q_2020 %>% filter(Site == "VAUL")
+STRT_Q_2020 <- Q_2020 %>% filter(Site == "STRT")
+MOOS_Q_2020 <- Q_2020 %>% filter(Site == "MOOS")
+FRCH_Q_2020 <- Q_2020 %>% filter(Site == "FRCH")
+
+
+
+
+#change poke discharge becuase of gaps
+# POKE_Q_2020 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2020/POKE/POKE.Q.csv")
+
+#Select needed columns 
+POKE.2020.Q <- POKE_Q_2020%>% filter(DateTime >= "2020-01-01 00:00:00") %>% 
+  select(DateTime, Q, Site)
+
+VAUL.2020.Q <- VAUL_Q_2020%>% filter(DateTime >= "2020-01-01 00:00:00") %>% 
+  select(DateTime, Q, Site)
+
+STRT.2020.Q <- STRT_Q_2020 %>% filter(DateTime >= "2020-01-01 00:00:00") %>% 
+  select(DateTime, Q, Site) 
+
+MOOS.2020.Q <- MOOS_Q_2020%>% filter(DateTime >= "2020-01-01 00:00:00") %>% 
+  select(DateTime, Q, Site)
+
+FRCH.2020.Q <- FRCH_Q_2020%>% filter(DateTime >= "2020-01-01 00:00:00") %>% 
+  select(DateTime, Q, Site)
+
+
+#### 2021
+
+Q_2021 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2021/Q_2021.csv")
+Q_2021$DateTime <-  force_tz(as.POSIXct(ymd_hms(Q_2021$DateTime)), tz = "America/Anchorage")
+
+#### Breaking up into sites ####
+POKE_Q_2021 <- Q_2021 %>% filter(Site == "POKE")
+VAUL_Q_2021 <- Q_2021 %>% filter(Site == "VAUL")
+STRT_Q_2021 <- Q_2021 %>% filter(Site == "STRT")
+MOOS_Q_2021 <- Q_2021 %>% filter(Site == "MOOS")
+FRCH_Q_2021 <- Q_2021 %>% filter(Site == "FRCH")
+
+
+
+
+#change poke discharge becuase of gaps
+# POKE_Q_2021 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2021/POKE/POKE.Q.csv")
+
+#Select needed columns 
+POKE.2021.Q <- POKE_Q_2021 %>%
+  select(DateTime, Q, Site)
+
+VAUL.2021.Q <- VAUL_Q_2021 %>%
+  select(DateTime, Q, Site)
+
+STRT.2021.Q <- STRT_Q_2021 %>%
+  select(DateTime, Q, Site) %>% filter(DateTime <= "2021-09-30 14:30:00")
+
+MOOS.2021.Q <- MOOS_Q_2021 %>%
+  select(DateTime, Q, Site)
+
+FRCH.2021.Q <- FRCH_Q_2021 %>%
+  select(DateTime, Q, Site) %>% filter(DateTime <= "2021-09-27 07:55:00")
+
+
+
+
+
+#### 2022
+
+Q_2022 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2022/Predicted_Q_2022_gapfill.csv")
+
+Q_2022 <- Q_2022 %>% rename(DateTime = DateTimeAK)
+Q_2022$DateTime <-  force_tz(as.POSIXct(ymd_hms(Q_2022$DateTime)), tz = "America/Anchorage")
+
+#### Breaking up into sites ####
+POKE_Q_2022 <- Q_2022 %>% select(DateTime, POKE.Q.int) %>% rename(Q = POKE.Q.int)
+POKE_Q_2022$Site <- "POKE"
+
+MOOS_Q_2022 <- Q_2022 %>% select(DateTime, MOOS.Q.int) %>% rename(Q = MOOS.Q.int)
+MOOS_Q_2022$Site <- "MOOS"
+
+STRT_Q_2022 <- Q_2022 %>% select(DateTime, STRT.Q.int) %>% rename(Q = STRT.Q.int)
+STRT_Q_2022$Site <- "STRT"
+
+VAUL_Q_2022 <- Q_2022 %>% select(DateTime, VAUL) %>% rename(Q = VAUL)
+VAUL_Q_2022$Site <- "VAUL"
+
+
+FRCH_Q_2022 <- Q_2022 %>% select(DateTime, FRCH) %>% rename(Q = FRCH)
+FRCH_Q_2022$Site <- "FRCH"
+
+
+
+#Select needed columns 
+POKE.2022.Q <- POKE_Q_2022 %>%
+  select(DateTime, Q, Site)
+
+VAUL.2022.Q <- VAUL_Q_2022 %>%
+  select(DateTime, Q, Site)
+
+STRT.2022.Q <- STRT_Q_2022 %>%
+  select(DateTime, Q, Site)
+
+MOOS.2022.Q <- MOOS_Q_2022 %>%
+  select(DateTime, Q, Site)
+
+FRCH.2022.Q <- FRCH_Q_2022 %>%
+  select(DateTime, Q, Site)
+
+
+
+
+########## Combine ##########
+getwd()
+
+#Poke
+POKE.ALL.Q <- rbind(POKE.2019.Q, POKE.2020.Q, POKE.2021.Q, POKE.2022.Q)
+
+POKE.ALL.Q$DateTime <-  force_tz(as.POSIXct(ymd_hms(POKE.ALL.Q$DateTime)), tz = "America/Anchorage")
+
+
+write.csv(POKE.ALL.Q, here("Predicted_Discharge", "POKE.ALL.Q.csv"), row.names = FALSE)
+# 
+# tiff("Q_Plots/PokeQ_all_years.tiff", compression = "lzw", width = 1500, height =1000)
+# plot(POKE.ALL.Q$DateTime, POKE.ALL.Q$Q, main = "Poke Discharge", xlab = "Date", ylab = "Predicted Discahrge (m^3/s)")
+# dev.off()
+
+
+#Vaul
+VAUL.ALL.Q <- rbind(VAUL.2019.Q, VAUL.2020.Q, VAUL.2021.Q, VAUL.2022.Q)
+
+VAUL.ALL.Q$DateTime <-  force_tz(as.POSIXct(ymd_hms(VAUL.ALL.Q$DateTime)), tz = "America/Anchorage")
+
+
+write.csv(VAUL.ALL.Q, here("Predicted_Discharge", "VAUL.ALL.Q.csv"), row.names = FALSE)
+# 
+# tiff("Q_Plots/VaulQ_all_years.tiff", compression = "lzw", width = 1500, height =1000)
+# plot(VAUL.ALL.Q$DateTime, VAUL.ALL.Q$Q, main = "Vaul Discharge", xlab = "Date", ylab = "Predicted Discahrge (m^3/s)")
+# dev.off()
+
+
+#Strt
+STRT.ALL.Q <- rbind(STRT.2019.Q, STRT.2020.Q, STRT.2021.Q, STRT.2022.Q)
+
+STRT.ALL.Q$DateTime <-  force_tz(as.POSIXct(ymd_hms(STRT.ALL.Q$DateTime)), tz = "America/Anchorage")
+
+
+write.csv(STRT.ALL.Q, here("Predicted_Discharge", "STRT.ALL.Q.csv"), row.names = FALSE)
+# 
+# tiff("Q_Plots/StrtQ_all_years.tiff", compression = "lzw", width = 1500, height =1000)
+# plot(STRT.ALL.Q$DateTime, STRT.ALL.Q$Q, main = "Strt Discharge", xlab = "Date", ylab = "Predicted Discahrge (m^3/s)")
+# dev.off()
+
+#Moos
+MOOS.ALL.Q <- rbind(MOOS.2019.Q, MOOS.2020.Q, MOOS.2021.Q, MOOS.2022.Q)
+
+MOOS.ALL.Q$DateTime <-  force_tz(as.POSIXct(ymd_hms(MOOS.ALL.Q$DateTime)), tz = "America/Anchorage")
+
+
+write.csv(MOOS.ALL.Q, here("Predicted_Discharge", "MOOS.ALL.Q.csv"), row.names = FALSE)
+# 
+# tiff("Q_Plots/MoosQ_all_years.tiff", compression = "lzw", width = 1500, height =1000)
+# plot(MOOS.ALL.Q$DateTime, MOOS.ALL.Q$Q, main = "Moos Discharge", xlab = "Date", ylab = "Predicted Discahrge (m^3/s)")
+# dev.off()
+
+#Frch
+FRCH.ALL.Q <- rbind(FRCH.2019.Q, FRCH.2020.Q, FRCH.2021.Q, FRCH.2022.Q)
+
+FRCH.ALL.Q$DateTime <-  force_tz(as.POSIXct(ymd_hms(FRCH.ALL.Q$DateTime)), tz = "America/Anchorage")
+
+
+write.csv(FRCH.ALL.Q, here("Predicted_Discharge", "FRCH.ALL.Q.csv"), row.names = FALSE)
+
+
+
+
+
+```
+
+
+```{r}
+
+# ##################### AIR PRESSURE #######################
+# ### Jacob Adams
+# ### Full DoD Air Pressure Record Script
+# ### 7/20/2022
+# 
+# #Packages I think I might perhaps maybe need...
+# library(ggpubr)
+# library(anytime)
+# library(googlesheets4)
+# library(ggpmisc)
+# library(plyr)
+# 
+# library(dplyr)
+# library(lubridate)
+# library(tidyverse)
+# library(lubridate)
+# library(ggplot2)
+# library(scales)
+# 
+# library(zoo)
+# library(xts)
+# library(forecast)
+# library(googledrive)
+# library(streamMetabolizer)
+# library(readr)
+# 
+# ##### 2019 #####
+# 
+# #STRT 2019
+# strt.2019.air.P <- "https://drive.google.com/drive/u/1/folders/12-av--A9_rqcyvwOl9EiB0MSZdmWnPcj"
+# strt_19.ap <- drive_get(as_id(strt.2019.air.P))
+# strt_19.ap_glist <- drive_ls(strt_19.ap, pattern = "191016_20005934_STRT_ATM_0.csv")
+# walk(strt_19.ap_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# strt.ap.2019.Data <- read.csv("191016_20005934_STRT_ATM_0.csv",
+#                               skip = 1, header = TRUE)
+# strt.ap.2019.Data$DateTime <- strptime(strt.ap.2019.Data$Date.Time..GMT.08.00, "%m/%d/%y %I:%M:%S %p")
+# 
+# strt.ap.2019.Data$air.pressure.mbar <- strt.ap.2019.Data$Abs.Pres..kPa..LGR.S.N..20005934..SEN.S.N..20005934..LBL..P. * 10
+# 
+# 
+# 
+# 
+# 
+# #MOOS
+# moos.2019.air.P.url <- "https://drive.google.com/drive/u/1/folders/12-av--A9_rqcyvwOl9EiB0MSZdmWnPcj"
+# moos_19.ap <- drive_get(as_id(moos.2019.air.P.url))
+# moos_19.ap_glist <- drive_ls(moos_19.ap, pattern = "191022_10710340_MOOS_ATM.csv")
+# walk(moos_19.ap_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# moos.ap.2019.Data <- read.csv("191022_10710340_MOOS_ATM.csv",
+#                               skip = 1, header = TRUE)
+# moos.ap.2019.Data$DateTime <- as.POSIXct(strptime(moos.ap.2019.Data$Date.Time..GMT.08.00, "%m/%d/%y %I:%M:%S %p"))
+# 
+# moos.ap.2019.Data$air.pressure.mbar <- moos.ap.2019.Data$Abs.Pres..kPa..LGR.S.N..10710340..SEN.S.N..10710340..LBL..P. * 10
+# 
+# 
+# #POKE
+# poke.2019.air.P.url <- "https://drive.google.com/drive/u/1/folders/12-av--A9_rqcyvwOl9EiB0MSZdmWnPcj"
+# poke_19.ap <- drive_get(as_id(poke.2019.air.P.url))
+# poke_19.ap_glist <- drive_ls(poke_19.ap, pattern = "191017_20005936_POKE_ATM.csv")
+# walk(poke_19.ap_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# poke.ap.2019.Data <- read.csv("191017_20005936_POKE_ATM.csv",
+#                               skip = 1, header = TRUE)
+# poke.ap.2019.Data$DateTime <- as.POSIXct(strptime(poke.ap.2019.Data$Date.Time..GMT.08.00, "%m/%d/%y %I:%M:%S %p"))
+# 
+# poke.ap.2019.Data$DateTime <- lubridate::round_date(poke.ap.2019.Data$DateTime, "15 minutes") 
+# 
+# 
+# poke.ap.2019.Data$air.pressure.mbar <- poke.ap.2019.Data$Abs.Pres..kPa..LGR.S.N..20005936..SEN.S.N..20005936..LBL..P. * 10
+# 
+# 
+# 
+# #FRCH
+# frch.2019.air.P.url <- "https://drive.google.com/drive/u/1/folders/12-av--A9_rqcyvwOl9EiB0MSZdmWnPcj"
+# frch_19.ap <- drive_get(as_id(frch.2019.air.P.url))
+# frch_19.ap_glist <- drive_ls(frch_19.ap, pattern = "191010_10710335_FRCH_ATM.csv")
+# walk(frch_19.ap_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# frch.ap.2019.Data <- read.csv("191010_10710335_FRCH_ATM.csv",
+#                               skip = 1, header = TRUE)
+# frch.ap.2019.Data$DateTime <- as.POSIXct(strptime(frch.ap.2019.Data$Date.Time..GMT.08.00, "%m/%d/%y %I:%M:%S %p"))
+# 
+# frch.ap.2019.Data$DateTime <- lubridate::round_date(frch.ap.2019.Data$DateTime, "15 minutes")
+# 
+# frch.ap.2019.Data$air.pressure.mbar <- frch.ap.2019.Data$Abs.Pres..kPa..LGR.S.N..10710335..SEN.S.N..10710335..LBL..P. * 10
+# 
+# 
+# 
+# #VAUL
+# vaul.2019.air.P.url <- "https://drive.google.com/drive/u/1/folders/12-av--A9_rqcyvwOl9EiB0MSZdmWnPcj"
+# vaul_19.ap <- drive_get(as_id(vaul.2019.air.P.url))
+# vaul_19.ap_glist <- drive_ls(vaul_19.ap, pattern = "191017_20574425_VAUL_ATM.csv")
+# walk(vaul_19.ap_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# vaul.ap.2019.Data <- read.csv("191017_20574425_VAUL_ATM.csv",
+#                               skip = 1, header = TRUE)
+# vaul.ap.2019.Data$DateTime <- as.POSIXct(strptime(vaul.ap.2019.Data$Date.Time..GMT.08.00, "%m/%d/%y %I:%M:%S %p"))
+# 
+# vaul.ap.2019.Data$DateTime <- lubridate::round_date(vaul.ap.2019.Data$DateTime, "15 minutes")
+# 
+# vaul.ap.2019.Data$air.pressure.mbar <- vaul.ap.2019.Data$Abs.Pres..kPa..LGR.S.N..20574425..SEN.S.N..20574425. * 10
+# 
+# 
+# ###### 2020 #####
+# 
+# #MOOS 2020
+# moos.2020.air.P <- "https://drive.google.com/drive/u/1/folders/10iEEQn5LhX3sxD2rcwozzAjuxmSuWKuh"
+# moos_20.ap <- drive_get(as_id(moos.2020.air.P))
+# moos_20.ap_glist <- drive_ls(moos_20.ap, pattern = "20574421_MOOS_atmo.csv")
+# walk(moos_20.ap_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# moos.ap.2020.Data <- read.csv("20574421_MOOS_atmo.csv",
+#                               skip = 1, header = TRUE)
+# moos.ap.2020.Data$DateTime <- as.POSIXct(strptime(moos.ap.2020.Data$Date.Time..GMT.08.00, "%m/%d/%y %I:%M:%S %p"))
+# 
+# moos.ap.2020.Data$air.pressure.mbar <- moos.ap.2020.Data$Abs.Pres..kPa..LGR.S.N..20574421..SEN.S.N..20574421. * 10
+# 
+# #STRT 2020
+# ####### 2020 data looks BAD, dates all wrong and pressure does not line up with other sites. ######
+# 
+# # strt.2020.air.P <- "https://drive.google.com/drive/u/1/folders/1TWj16hvYu78dTk_aiSKyu2f0yl0KlibI"
+# # strt_20.ap <- drive_get(as_id(strt.2020.air.P))
+# # strt_20.ap_glist <- drive_ls(strt_20.ap, pattern = "20005934_STRT_ATMO.csv")
+# # walk(strt_20.ap_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# # strt.ap.2020.Data <- read.csv("20005934_STRT_ATMO.csv",
+# #                               skip = 1, header = TRUE)
+# # strt.ap.2020.Data$DateTime <- as.POSIXct(strptime(strt.ap.2020.Data$Date.Time..GMT.08.00, "%m/%d/%y %I:%M:%S %p"))
+# # 
+# # #already in Mbar
+# # strt.ap.2020.Data$air.pressure.mbar <- strt.ap.2020.Data$Abs.Pres..mbar..LGR.S.N..20005934..SEN.S.N..20005934..LBL..P. * 1
+# 
+# 
+# 
+# 
+# 
+# 
+# #######
+# 
+# 
+# #STRT 2020
+# #bad atmo in 2021... Go off MOOS and adjust for elevation
+# 
+# #strt elevation: 250 meters, 820 feet
+# #Moos elevation: 175 meters, 574 feet
+# 
+# #calc pressure at sea level
+# 
+# 
+# 
+# #air pressure at sea level in mmHg
+# #formula from https://keisan.casio.com/exec/system/1224575267
+# 
+# moos.ap.2020.Data$mmHg.sea.level <- 10 * moos.ap.2020.Data$Abs.Pres..kPa..LGR.S.N..20574421..SEN.S.N..20574421.*((1-(0.0065*175)/(moos.ap.2020.Data$Temp..Â.C..LGR.S.N..20574421..SEN.S.N..20574421. + (0.0065*175) +273.15))^(-5.257)) / 1.33322387415
+# 
+# #air pressure at moos elevation
+# 
+# moos.ap.2020.Data$strt.air.pressure.mbar <- (moos.ap.2020.Data$mmHg.sea.level -(2.5* 820/100))* 1.33322 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# #FRCH 2020
+# frch.2020.air.P <- "https://drive.google.com/drive/u/1/folders/1-xZLou63OJTvw23xhWPO26x8VcZuv-xK"
+# frch_20.ap <- drive_get(as_id(frch.2020.air.P))
+# frch_20.ap_glist <- drive_ls(frch_20.ap, pattern = "20005933_FRCH_atmo.csv")
+# walk(frch_20.ap_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# frch.ap.2020.Data <- read.csv("20005933_FRCH_atmo.csv",
+#                               skip = 1, header = TRUE)
+# frch.ap.2020.Data$DateTime <- as.POSIXct(strptime(frch.ap.2020.Data$Date.Time..GMT.08.00, "%m/%d/%y %I:%M:%S %p"))
+# 
+# frch.ap.2020.Data$air.pressure.mbar <- frch.ap.2020.Data$Abs.Pres..kPa..LGR.S.N..20005933..SEN.S.N..20005933..LBL..P. * 10
+# 
+# 
+# 
+# #VAUL 2020
+# vaul.2020.air.P <- "https://drive.google.com/drive/u/1/folders/1nZzsTzSxZFCWF2GYsH6_HnRdi2iiLofK"
+# vaul_20.ap <- drive_get(as_id(vaul.2020.air.P))
+# vaul_20.ap_glist <- drive_ls(vaul_20.ap, pattern = "20574425_VAUL_atmo.csv")
+# walk(vaul_20.ap_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# vaul.ap.2020.Data <- read.csv("20574425_VAUL_atmo.csv",
+#                               skip = 1, header = TRUE)
+# vaul.ap.2020.Data$DateTime <- as.POSIXct(strptime(vaul.ap.2020.Data$Date.Time..GMT.08.00, "%m/%d/%y %I:%M:%S %p"))
+# 
+# vaul.ap.2020.Data$air.pressure.mbar <- vaul.ap.2020.Data$Abs.Pres..kPa..LGR.S.N..20574425..SEN.S.N..20574425. * 10
+# 
+# 
+# 
+# #POKE 2020
+# poke.2020.air.P <- "https://drive.google.com/drive/u/1/folders/1CrINE0O9s7ILAUZkc9jguxHAvvTOD2NR"
+# poke_20.ap <- drive_get(as_id(poke.2020.air.P))
+# poke_20.ap_glist <- drive_ls(poke_20.ap, pattern = "20005936_POKE_atmo.csv")
+# walk(poke_20.ap_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# poke.ap.2020.Data <- read.csv("20005936_POKE_atmo.csv",
+#                               skip = 1, header = TRUE)
+# poke.ap.2020.Data$DateTime <- as.POSIXct(strptime(poke.ap.2020.Data$Date.Time..GMT.08.00, "%m/%d/%y %I:%M:%S %p"))
+# 
+# poke.ap.2020.Data$air.pressure.mbar <- poke.ap.2020.Data$Abs.Pres..kPa..LGR.S.N..20005936..SEN.S.N..20005936..LBL..P. * 10
+# 
+# 
+# ###### 2021 #####
+# 
+# #STRT 2021
+# strt.2021.air.P <- "https://drive.google.com/drive/u/1/folders/1-om0nU42U8fNmeWtBrhM8WQTbGqBW8RN"
+# strt_21.ap <- drive_get(as_id(strt.2021.air.P))
+# strt_21.ap_glist <- drive_ls(strt_21.ap, pattern = "20005934_STRT_ATMO_210930.csv")
+# walk(strt_21.ap_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# strt.ap.2021.Data <- read.csv("20005934_STRT_ATMO_210930.csv",
+#                               skip = 1, header = TRUE)
+# strt.ap.2021.Data$DateTime <- as.POSIXct(strptime(strt.ap.2021.Data$Date.Time..GMT.08.00, "%m/%d/%y %I:%M:%S %p"))
+# 
+# #already in Mbar
+# strt.ap.2021.Data$air.pressure.mbar <- strt.ap.2021.Data$Abs.Pres..mbar..LGR.S.N..20005934..SEN.S.N..20005934..LBL..P. * 1
+# 
+# 
+# #MOOS 2021
+# #No atmo in 2021... Go off strt and adjust for elevation
+# 
+# #strt elevation: 250 meters
+# #Moos elevation: 175 meters, 574 feet
+# 
+# #calc pressure at sea level
+# 
+# #air pressure at sea level in mmHg
+# 
+# strt.ap.2021.Data$mmHg.sea.level <- strt.ap.2021.Data$Abs.Pres..mbar..LGR.S.N..20005934..SEN.S.N..20005934..LBL..P.*((1-(0.0065*250)/(strt.ap.2021.Data$Temp..Â.C..LGR.S.N..20005934..SEN.S.N..20005934..LBL..T. + (0.0065*250) +273.15))^(-5.257)) / 1.33322387415
+# 
+# #air pressure at moos elevation
+# 
+# strt.ap.2021.Data$moos.air.pressure.mbar <- (strt.ap.2021.Data$mmHg.sea.level -(2.5* 574/100))* 1.33322
+# 
+# 
+# 
+# #FRCH 2021
+# #File online only has one point... might not exist
+# #Lets calculate from STRT as well
+# 
+# #air pressure at f erchlevation
+# 
+# strt.ap.2021.Data$frch.air.pressure.mbar <- (strt.ap.2021.Data$mmHg.sea.level -(2.5* 601/100)) * 1.33322
+# 
+# 
+# 
+# #VAUL 2021
+# vaul.2021.air.P <- "https://drive.google.com/drive/u/1/folders/1F80dynCpIo87e5EalwjNprze5UnLiomX"
+# vaul_21.ap <- drive_get(as_id(vaul.2021.air.P))
+# vaul_21.ap_glist <- drive_ls(vaul_21.ap, pattern = "20574425_VAUL_atmo.csv")
+# walk(vaul_21.ap_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# vaul.ap.2021.Data <- read.csv("20574425_VAUL_atmo.csv",
+#                               skip = 1, header = TRUE)
+# vaul.ap.2021.Data$DateTime <- as.POSIXct(strptime(vaul.ap.2021.Data$Date.Time..GMT.08.00, "%m/%d/%y %I:%M:%S %p"))
+# 
+# vaul.ap.2021.Data$air.pressure.mbar <- vaul.ap.2021.Data$Abs.Pres..kPa..LGR.S.N..20574425..SEN.S.N..20574425. * 10
+# 
+# 
+# 
+# #POKE 2021
+# #going off of caribou pressure 
+# 
+# poke.2021.air.P <- "https://drive.google.com/drive/u/1/folders/1rOGiMGGMYzOoDcNQoJATxHARqR8Y1F1m"
+# poke_21.ap <- drive_get(as_id(poke.2021.air.P))
+# poke_21.ap_glist <- drive_ls(poke_21.ap, pattern = "caribou.2021.atmo.csv")
+# walk(poke_21.ap_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# poke.ap.2021.Data <- read.csv("caribou.2021.atmo.csv",
+#                               skip = 1, header = TRUE)
+# poke.ap.2021.Data$DateTime <- as.POSIXct(poke.ap.2021.Data$X2021.06.01.00.01.00)
+# 
+# poke.ap.2021.Data$air.pressure.mbar <- poke.ap.2021.Data$X99.90622* 10
+# 
+# 
+# #Stitch them together
+# 
+# # Poke:
+# poke.ap.2019.Data.2 <- na.omit(poke.ap.2019.Data) %>%
+#   select(DateTime)
+# 
+# poke.ap.2020.Data.2 <- na.omit(poke.ap.2020.Data) %>%
+#   select(DateTime)
+# 
+# poke.ap.2021.Data.2 <- na.omit(poke.ap.2021.Data) %>%
+#   select(DateTime)
+# 
+# poke.ap.2021.Data.2$DateTime <- lubridate::round_date(poke.ap.2021.Data.2$DateTime, "15 minutes")
+# poke.ap.2021.Data.2 <- aggregate( air.pressure.mbar ~ DateTime, poke.ap.2021.Data.2, mean)
+# 
+# poke.ap.data <- rbind(poke.ap.2019.Data.2,poke.ap.2020.Data.2, poke.ap.2021.Data.2)
+# 
+# poke.ap.data$air.pressure.mbar <- as.numeric(poke.ap.data$air.pressure.mbar)
+# 
+# 
+# # Vaul: 
+# 
+# vaul.ap.2019.Data.2 <- na.omit(vaul.ap.2019.Data) %>%
+#   select(DateTime)
+# 
+# vaul.ap.2020.Data.2 <- na.omit(vaul.ap.2020.Data) %>%
+#   select(DateTime)
+# 
+# vaul.ap.2021.Data.2 <- na.omit(vaul.ap.2021.Data) %>%
+#   select(DateTime)
+# 
+# vaul.ap.data <- rbind(vaul.ap.2019.Data.2, vaul.ap.2020.Data.2, vaul.ap.2021.Data.2)
+# 
+# vaul.ap.data$air.pressure.mbar <- as.numeric(vaul.ap.data$air.pressure.mbar)
+# 
+# plot(vaul.ap.data$DateTime, vaul.ap.data$air.pressure.mbar)
+# 
+# 
+# # Moos:
+# 
+# moos.ap.2019.Data.2 <- na.omit(moos.ap.2019.Data) %>%
+#   select(DateTime)
+# 
+# moos.ap.2020.Data.2 <- na.omit(moos.ap.2020.Data) %>%
+#   select(DateTime)
+# 
+# moos.ap.2021.Data.2 <- na.omit(strt.ap.2021.Data) %>%
+#   select(DateTime, moos.air.pressure.mbar) 
+# 
+# moos.ap.2021.Data.2 <- moos.ap.2021.Data.2 %>% dplyr::rename(air.pressure.mbar = moos.air.pressure.mbar)
+# 
+# 
+# moos.ap.data <- rbind(moos.ap.2019.Data.2,moos.ap.2020.Data.2, moos.ap.2021.Data.2)
+# 
+# moos.ap.data$air.pressure.mbar <- as.numeric(moos.ap.data$air.pressure.mbar)
+# 
+# plot(moos.ap.data$DateTime, moos.ap.data$air.pressure.mbar)
+# 
+# 
+# # Frch:
+# 
+# frch.ap.2019.Data.2 <- na.omit(frch.ap.2019.Data) %>%
+#   select(DateTime)
+# 
+# frch.ap.2020.Data.2 <- na.omit(frch.ap.2020.Data) %>%
+#   select(DateTime)
+# 
+# frch.ap.2021.Data.2 <- na.omit(strt.ap.2021.Data) %>%
+#   select(DateTime, frch.air.pressure.mbar) 
+# 
+# frch.ap.2021.Data.2 <- frch.ap.2021.Data.2 %>% dplyr::rename(air.pressure.mbar = frch.air.pressure.mbar)
+# 
+# 
+# frch.ap.data <- rbind(frch.ap.2019.Data.2,frch.ap.2020.Data.2, frch.ap.2021.Data.2)
+# 
+# frch.ap.data$air.pressure.mbar <- as.numeric(frch.ap.data$air.pressure.mbar)
+# 
+# plot(frch.ap.data$DateTime, frch.ap.data$air.pressure.mbar)
+# 
+# 
+# 
+# # Strt:
+# # 2020 data looks BAD, dates all wrong and pressure does not line up with other sites. use pressure convereted from MOOS
+# 
+# strt.ap.2019.Data.2 <- na.omit(strt.ap.2019.Data) %>%
+#   select(DateTime)
+# 
+# 
+# strt.ap.2020.Data.2 <- na.omit(moos.ap.2020.Data) %>%
+#   select(DateTime, strt.air.pressure.mbar)
+# 
+# strt.ap.2021.Data.2 <- na.omit(strt.ap.2021.Data) %>%
+#   select(DateTime) 
+# 
+# strt.ap.2020.Data.2 <- strt.ap.2020.Data.2 %>% dplyr::rename(air.pressure.mbar = strt.air.pressure.mbar)
+# 
+# 
+# 
+# strt.ap.data <- rbind(strt.ap.2019.Data.2,strt.ap.2020.Data.2, strt.ap.2021.Data.2)
+# 
+# strt.ap.data$datetimeAK <- as.POSIXct(strt.ap.data$DateTime)
+# 
+# strt.ap.data$air.pressure.mbar <- as.numeric(strt.ap.data$air.pressure.mbar)
+# 
+# plot(strt.ap.data$DateTime, strt.ap.data$air.pressure.mbar)
+# 
+# 
+# 
+# # 2022
+# 
+# 
+# # NOT ADDED YET
+# 
+# # Not Currently Needed.
+# 
+# 
+# 
+# 
+# 
+```
+
+
+```{r}
+
+#################### LIGHT (Oddesey Logger) ###############################
+
+##### Stitch Light Data #####
+#Packages I think I might perhaps maybe need...
+library(ggpubr)
+library(anytime)
+library(googlesheets4)
+library(ggpmisc)
+library(plyr)
+
+library(dplyr)
+library(lubridate)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(scales)
+
+library(zoo)
+library(xts)
+library(forecast)
+library(googledrive)
+library(streamMetabolizer)
+library(readr)
+
+
+#### POKE 2019 ####
+PAR.2019.url <- "https://drive.google.com/drive/u/1/folders/11kWuwCF6pTXYolwYnxcsX6OcYyQeF35z"
+PAR_19.prt1 <- drive_get(as_id(PAR.2019.url))
+poke_par_glist <- drive_ls(PAR_19.prt1, pattern = "191017_11619_POKE.CSV")
+walk(poke_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+poke.par.2019.Data <- read.csv("191017_11619_POKE.CSV",
+                               skip = 8, header = FALSE)
+poke.par.2019.Data <- poke.par.2019.Data %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+#Fix Date Time
+poke.par.2019.Data$DateTime <- paste(poke.par.2019.Data$Date, poke.par.2019.Data$Time, sep="")
+
+poke.par.2019.Data$DateTime <-  dmy_hms(poke.par.2019.Data$DateTime)
+poke.par.2019.Data$DateTime <- force_tz(poke.par.2019.Data$DateTime, "America/Anchorage")
+
+#Calibrate logger 11619 to LICOR
+poke.par.2019.Data$CalibratedValue <- poke.par.2019.Data$CalibratedValue * 0.035
+
+
+#### VAUL 2019 ####
+PAR.2019.url <- "https://drive.google.com/drive/u/1/folders/11kWuwCF6pTXYolwYnxcsX6OcYyQeF35z"
+PAR_19.prt1 <- drive_get(as_id(PAR.2019.url))
+vaul_par_glist <- drive_ls(PAR_19.prt1, pattern = "191017_11616_VAUL.CSV")
+walk(vaul_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+vaul.par.2019.Data <- read.csv("191017_11616_VAUL.CSV",
+                               skip = 8, header = FALSE)
+vaul.par.2019.Data <- vaul.par.2019.Data %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+#Fix Date Time
+vaul.par.2019.Data$DateTime <- paste(vaul.par.2019.Data$Date, vaul.par.2019.Data$Time, sep="")
+
+vaul.par.2019.Data$DateTime <-  dmy_hms(vaul.par.2019.Data$DateTime)
+vaul.par.2019.Data$DateTime <- force_tz(vaul.par.2019.Data$DateTime, "America/Anchorage")
+
+#Calibrate logger 11616 to LICOR
+vaul.par.2019.Data$CalibratedValue <- vaul.par.2019.Data$CalibratedValue * 0.032
+
+
+
+#### MOOS 2019 ####
+PAR.2019.url <- "https://drive.google.com/drive/u/1/folders/11kWuwCF6pTXYolwYnxcsX6OcYyQeF35z"
+PAR_19.prt1 <- drive_get(as_id(PAR.2019.url))
+moos_par_glist <- drive_ls(PAR_19.prt1, pattern = "191022_11617_MOOS.CSV")
+walk(moos_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+moos.par.2019.Data <- read.csv("191022_11617_MOOS.CSV",
+                               skip = 8, header = FALSE)
+moos.par.2019.Data <- moos.par.2019.Data %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+#Fix Date Time
+moos.par.2019.Data$DateTime <- paste(moos.par.2019.Data$Date, moos.par.2019.Data$Time, sep="")
+
+moos.par.2019.Data$DateTime <-  dmy_hms(moos.par.2019.Data$DateTime)
+moos.par.2019.Data$DateTime <- force_tz(moos.par.2019.Data$DateTime, "America/Anchorage")
+
+#Calibrate logger 11617 to LICOR
+moos.par.2019.Data$CalibratedValue <- moos.par.2019.Data$CalibratedValue * 0.037 
+
+
+
+#### STRT 2019 ####
+PAR.2019.url <- "https://drive.google.com/drive/u/1/folders/11kWuwCF6pTXYolwYnxcsX6OcYyQeF35z"
+PAR_19.prt1 <- drive_get(as_id(PAR.2019.url))
+strt_par_glist <- drive_ls(PAR_19.prt1, pattern = "191016_11620_PAR_STRT.CSV")
+walk(strt_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+strt.par.2019.Data <- read.csv("191016_11620_PAR_STRT.CSV",
+                               skip = 8, header = FALSE)
+strt.par.2019.Data <- strt.par.2019.Data %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+#Fix Date Time
+strt.par.2019.Data$DateTime <- paste(strt.par.2019.Data$Date, strt.par.2019.Data$Time, sep="")
+
+strt.par.2019.Data$DateTime <-  dmy_hms(strt.par.2019.Data$DateTime)
+strt.par.2019.Data$DateTime <- force_tz(strt.par.2019.Data$DateTime, "America/Anchorage")
+
+#Calibrate logger 11620 to LICOR
+strt.par.2019.Data$CalibratedValue <- strt.par.2019.Data$CalibratedValue * 0.036
+
+
+#early data
+strt_par_glist2 <- drive_ls(PAR_19.prt1, pattern = "190829_11620_PAR_STRT.CSV")
+walk(strt_par_glist2$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+strt.par.2019.Data2 <- read.csv("190829_11620_PAR_STRT.CSV",
+                                skip = 8, header = FALSE)
+strt.par.2019.Data2 <- strt.par.2019.Data2 %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+#Fix Date Time
+strt.par.2019.Data2$DateTime <- paste(strt.par.2019.Data2$Date, strt.par.2019.Data2$Time, sep="")
+
+strt.par.2019.Data2$DateTime <-  dmy_hms(strt.par.2019.Data2$DateTime)
+strt.par.2019.Data2$DateTime <- force_tz(strt.par.2019.Data2$DateTime, "America/Anchorage")
+
+#Calibrate logger 11620 to LICOR
+strt.par.2019.Data2$CalibratedValue <- strt.par.2019.Data2$CalibratedValue * 0.036
+
+
+
+#other data / EXTRA
+strt_par_glist3 <- drive_ls(PAR_19.prt1, pattern = "190829_11618_PAR_STRT_EXTRA.CSV")
+walk(strt_par_glist3$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+strt.par.2019.Data3 <- read.csv("190829_11618_PAR_STRT_EXTRA.CSV",
+                                skip = 8, header = FALSE)
+strt.par.2019.Data3 <- strt.par.2019.Data3 %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+#Fix Date Time
+strt.par.2019.Data3$DateTime <- paste(strt.par.2019.Data3$Date, strt.par.2019.Data3$Time, sep="")
+
+strt.par.2019.Data3$DateTime <-  dmy_hms(strt.par.2019.Data3$DateTime)
+strt.par.2019.Data3$DateTime <- force_tz(strt.par.2019.Data3$DateTime, "America/Anchorage")
+
+#Calibrate logger 11620 to LICOR
+strt.par.2019.Data3$CalibratedValue <- strt.par.2019.Data3$CalibratedValue * 0.032
+
+
+strt.par.2019.Data2 <- strt.par.2019.Data2 %>% filter(DateTime < "2019-08-01 00:00:00")
+
+strt.par.2019.Data3 <- strt.par.2019.Data3 %>% filter(DateTime >= "2019-08-01 00:00:00" & DateTime <= "2019-09-01 00:00:00")
+
+
+
+strt.par.2019.Data <- rbind(strt.par.2019.Data2, strt.par.2019.Data3, strt.par.2019.Data)
+
+
+
+#### FRCH 2019 ####
+PAR.2019.url <- "https://drive.google.com/drive/u/1/folders/11kWuwCF6pTXYolwYnxcsX6OcYyQeF35z"
+PAR_19.prt1 <- drive_get(as_id(PAR.2019.url))
+frch_par_glist <- drive_ls(PAR_19.prt1, pattern = "191010_11615_FRCH.CSV")
+walk(frch_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+frch.par.2019.Data <- read.csv("191010_11615_FRCH.CSV",
+                               skip = 8, header = FALSE)
+frch.par.2019.Data <- frch.par.2019.Data %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+#Fix Date Time
+frch.par.2019.Data$DateTime <- paste(frch.par.2019.Data$Date, frch.par.2019.Data$Time, sep="")
+
+frch.par.2019.Data$DateTime <-  dmy_hms(frch.par.2019.Data$DateTime)
+frch.par.2019.Data$DateTime <- force_tz(frch.par.2019.Data$DateTime, "America/Anchorage")
+
+#Calibrate logger 11615 to LICOR
+frch.par.2019.Data$CalibratedValue <- frch.par.2019.Data$CalibratedValue * 0.031
+
+
+
+
+
+
+
+##### 2020 #####
+
+#### POKE 2020 ####
+PAR.2020.url <- "https://drive.google.com/drive/u/1/folders/1udve7khOM2EX0l8BZQK3yehb2HUbwFtR"
+PAR_2020.prt1 <- drive_get(as_id(PAR.2020.url))
+poke_par_glist <- drive_ls(PAR_2020.prt1, pattern = "11619_002_002_POKE_EndOfSeason.CSV")
+walk(poke_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+poke.par.2020.Data <- read.csv("11619_002_002_POKE_EndOfSeason.CSV",
+                               skip = 9, header = FALSE)
+poke.par.2020.Data <- poke.par.2020.Data %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+#Fix Date Time
+poke.par.2020.Data$DateTime <- paste(poke.par.2020.Data$Date, poke.par.2020.Data$Time, sep="")
+
+poke.par.2020.Data$DateTime <-  dmy_hms(poke.par.2020.Data$DateTime)
+poke.par.2020.Data$DateTime <- force_tz(poke.par.2020.Data$DateTime, "America/Anchorage")
+
+#Calibrate logger 11619 to LICOR
+poke.par.2020.Data$CalibratedValue <- poke.par.2020.Data$CalibratedValue * 0.035
+
+
+#### VAUL 2020 ####
+PAR.2020.url <- "https://drive.google.com/drive/u/1/folders/1udve7khOM2EX0l8BZQK3yehb2HUbwFtR"
+PAR_2020.prt1 <- drive_get(as_id(PAR.2020.url))
+vaul_par_glist <- drive_ls(PAR_2020.prt1, pattern = "11616_005_002_VAUL_EndOfSeason.CSV")
+walk(vaul_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+vaul.par.2020.Data <- read.csv("11616_005_002_VAUL_EndOfSeason.CSV",
+                               skip = 9, header = FALSE)
+vaul.par.2020.Data <- vaul.par.2020.Data %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+#Fix Date Time
+vaul.par.2020.Data$DateTime <- paste(vaul.par.2020.Data$Date, vaul.par.2020.Data$Time, sep="")
+
+vaul.par.2020.Data$DateTime <-  dmy_hms(vaul.par.2020.Data$DateTime)
+vaul.par.2020.Data$DateTime <- force_tz(vaul.par.2020.Data$DateTime, "America/Anchorage")
+
+#Calibrate logger 11616 to LICOR
+vaul.par.2020.Data$CalibratedValue <- vaul.par.2020.Data$CalibratedValue * 0.032
+
+
+
+#### MOOS 2020 ####
+PAR.2020.url <- "https://drive.google.com/drive/u/1/folders/1udve7khOM2EX0l8BZQK3yehb2HUbwFtR"
+PAR_2020.prt1 <- drive_get(as_id(PAR.2020.url))
+moos_par_glist <- drive_ls(PAR_2020.prt1, pattern = "11617_004_002_MOOS_EndOfSeason.CSV")
+walk(moos_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+moos.par.2020.Data <- read.csv("11617_004_002_MOOS_EndOfSeason.CSV",
+                               skip = 9, header = FALSE)
+moos.par.2020.Data <- moos.par.2020.Data %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+#Fix Date Time
+moos.par.2020.Data$DateTime <- paste(moos.par.2020.Data$Date, moos.par.2020.Data$Time, sep="")
+
+moos.par.2020.Data$DateTime <-  dmy_hms(moos.par.2020.Data$DateTime)
+moos.par.2020.Data$DateTime <- force_tz(moos.par.2020.Data$DateTime, "America/Anchorage")
+
+#Calibrate logger 11617 to LICOR
+moos.par.2020.Data$CalibratedValue <- moos.par.2020.Data$CalibratedValue * 0.037 
+
+
+
+#### STRT 2020 ####
+PAR.2020.url <- "https://drive.google.com/drive/u/1/folders/1udve7khOM2EX0l8BZQK3yehb2HUbwFtR"
+PAR_2020.prt1 <- drive_get(as_id(PAR.2020.url))
+strt_par_glist <- drive_ls(PAR_2020.prt1, pattern = "11620_001_002_STRT_EndOfSeason.CSV")
+walk(strt_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+strt.par.2020.Data <- read.csv("11620_001_002_STRT_EndOfSeason.CSV",
+                               skip = 9, header = FALSE)
+strt.par.2020.Data <- strt.par.2020.Data %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+#Fix Date Time
+strt.par.2020.Data$DateTime <- paste(strt.par.2020.Data$Date, strt.par.2020.Data$Time, sep="")
+
+strt.par.2020.Data$DateTime <-  dmy_hms(strt.par.2020.Data$DateTime)
+strt.par.2020.Data$DateTime <- force_tz(strt.par.2020.Data$DateTime, "America/Anchorage")
+
+#Calibrate logger 11620 to LICOR
+strt.par.2020.Data$CalibratedValue <- strt.par.2020.Data$CalibratedValue * 0.036
+
+
+
+#### FRCH 2020 ####
+PAR.2020.url <- "https://drive.google.com/drive/u/1/folders/1udve7khOM2EX0l8BZQK3yehb2HUbwFtR"
+PAR_2020.prt1 <- drive_get(as_id(PAR.2020.url))
+frch_par_glist <- drive_ls(PAR_2020.prt1, pattern = "11615_003_002_FRCH_2_EndOfSeason.CSV")
+walk(frch_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+frch.par.2020.Data <- read.csv("11615_003_002_FRCH_2_EndOfSeason.CSV",
+                               skip = 9, header = FALSE)
+frch.par.2020.Data <- frch.par.2020.Data %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+#Fix Date Time
+frch.par.2020.Data$DateTime <- paste(frch.par.2020.Data$Date, frch.par.2020.Data$Time, sep="")
+
+frch.par.2020.Data$DateTime <-  dmy_hms(frch.par.2020.Data$DateTime)
+frch.par.2020.Data$DateTime <- force_tz(frch.par.2020.Data$DateTime, "America/Anchorage")
+
+#Calibrate logger 11615 to LICOR
+frch.par.2020.Data$CalibratedValue <- frch.par.2020.Data$CalibratedValue * 0.031
+
+
+
+
+###### 2021 #####
+PAR.2021.url <- "https://drive.google.com/drive/u/1/folders/1EPjHLDmfbCo5n12AKj7QpN2vXRCPQtg5"
+PAR_2021.prt1 <- drive_get(as_id(PAR.2021.url))
+par2021_glist <- drive_ls(PAR_2021.prt1, pattern = "all.dates.par.2021.csv")
+walk(par2021_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+par2021.Data <- read.csv("all.dates.par.2021.csv",
+                         skip = 0, header = TRUE)
+
+
+
+# Sort into sites
+poke.par2021.Data <- par2021.Data %>% filter(site == "poke")
+vaul.par2021.Data <- par2021.Data %>% filter(site == "vaul")
+strt.par2021.Data <- par2021.Data %>% filter(site == "strt")
+moos.par2021.Data <- par2021.Data %>% filter(site == "moos")
+frch.par2021.Data <- par2021.Data %>% filter(site == "frch")
+
+poke.par2021.Data <- poke.par2021.Data %>%
+  dplyr::rename(RawValue = V5)
+vaul.par2021.Data <- vaul.par2021.Data %>%
+  dplyr::rename(RawValue = V5)
+strt.par2021.Data <- strt.par2021.Data %>%
+  dplyr::rename(RawValue = V5)
+moos.par2021.Data <- moos.par2021.Data %>%
+  dplyr::rename(RawValue = V5)
+frch.par2021.Data <- frch.par2021.Data %>%
+  dplyr::rename(RawValue = V5)
+
+poke.par2021.Data$DateTime <- as.POSIXct(poke.par2021.Data$DateTime)
+vaul.par2021.Data$DateTime <- as.POSIXct(vaul.par2021.Data$DateTime)
+strt.par2021.Data$DateTime <- as.POSIXct(strt.par2021.Data$DateTime)
+moos.par2021.Data$DateTime <- as.POSIXct(moos.par2021.Data$DateTime)
+frch.par2021.Data$DateTime <- as.POSIXct(frch.par2021.Data$DateTime)
+
+#Calibrate loggers to LICOR
+poke.par2021.Data$Calibrated.Value <- poke.par2021.Data$Calibrated.Value * 0.035
+
+vaul.par2021.Data$Calibrated.Value <- vaul.par2021.Data$Calibrated.Value * 0.032
+
+strt.par2021.Data$Calibrated.Value <- strt.par2021.Data$Calibrated.Value * 0.036
+
+moos.par2021.Data$Calibrated.Value <- moos.par2021.Data$Calibrated.Value * 0.037 
+
+frch.par2021.Data$Calibrated.Value <- frch.par2021.Data$Calibrated.Value * 0.031
+
+
+
+
+### 2022 ###
+
+# Not set up yet..... Currently using MET TOWER LIGHT 
+
+
+##### 2022 #####
+
+#### POKE 2022 ####
+PAR.2022.url <- "https://drive.google.com/drive/u/1/folders/1JW8NRBDT-I9oIOayp3i4kGef9cP3nO3k"
+PAR_2022.prt1 <- drive_get(as_id(PAR.2022.url))
+poke_par_glist <- drive_ls(PAR_2022.prt1, pattern = "220606_11619_125_POKE.CSV")
+walk(poke_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+poke.par.2022.Data1 <- read.csv("220606_11619_125_POKE.CSV",
+                               skip = 9, header = FALSE)
+poke.par.2022.Data1 <- poke.par.2022.Data1 %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+
+poke_par_glist <- drive_ls(PAR_2022.prt1, pattern = "220801_11619_125_POKE.CSV")
+walk(poke_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+poke.par.2022.Data2 <- read.csv("220801_11619_125_POKE.CSV",
+                               skip = 9, header = FALSE)
+poke.par.2022.Data2 <- poke.par.2022.Data2 %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+poke_par_glist <- drive_ls(PAR_2022.prt1, pattern = "221007_11619_125_POKE.CSV")
+walk(poke_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+poke.par.2022.Data3 <- read.csv("221007_11619_125_POKE.CSV",
+                               skip = 9, header = FALSE)
+poke.par.2022.Data3 <- poke.par.2022.Data3 %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+
+poke.par.2022.Data <- rbind(poke.par.2022.Data1, poke.par.2022.Data2, poke.par.2022.Data3)
+
+
+#Fix Date Time
+poke.par.2022.Data$DateTime <- paste(poke.par.2022.Data$Date, poke.par.2022.Data$Time, sep="")
+
+poke.par.2022.Data$DateTime <-  dmy_hms(poke.par.2022.Data$DateTime)
+poke.par.2022.Data$DateTime <- force_tz(poke.par.2022.Data$DateTime, "America/Anchorage")
+
+#Calibrate logger 11619 to LICOR
+poke.par.2022.Data$CalibratedValue <- poke.par.2022.Data$CalibratedValue * 0.035
+
+
+poke.par.2022.Data$DateTime <-  lubridate::round_date(poke.par.2022.Data$DateTime, "15 minutes") 
+
+
+
+
+#### VAUL 2022 ####
+PAR.2022.url <- "https://drive.google.com/drive/u/1/folders/1JW8NRBDT-I9oIOayp3i4kGef9cP3nO3k"
+PAR_2022.prt1 <- drive_get(as_id(PAR.2022.url))
+vaul_par_glist <- drive_ls(PAR_2022.prt1, pattern = "220606_11616_125_VAUL.CSV")
+walk(vaul_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+vaul.par.2022.Data1 <- read.csv("220606_11616_125_VAUL.CSV",
+                               skip = 9, header = FALSE)
+vaul.par.2022.Data1 <- vaul.par.2022.Data1 %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+
+vaul_par_glist <- drive_ls(PAR_2022.prt1, pattern = "220801_11616_125_VAUL.CSV")
+walk(vaul_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+vaul.par.2022.Data2 <- read.csv("220801_11616_125_VAUL.CSV",
+                               skip = 9, header = FALSE)
+vaul.par.2022.Data2 <- vaul.par.2022.Data2 %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+vaul_par_glist <- drive_ls(PAR_2022.prt1, pattern = "221012_11616_125_VAUL.CSV")
+walk(vaul_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+vaul.par.2022.Data3 <- read.csv("221012_11616_125_VAUL.CSV",
+                               skip = 9, header = FALSE)
+vaul.par.2022.Data3 <- vaul.par.2022.Data3 %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+
+vaul.par.2022.Data <- rbind(vaul.par.2022.Data1, vaul.par.2022.Data2, vaul.par.2022.Data3)
+
+
+#Fix Date Time
+vaul.par.2022.Data$DateTime <- paste(vaul.par.2022.Data$Date, vaul.par.2022.Data$Time, sep="")
+
+vaul.par.2022.Data$DateTime <-  dmy_hms(vaul.par.2022.Data$DateTime)
+vaul.par.2022.Data$DateTime <- force_tz(vaul.par.2022.Data$DateTime, "America/Anchorage")
+
+#Calibrate logger 11619 to LICOR
+vaul.par.2022.Data$CalibratedValue <- vaul.par.2022.Data$CalibratedValue * 0.032
+
+
+
+
+#### FRCH 2022 ####
+PAR.2022.url <- "https://drive.google.com/drive/u/1/folders/1JW8NRBDT-I9oIOayp3i4kGef9cP3nO3k"
+PAR_2022.prt1 <- drive_get(as_id(PAR.2022.url))
+frch_par_glist <- drive_ls(PAR_2022.prt1, pattern = "220607_11615_125_FRCH.CSV")
+walk(frch_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+frch.par.2022.Data1 <- read.csv("220607_11615_125_FRCH.CSV",
+                               skip = 9, header = FALSE)
+frch.par.2022.Data1 <- frch.par.2022.Data1 %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+
+
+frch_par_glist <- drive_ls(PAR_2022.prt1, pattern = "220802_11615_125_FRCH.CSV")
+walk(frch_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+frch.par.2022.Data2 <- read.csv("220802_11615_125_FRCH.CSV",
+                               skip = 9, header = FALSE)
+frch.par.2022.Data2 <- frch.par.2022.Data2 %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+frch_par_glist <- drive_ls(PAR_2022.prt1, pattern = "221012_11615_125_FRCH.CSV")
+walk(frch_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+frch.par.2022.Data3 <- read.csv("221012_11615_125_FRCH.CSV",
+                               skip = 9, header = FALSE)
+frch.par.2022.Data3 <- frch.par.2022.Data3 %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+
+frch.par.2022.Data <- rbind(frch.par.2022.Data1, frch.par.2022.Data2, frch.par.2022.Data3)
+
+
+#Fix Date Time
+frch.par.2022.Data$DateTime <- paste(frch.par.2022.Data$Date, frch.par.2022.Data$Time, sep="")
+
+frch.par.2022.Data$DateTime <-  dmy_hms(frch.par.2022.Data$DateTime)
+frch.par.2022.Data$DateTime <- force_tz(frch.par.2022.Data$DateTime, "America/Anchorage")
+
+#Calibrate logger 11619 to LICOR
+frch.par.2022.Data$CalibratedValue <- frch.par.2022.Data$CalibratedValue * 0.031
+
+
+frch.par.2022.Data$DateTime <-  lubridate::round_date(frch.par.2022.Data$DateTime, "15 minutes") 
+
+
+
+
+#### MOOS 2022 ####
+# PAR.2022.url <- "https://drive.google.com/drive/u/1/folders/1JW8NRBDT-I9oIOayp3i4kGef9cP3nO3k"
+# PAR_2022.prt1 <- drive_get(as_id(PAR.2022.url))
+# moos_par_glist <- drive_ls(PAR_2022.prt1, pattern = "220607_11615_125_MOOS.CSV")
+# walk(moos_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# moos.par.2022.Data1 <- read.csv("220607_11615_125_MOOS.CSV",
+#                                skip = 9, header = FALSE)
+# moos.par.2022.Data1 <- moos.par.2022.Data1 %>%
+#   dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+# 
+
+#No data before june
+
+moos_par_glist <- drive_ls(PAR_2022.prt1, pattern = "220802_11617_125_MOOS.CSV")
+walk(moos_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+moos.par.2022.Data2 <- read.csv("220802_11617_125_MOOS.CSV",
+                               skip = 9, header = FALSE)
+moos.par.2022.Data2 <- moos.par.2022.Data2 %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+moos_par_glist <- drive_ls(PAR_2022.prt1, pattern = "221012_11617_125_MOOS.CSV")
+walk(moos_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+moos.par.2022.Data3 <- read.csv("221012_11617_125_MOOS.CSV",
+                               skip = 9, header = FALSE)
+moos.par.2022.Data3 <- moos.par.2022.Data3 %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+
+moos.par.2022.Data <- rbind(moos.par.2022.Data2, moos.par.2022.Data3)
+
+
+#Fix Date Time
+moos.par.2022.Data$DateTime <- paste(moos.par.2022.Data$Date, moos.par.2022.Data$Time, sep="")
+
+moos.par.2022.Data$DateTime <-  dmy_hms(moos.par.2022.Data$DateTime)
+moos.par.2022.Data$DateTime <- force_tz(moos.par.2022.Data$DateTime, "America/Anchorage")
+
+#Calibrate logger 11619 to LICOR
+moos.par.2022.Data$CalibratedValue <- moos.par.2022.Data$CalibratedValue * 0.037 
+
+
+
+
+
+#### STRT 2022 ####
+PAR.2022.url <- "https://drive.google.com/drive/u/1/folders/1JW8NRBDT-I9oIOayp3i4kGef9cP3nO3k"
+PAR_2022.prt1 <- drive_get(as_id(PAR.2022.url))
+strt_par_glist <- drive_ls(PAR_2022.prt1, pattern = "220608_11618_125_STRT.CSV")
+walk(strt_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+strt.par.2022.Data1 <- read.csv("220608_11618_125_STRT.CSV",
+                               skip = 9, header = FALSE)
+strt.par.2022.Data1 <- strt.par.2022.Data1 %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+# No par collected in AUG at STRT
+
+# 
+# strt_par_glist <- drive_ls(PAR_2022.prt1, pattern = "220802_11615_125_STRT.CSV")
+# walk(strt_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+# strt.par.2022.Data2 <- read.csv("220802_11615_125_STRT.CSV",
+#                                skip = 9, header = FALSE)
+# strt.par.2022.Data2 <- strt.par.2022.Data2 %>%
+#   dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+strt_par_glist <- drive_ls(PAR_2022.prt1, pattern = "221012_11618_125_STRT.CSV")
+walk(strt_par_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+strt.par.2022.Data3 <- read.csv("221012_11618_125_STRT.CSV",
+                               skip = 9, header = FALSE)
+strt.par.2022.Data3 <- strt.par.2022.Data3 %>%
+  dplyr::rename(ScanNumber = V1, Date = V2, Time = V3, RawValue = V4, CalibratedValue = V5)
+
+
+strt.par.2022.Data <- rbind(strt.par.2022.Data1, strt.par.2022.Data3)
+
+
+#Fix Date Time
+strt.par.2022.Data$DateTime <- paste(strt.par.2022.Data$Date, strt.par.2022.Data$Time, sep="")
+
+strt.par.2022.Data$DateTime <-  dmy_hms(strt.par.2022.Data$DateTime)
+strt.par.2022.Data$DateTime <- force_tz(strt.par.2022.Data$DateTime, "America/Anchorage")
+
+#Calibrate logger 11619 to LICOR
+strt.par.2022.Data$CalibratedValue <- strt.par.2022.Data$CalibratedValue * 0.036
+
+
+
+#### Combine all years ####
+
+#POKE
+
+poke.par.2022.Data <- poke.par.2022.Data %>%
+  select(CalibratedValue, DateTime) %>% dplyr::rename(Calibrated.Value = CalibratedValue)
+
+poke.par2021.Data <- poke.par2021.Data %>%
+  select(Calibrated.Value, DateTime)
+
+poke.par.2020.Data <- poke.par.2020.Data %>%
+  select(CalibratedValue, DateTime) %>% dplyr::rename(Calibrated.Value = CalibratedValue)
+
+poke.par.2019.Data <- poke.par.2019.Data %>%
+  select(CalibratedValue, DateTime) %>% dplyr::rename(Calibrated.Value = CalibratedValue)
+
+poke.combinded.par <- rbind(poke.par.2019.Data, poke.par.2020.Data, poke.par2021.Data, poke.par.2022.Data)
+
+write.csv(poke.combinded.par,here("outputs/poke.combinded.par.csv"), row.names = FALSE)
+
+
+tiff("Plots/Poke_PAR_all_years.tiff", compression = "lzw", width = 1500, height =1000)
+plot(poke.combinded.par$DateTime, poke.combinded.par$Calibrated.Value, main = "Poke PAR", ylab = "PAR (µmol of photons m-2 s-1)", xlab = "date")
+dev.off()
+#VAUL
+
+vaul.par.2022.Data <- vaul.par.2022.Data %>%
+  select(CalibratedValue, DateTime) %>% dplyr::rename(Calibrated.Value = CalibratedValue)
+
+vaul.par2021.Data <- vaul.par2021.Data %>%
+  select(Calibrated.Value, DateTime)
+
+vaul.par.2020.Data <- vaul.par.2020.Data %>%
+  select(CalibratedValue, DateTime) %>% dplyr::rename(Calibrated.Value = CalibratedValue)
+
+vaul.par.2019.Data <- vaul.par.2019.Data %>%
+  select(CalibratedValue, DateTime) %>% dplyr::rename(Calibrated.Value = CalibratedValue)
+
+vaul.combinded.par <- rbind(vaul.par.2019.Data, vaul.par.2020.Data, vaul.par2021.Data, vaul.par.2022.Data)
+
+write.csv(vaul.combinded.par,here("outputs/vaul.combinded.par.csv"), row.names = FALSE)
+
+
+tiff("Plots/Vaul_PAR_all_years.tiff", compression = "lzw", width = 1500, height =1000)
+plot(vaul.combinded.par$DateTime, vaul.combinded.par$Calibrated.Value, main = "Vaul PAR", ylab = "PAR (µmol of photons m-2 s-1)", xlab = "date")
+dev.off()
+#STRT
+
+strt.par.2022.Data <- strt.par.2022.Data %>%
+  select(CalibratedValue, DateTime) %>% dplyr::rename(Calibrated.Value = CalibratedValue)
+
+strt.par2021.Data <- strt.par2021.Data %>%
+  select(Calibrated.Value, DateTime)
+
+strt.par.2020.Data <- strt.par.2020.Data %>%
+  select(CalibratedValue, DateTime) %>% dplyr::rename(Calibrated.Value = CalibratedValue)
+
+strt.par.2019.Data <- strt.par.2019.Data %>%
+  select(CalibratedValue, DateTime) %>% dplyr::rename(Calibrated.Value = CalibratedValue)
+
+strt.combinded.par <- rbind(strt.par.2019.Data, strt.par.2020.Data, strt.par2021.Data, strt.par.2022.Data)
+
+write.csv(strt.combinded.par,here("outputs/strt.combinded.par.csv"), row.names = FALSE)
+
+
+tiff("Plots/Strt_PAR_all_years.tiff", compression = "lzw", width = 1500, height =1000)
+plot(strt.combinded.par$DateTime, strt.combinded.par$Calibrated.Value, main = "Strt PAR", ylab = "PAR (µmol of photons m-2 s-1)", xlab = "date")
+dev.off()
+
+
+#MOOS
+
+moos.par.2022.Data <- moos.par.2022.Data %>%
+  select(CalibratedValue, DateTime) %>% dplyr::rename(Calibrated.Value = CalibratedValue)
+
+moos.par2021.Data <- moos.par2021.Data %>%
+  select(Calibrated.Value, DateTime)
+
+moos.par.2020.Data <- moos.par.2020.Data %>%
+  select(CalibratedValue, DateTime) %>% dplyr::rename(Calibrated.Value = CalibratedValue)
+
+moos.par.2019.Data <- moos.par.2019.Data %>%
+  select(CalibratedValue, DateTime) %>% dplyr::rename(Calibrated.Value = CalibratedValue)
+
+moos.combinded.par <- rbind(moos.par.2019.Data, moos.par.2020.Data, moos.par2021.Data, moos.par.2022.Data)
+
+write.csv(moos.combinded.par,here("outputs/moos.combinded.par.csv"), row.names = FALSE)
+
+
+tiff("Plots/Moos_PAR_all_years.tiff", compression = "lzw", width = 1500, height =1000)
+plot(moos.combinded.par$DateTime, moos.combinded.par$Calibrated.Value, main = "Moos PAR", ylab = "PAR (µmol of photons m-2 s-1)", xlab = "date")
+dev.off()
+
+#FRCH
+
+frch.par.2022.Data <- frch.par.2022.Data %>%
+  select(CalibratedValue, DateTime) %>% dplyr::rename(Calibrated.Value = CalibratedValue)
+
+frch.par2021.Data <- frch.par2021.Data %>%
+  select(Calibrated.Value, DateTime)
+
+frch.par.2020.Data <- frch.par.2020.Data %>%
+  select(CalibratedValue, DateTime) %>% dplyr::rename(Calibrated.Value = CalibratedValue)
+
+frch.par.2019.Data <- frch.par.2019.Data %>%
+  select(CalibratedValue, DateTime) %>% dplyr::rename(Calibrated.Value = CalibratedValue)
+
+frch.combinded.par <- rbind(frch.par.2019.Data, frch.par.2020.Data, frch.par2021.Data, frch.par.2022.Data)
+
+write.csv(frch.combinded.par,here("outputs/frch.combinded.par.csv"), row.names = FALSE)
+
+
+tiff("Plots/Frch_PAR_all_years.tiff", compression = "lzw", width = 1500, height =1000)
+plot(frch.combinded.par$DateTime, frch.combinded.par$Calibrated.Value, main = "Frch PAR", ylab = "PAR (µmol of photons m-2 s-1)", xlab = "date")
+dev.off()
+
+```
+
+
+```{r}
+
+############################# DEPTH #################################
+
+##### Stitch Depth #####
+#Packages I think I might perhaps maybe need...
+library(ggpubr)
+library(anytime)
+library(googlesheets4)
+library(ggpmisc)
+library(plyr)
+
+library(dplyr)
+library(lubridate)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(scales)
+library(data.table)
+
+library(zoo)
+library(xts)
+library(forecast)
+library(googledrive)
+library(streamMetabolizer)
+library(readr)
+
+
+#Try and use discharge to make a rating curve 
+
+#MY METHOD
+
+
+
+# Vaul 2019:
+
+#download flowmeter data
+WR_19.url <- "https://drive.google.com/drive/u/1/folders/1bm62_JO1dKrFPyUCz8E88K5q7IHElXPP"
+WR.19.1 <- drive_get(as_id(WR_19.url))
+vaul.wr19_glist <- drive_ls(WR.19.1, pattern = "vaul_2019_flowmeter_Q_for_R_JAA.csv")
+walk(vaul.wr19_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+vaul_WR_19.Data <- read.csv("vaul_2019_flowmeter_Q_for_R_JAA.csv",
+                            skip = 1, header = TRUE, na.strings=c("","NA","blank"))
+
+vaul_WR_19.Data <- vaul_WR_19.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+vaul_WR_19.Data <- vaul_WR_19.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+
+vaul_WR_19.Data$datetimeAK <- as.POSIXct(paste(vaul_WR_19.Data$Date, vaul_WR_19.Data$Time), format="%m/%d/%Y %H:%M")
+
+
+vaul_WR_19.Data <- vaul_WR_19.Data %>%
+  select(Depth..cm., datetimeAK)
+
+Vaul_depth_19_WR <- ddply(na.omit(vaul_WR_19.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+
+# vaul_wr.lm <- lm(meanDepth~datetimeAK, Vaul_depth_19)
+
+
+Vaul_depth_19_WR <- setDT(Vaul_depth_19_WR)
+
+Vaul_depth_19_WR <- Vaul_depth_19_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+
+
+
+
+
+# vaul.2019.pt <- vaul.2019.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2019-08-26 02:00:00" & datetimeAK <= "2019-09-08 12:15:00", NA, .)))
+
+
+
+vaul.2019.q.dt <- VAUL.2019.Q
+vaul.2019.q.dt <- vaul.2019.q.dt %>%
+  dplyr::rename(datetimeAK = DateTime)
+
+setDT(Vaul_depth_19_WR)
+setDT(vaul.2019.q.dt)
+
+vaul.2019.q.dt$datetimeAK1 <- vaul.2019.q.dt$datetimeAK
+
+setkey( vaul.2019.q.dt, datetimeAK )
+setkey( Vaul_depth_19_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_vaul19 <- vaul.2019.q.dt[ Vaul_depth_19_WR, roll = "nearest" ]
+
+rounded.dates_vaul19_WR_Q <- rounded.dates_vaul19 %>% rename(discharge = Q) %>% select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_vaul19_WR_Q$meanDepth <- rounded.dates_vaul19_WR_Q$meanDepth /100
+
+vaul_pt_wr_graph <- ggplot(rounded.dates_vaul19_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+vaul_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/vaul_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+vaul19_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_vaul19_WR_Q)
+
+summary(vaul19_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_vaul19_WR_Q)
+# abline(vaul19_depth_mod)
+
+#extract slope of model and develop rating curve
+vaul.2019.q.dt$RatingCurveDepth <- vaul19_depth_mod$coefficients[1]+(vaul19_depth_mod$coefficients[2])*vaul.2019.q.dt$Q
+
+
+######
+
+
+# Strt 2019:
+
+#download flowmeter data
+WR_19.url <- "https://drive.google.com/drive/u/1/folders/1bm62_JO1dKrFPyUCz8E88K5q7IHElXPP"
+WR.19.1 <- drive_get(as_id(WR_19.url))
+strt.wr19_glist <- drive_ls(WR.19.1, pattern = "STRT_2019_flowmeter_Q_for_R_JAA.csv")
+walk(strt.wr19_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+strt_WR_19.Data <- read.csv("STRT_2019_flowmeter_Q_for_R_JAA.csv",
+                            header = TRUE, na.strings=c("","NA","blank"))
+
+strt_WR_19.Data <- strt_WR_19.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+strt_WR_19.Data <- strt_WR_19.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+
+strt_WR_19.Data$datetimeAK <- as.POSIXct(paste(strt_WR_19.Data$Date, strt_WR_19.Data$Time), format="%m/%d/%Y %H:%M")
+
+
+strt_WR_19.Data <- strt_WR_19.Data %>%
+  select(Depth..cm., datetimeAK)
+
+Strt_depth_19_WR <- ddply(na.omit(strt_WR_19.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+
+# strt_wr.lm <- lm(meanDepth~datetimeAK, Strt_depth_19)
+
+
+Strt_depth_19_WR <- setDT(Strt_depth_19_WR)
+
+Strt_depth_19_WR <- Strt_depth_19_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# strt.2019.pt <- strt.2019.pt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+
+
+
+# strt.2019.pt <- strt.2019.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2019-08-26 02:00:00" & datetimeAK <= "2019-09-08 12:15:00", NA, .)))
+
+
+
+strt.2019.q.dt <- STRT.2019.Q
+strt.2019.q.dt <- strt.2019.q.dt %>%
+  dplyr::rename(datetimeAK = DateTime)
+
+setDT(Strt_depth_19_WR)
+setDT(strt.2019.q.dt)
+
+strt.2019.q.dt$datetimeAK1 <- strt.2019.q.dt$datetimeAK
+
+setkey( strt.2019.q.dt, datetimeAK )
+setkey( Strt_depth_19_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_strt19 <- strt.2019.q.dt[ Strt_depth_19_WR, roll = "nearest" ]
+
+rounded.dates_strt19_WR_Q <- rounded.dates_strt19 %>% rename(discharge = Q) %>% 
+  select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_strt19_WR_Q$meanDepth <- rounded.dates_strt19_WR_Q$meanDepth /100
+
+strt_pt_wr_graph <- ggplot(rounded.dates_strt19_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+strt_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/strt_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+strt19_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_strt19_WR_Q)
+
+summary(strt19_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_strt19_WR_Q)
+# abline(strt19_depth_mod)
+
+#extract slope of model and develop rating curve
+strt.2019.q.dt$RatingCurveDepth <- strt19_depth_mod$coefficients[1]+(strt19_depth_mod$coefficients[2])*strt.2019.q.dt$Q
+#download flowmeter data
+WR_19.url <- "https://drive.google.com/drive/u/1/folders/1bm62_JO1dKrFPyUCz8E88K5q7IHElXPP"
+WR.19.1 <- drive_get(as_id(WR_19.url))
+frch.wr19_glist <- drive_ls(WR.19.1, pattern = "Frch_2019_flowmeter_Q_for_R_JAA.csv")
+walk(frch.wr19_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+frch_WR_19.Data <- read.csv("Frch_2019_flowmeter_Q_for_R_JAA.csv",
+                            skip = 1, header = TRUE, na.strings=c("","NA","blank"))
+
+frch_WR_19.Data <- frch_WR_19.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+frch_WR_19.Data <- frch_WR_19.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+
+frch_WR_19.Data$datetimeAK <- as.POSIXct(paste(frch_WR_19.Data$Date, frch_WR_19.Data$Time), format="%m/%d/%Y %H:%M")
+
+
+######
+
+
+# Frch 2019:
+
+
+
+frch_WR_19.Data <- frch_WR_19.Data %>%
+  select(Depth..cm., datetimeAK)
+
+Frch_depth_19_WR <- ddply(na.omit(frch_WR_19.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+
+# frch_wr.lm <- lm(meanDepth~datetimeAK, Frch_depth_19)
+
+
+Frch_depth_19_WR <- setDT(Frch_depth_19_WR)
+
+Frch_depth_19_WR <- Frch_depth_19_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# frch.2019.pt <- frch.2019.pt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+
+
+
+
+# frch.2019.pt <- frch.2019.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2019-08-26 02:00:00" & datetimeAK <= "2019-09-08 12:15:00", NA, .)))
+
+
+
+frch.2019.q.dt <- FRCH.2019.Q
+frch.2019.q.dt <- frch.2019.q.dt %>%
+dplyr::rename(datetimeAK = DateTime)
+
+setDT(Frch_depth_19_WR)
+setDT(frch.2019.q.dt)
+
+frch.2019.q.dt$datetimeAK1 <- frch.2019.q.dt$datetimeAK
+
+setkey( frch.2019.q.dt, datetimeAK )
+setkey( Frch_depth_19_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_frch19 <- frch.2019.q.dt[ Frch_depth_19_WR, roll = "nearest" ]
+
+rounded.dates_frch19_WR_Q <- rounded.dates_frch19 %>% rename(discharge = Q) %>% 
+  select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_frch19_WR_Q$meanDepth <- rounded.dates_frch19_WR_Q$meanDepth /100
+
+frch_pt_wr_graph <- ggplot(rounded.dates_frch19_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+frch_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/frch_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+frch19_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_frch19_WR_Q)
+
+summary(frch19_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_frch19_WR_Q)
+# abline(frch19_depth_mod)
+
+#extract slope of model and develop rating curve
+frch.2019.q.dt$RatingCurveDepth <- frch19_depth_mod$coefficients[1]+(frch19_depth_mod$coefficients[2])*frch.2019.q.dt$Q
+
+
+######
+
+
+
+# Moos 2019:
+
+#download flowmeter data
+WR_19.url <- "https://drive.google.com/drive/u/1/folders/1bm62_JO1dKrFPyUCz8E88K5q7IHElXPP"
+WR.19.1 <- drive_get(as_id(WR_19.url))
+moos.wr19_glist <- drive_ls(WR.19.1, pattern = "moos_2019_flowmeter_Q_for_R_JAA.csv")
+walk(moos.wr19_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+moos_WR_19.Data <- read.csv("moos_2019_flowmeter_Q_for_R_JAA.csv",
+                            skip = 1, header = TRUE, na.strings=c("","NA","blank"))
+
+moos_WR_19.Data <- moos_WR_19.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+moos_WR_19.Data <- moos_WR_19.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+
+moos_WR_19.Data$datetimeAK <- as.POSIXct(paste(moos_WR_19.Data$Date, moos_WR_19.Data$Time), format="%m/%d/%Y %H:%M")
+
+
+moos_WR_19.Data <- moos_WR_19.Data %>%
+  select(Depth..cm., datetimeAK)
+
+Moos_depth_19_WR <- ddply(na.omit(moos_WR_19.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+
+# moos_wr.lm <- lm(meanDepth~datetimeAK, Moos_depth_19)
+
+
+Moos_depth_19_WR <- setDT(Moos_depth_19_WR)
+
+Moos_depth_19_WR <- Moos_depth_19_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# moos.2019.pt <- moos.2019.pt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+
+
+
+
+# moos.2019.pt <- moos.2019.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2019-08-26 02:00:00" & datetimeAK <= "2019-09-08 12:15:00", NA, .)))
+
+
+
+moos.2019.q.dt <- MOOS.2019.Q
+moos.2019.q.dt <- moos.2019.q.dt %>%
+dplyr::rename(datetimeAK = DateTime)
+
+setDT(Moos_depth_19_WR)
+setDT(moos.2019.q.dt)
+
+moos.2019.q.dt$datetimeAK1 <- moos.2019.q.dt$datetimeAK
+
+setkey( moos.2019.q.dt, datetimeAK )
+setkey( Moos_depth_19_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_moos19 <- moos.2019.q.dt[ Moos_depth_19_WR, roll = "nearest" ]
+
+rounded.dates_moos19_WR_Q <- rounded.dates_moos19 %>% rename(discharge = Q) %>% 
+  select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_moos19_WR_Q$meanDepth <- rounded.dates_moos19_WR_Q$meanDepth /100
+
+moos_pt_wr_graph <- ggplot(rounded.dates_moos19_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+moos_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/moos_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+moos19_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_moos19_WR_Q)
+
+summary(moos19_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_moos19_WR_Q)
+# abline(moos19_depth_mod)
+
+#extract slope of model and develop rating curve
+moos.2019.q.dt$RatingCurveDepth <- moos19_depth_mod$coefficients[1]+(moos19_depth_mod$coefficients[2])*moos.2019.q.dt$Q
+
+
+######
+#MY METHOD
+
+
+
+# Poke 2019:
+
+#download flowmeter data
+WR_19.url <- "https://drive.google.com/drive/u/1/folders/1bm62_JO1dKrFPyUCz8E88K5q7IHElXPP"
+WR.19.1 <- drive_get(as_id(WR_19.url))
+poke.wr19_glist <- drive_ls(WR.19.1, pattern = "poke_2019_flowmeter_Q_for_R_JAA.csv")
+walk(poke.wr19_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+poke_WR_19.Data <- read.csv("poke_2019_flowmeter_Q_for_R_JAA.csv",
+                            skip = 1, header = TRUE, na.strings=c("","NA","blank"))
+
+poke_WR_19.Data <- poke_WR_19.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+poke_WR_19.Data <- poke_WR_19.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+
+poke_WR_19.Data$datetimeAK <- as.POSIXct(paste(poke_WR_19.Data$Date, poke_WR_19.Data$Time), format="%m/%d/%Y %H:%M")
+
+
+poke_WR_19.Data <- poke_WR_19.Data %>%
+  select(Depth..cm., datetimeAK)
+
+Poke_depth_19_WR <- ddply(na.omit(poke_WR_19.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+
+# poke_wr.lm <- lm(meanDepth~datetimeAK, Poke_depth_19)
+
+
+Poke_depth_19_WR <- setDT(Poke_depth_19_WR)
+
+Poke_depth_19_WR <- Poke_depth_19_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# poke.2019.pt <- poke.2019.pt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+
+
+
+
+# poke.2019.pt <- poke.2019.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2019-08-26 02:00:00" & datetimeAK <= "2019-09-08 12:15:00", NA, .)))
+
+
+
+poke.2019.q.dt <- POKE.2019.Q
+poke.2019.q.dt <- poke.2019.q.dt %>%
+dplyr::rename(datetimeAK = DateTime)
+
+setDT(Poke_depth_19_WR)
+setDT(poke.2019.q.dt)
+
+poke.2019.q.dt$datetimeAK1 <- poke.2019.q.dt$datetimeAK
+
+setkey( poke.2019.q.dt, datetimeAK )
+setkey( Poke_depth_19_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_poke19 <- poke.2019.q.dt[ Poke_depth_19_WR, roll = "nearest" ]
+
+rounded.dates_poke19_WR_Q <- rounded.dates_poke19 %>% rename(discharge = Q) %>% 
+  select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_poke19_WR_Q$meanDepth <- rounded.dates_poke19_WR_Q$meanDepth /100
+
+poke_pt_wr_graph <- ggplot(rounded.dates_poke19_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+poke_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/poke_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+poke19_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_poke19_WR_Q)
+
+summary(poke19_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_poke19_WR_Q)
+# abline(poke19_depth_mod)
+
+#extract slope of model and develop rating curve
+poke.2019.q.dt$RatingCurveDepth <- poke19_depth_mod$coefficients[1]+(poke19_depth_mod$coefficients[2])*poke.2019.q.dt$Q
+
+#MY METHOD
+#MY METHOD
+
+#MY METHOD
+
+#MY METHOD
+#MY METHOD
+
+#MY METHOD
+
+
+
+# Vaul 2020:
+
+#download flowmeter data
+WR_20.url <- "https://drive.google.com/drive/u/1/folders/1l-QIICuviZvugbNGrvoLfkCDgo1HyDMg"
+WR.20.1 <- drive_get(as_id(WR_20.url))
+vaul.wr20_glist <- drive_ls(WR.20.1, pattern = "R_Flowmeter Q calculation_VAUL_for_R_JAA.csv")
+walk(vaul.wr20_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+vaul_WR_20.Data <- read.csv("R_Flowmeter Q calculation_VAUL_for_R_JAA.csv",
+                          header = TRUE, na.strings=c("","NA","blank")) %>% rename(Date = ï..Date)
+
+# vaul_WR_20.Data <- vaul_WR_20.Data %>% rename(Date = ï..Date)
+
+vaul_WR_20.Data <- vaul_WR_20.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+vaul_WR_20.Data <- vaul_WR_20.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+vaul_WR_20.Data$datetimeAK <- as.POSIXct(paste(as.character(vaul_WR_20.Data$Date), vaul_WR_20.Data$Time), format="%y%m%d %H:%M")
+
+
+
+vaul_WR_20.Data <- vaul_WR_20.Data %>%
+  select(Depth..cm., datetimeAK)
+
+Vaul_depth_20_WR <- ddply(na.omit(vaul_WR_20.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+
+# vaul_wr.lm <- lm(meanDepth~datetimeAK, Vaul_depth_20)
+
+
+Vaul_depth_20_WR <- setDT(Vaul_depth_20_WR)
+
+Vaul_depth_20_WR <- Vaul_depth_20_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# vaul.2020.pt <- vaul.2020.pt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+
+
+
+
+# vaul.2020.pt <- vaul.2020.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2020-08-26 02:00:00" & datetimeAK <= "2020-09-08 12:15:00", NA, .)))
+
+
+
+vaul.2020.q.dt <- VAUL.2020.Q
+vaul.2020.q.dt <- vaul.2020.q.dt %>%
+dplyr::rename(datetimeAK = DateTime)
+
+setDT(Vaul_depth_20_WR)
+setDT(vaul.2020.q.dt)
+
+vaul.2020.q.dt$datetimeAK1 <- vaul.2020.q.dt$datetimeAK
+
+setkey( vaul.2020.q.dt, datetimeAK )
+setkey( Vaul_depth_20_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_vaul20 <- vaul.2020.q.dt[Vaul_depth_20_WR, roll = "nearest"]
+
+rounded.dates_vaul20_WR_Q <- rounded.dates_vaul20 %>% rename(discharge = Q) %>% 
+  select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_vaul20_WR_Q$meanDepth <- rounded.dates_vaul20_WR_Q$meanDepth /100
+
+vaul_pt_wr_graph <- ggplot(rounded.dates_vaul20_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+vaul_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/vaul_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+vaul20_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_vaul20_WR_Q)
+
+summary(vaul20_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_vaul20_WR_Q)
+# abline(vaul20_depth_mod)
+
+#extract slope of model and develop rating curve
+vaul.2020.q.dt$RatingCurveDepth <- vaul20_depth_mod$coefficients[1]+(vaul20_depth_mod$coefficients[2])*vaul.2020.q.dt$Q
+
+
+######
+
+
+# Strt 2020:
+
+#download flowmeter data
+WR_20.url <- "https://drive.google.com/drive/u/1/folders/1x_E4gaPvjRLDcrM8lN2ao4_o0bzdMBrb"
+WR.20.1 <- drive_get(as_id(WR_20.url))
+strt.wr20_glist <- drive_ls(WR.20.1, pattern = "R_Flowmeter Q calculation_STRT_for_R_JAA.csv")
+walk(strt.wr20_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+strt_WR_20.Data <- read.csv("R_Flowmeter Q calculation_STRT_for_R_JAA.csv",
+                             header = TRUE, na.strings=c("","NA","blank"))%>% rename(Date = ï..Date)
+
+strt_WR_20.Data <- strt_WR_20.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+strt_WR_20.Data <- strt_WR_20.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+
+strt_WR_20.Data$datetimeAK <- as.POSIXct(paste(as.character(strt_WR_20.Data$Date), strt_WR_20.Data$Time), format="%y%m%d %H:%M")
+
+
+strt_WR_20.Data <- strt_WR_20.Data %>%
+  select(Depth..cm., datetimeAK)
+
+Strt_depth_20_WR <- ddply(na.omit(strt_WR_20.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+
+# strt_wr.lm <- lm(meanDepth~datetimeAK, Strt_depth_20)
+
+
+Strt_depth_20_WR <- setDT(Strt_depth_20_WR)
+
+Strt_depth_20_WR <- Strt_depth_20_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# strt.2020.pt <- strt.2020.pt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+
+
+
+
+# strt.2020.pt <- strt.2020.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2020-08-26 02:00:00" & datetimeAK <= "2020-09-08 12:15:00", NA, .)))
+
+
+
+strt.2020.q.dt <- STRT.2020.Q
+strt.2020.q.dt <- strt.2020.q.dt %>%
+dplyr::rename(datetimeAK = DateTime)
+
+setDT(Strt_depth_20_WR)
+setDT(strt.2020.q.dt)
+
+strt.2020.q.dt$datetimeAK1 <- strt.2020.q.dt$datetimeAK
+
+setkey( strt.2020.q.dt, datetimeAK )
+setkey( Strt_depth_20_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_strt20 <- strt.2020.q.dt[ Strt_depth_20_WR, roll = "nearest" ]
+
+rounded.dates_strt20_WR_Q <- rounded.dates_strt20 %>% rename(discharge = Q) %>% 
+  select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_strt20_WR_Q$meanDepth <- rounded.dates_strt20_WR_Q$meanDepth /100
+
+strt_pt_wr_graph <- ggplot(rounded.dates_strt20_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+strt_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/strt_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+strt20_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_strt20_WR_Q)
+
+summary(strt20_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_strt20_WR_Q)
+# abline(strt20_depth_mod)
+
+#extract slope of model and develop rating curve
+strt.2020.q.dt$RatingCurveDepth <- strt20_depth_mod$coefficients[1]+(strt20_depth_mod$coefficients[2])*strt.2020.q.dt$Q
+
+
+######
+
+
+# Frch 2020:
+
+#download flowmeter data
+WR_20.url <- "https://drive.google.com/drive/u/1/folders/1tlcGKOm11j4nPqgBeTa1Hj6DFTrbZTvy"
+WR.20.1 <- drive_get(as_id(WR_20.url))
+frch.wr20_glist <- drive_ls(WR.20.1, pattern = "R_Flowmeter Q calculation_FRCH_for_R_JAA.csv")
+walk(frch.wr20_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+frch_WR_20.Data <- read.csv("R_Flowmeter Q calculation_FRCH_for_R_JAA.csv",
+                            header = TRUE, na.strings=c("","NA","blank"))
+
+frch_WR_20.Data <- frch_WR_20.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+frch_WR_20.Data <- frch_WR_20.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+
+frch_WR_20.Data$datetimeAK <- as.POSIXct(paste(as.character(frch_WR_20.Data$Date), frch_WR_20.Data$Time), format="%y%m%d %H:%M")
+
+frch_WR_20.Data <- frch_WR_20.Data %>%
+  select(Depth..cm., datetimeAK)
+
+Frch_depth_20_WR <- ddply(na.omit(frch_WR_20.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+
+# frch_wr.lm <- lm(meanDepth~datetimeAK, Frch_depth_20)
+
+
+Frch_depth_20_WR <- setDT(Frch_depth_20_WR)
+
+Frch_depth_20_WR <- Frch_depth_20_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# frch.2020.pt <- frch.2020.pt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+
+
+
+# frch.2020.pt <- frch.2020.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2020-08-26 02:00:00" & datetimeAK <= "2020-09-08 12:15:00", NA, .)))
+
+
+
+frch.2020.q.dt <- FRCH.2020.Q
+frch.2020.q.dt <- frch.2020.q.dt %>%
+dplyr::rename(datetimeAK = DateTime)
+
+setDT(Frch_depth_20_WR)
+setDT(frch.2020.q.dt)
+
+frch.2020.q.dt$datetimeAK1 <- frch.2020.q.dt$datetimeAK
+
+setkey( frch.2020.q.dt, datetimeAK )
+setkey( Frch_depth_20_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_frch20 <- frch.2020.q.dt[ Frch_depth_20_WR, roll = "nearest" ]
+
+rounded.dates_frch20_WR_Q <- rounded.dates_frch20 %>%rename(discharge = Q) %>% 
+  select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_frch20_WR_Q$meanDepth <- rounded.dates_frch20_WR_Q$meanDepth /100
+
+frch_pt_wr_graph <- ggplot(rounded.dates_frch20_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+frch_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/frch_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+frch20_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_frch20_WR_Q)
+
+summary(frch20_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_frch20_WR_Q)
+# abline(frch20_depth_mod)
+
+#extract slope of model and develop rating curve
+frch.2020.q.dt$RatingCurveDepth <- frch20_depth_mod$coefficients[1]+(frch20_depth_mod$coefficients[2])*frch.2020.q.dt$Q
+
+
+######
+
+
+
+# Moos 2020:
+
+#download flowmeter data
+WR_20.url <- "https://drive.google.com/drive/u/1/folders/1O28nv-6gsmC_xsAwUFRjjouY9hS29FtK"
+WR.20.1 <- drive_get(as_id(WR_20.url))
+moos.wr20_glist <- drive_ls(WR.20.1, pattern = "R_Flowmeter Q calculation_MOOS_for_R_JAA.csv")
+walk(moos.wr20_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+moos_WR_20.Data <- read.csv("R_Flowmeter Q calculation_MOOS_for_R_JAA.csv",
+                             header = TRUE, na.strings=c("","NA","blank"))%>% rename(Date = ï..Date)
+
+moos_WR_20.Data <- moos_WR_20.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+moos_WR_20.Data <- moos_WR_20.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+
+moos_WR_20.Data$datetimeAK <- as.POSIXct(paste(as.character(moos_WR_20.Data$Date), moos_WR_20.Data$Time), format="%y%m%d %H:%M")
+
+
+moos_WR_20.Data <- moos_WR_20.Data %>%
+  select(Depth..cm., datetimeAK)
+
+Moos_depth_20_WR <- ddply(na.omit(moos_WR_20.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+
+# moos_wr.lm <- lm(meanDepth~datetimeAK, Moos_depth_20)
+
+
+Moos_depth_20_WR <- setDT(Moos_depth_20_WR)
+
+Moos_depth_20_WR <- Moos_depth_20_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# moos.2020.pt <- moos.2020.pt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+
+
+
+# moos.2020.pt <- moos.2020.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2020-08-26 02:00:00" & datetimeAK <= "2020-09-08 12:15:00", NA, .)))
+
+
+
+moos.2020.q.dt <- MOOS.2020.Q
+moos.2020.q.dt <- moos.2020.q.dt %>%
+dplyr::rename(datetimeAK = DateTime)
+
+setDT(Moos_depth_20_WR)
+setDT(moos.2020.q.dt)
+
+moos.2020.q.dt$datetimeAK1 <- moos.2020.q.dt$datetimeAK
+
+setkey( moos.2020.q.dt, datetimeAK )
+setkey( Moos_depth_20_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_moos20 <- moos.2020.q.dt[ Moos_depth_20_WR, roll = "nearest" ]
+
+rounded.dates_moos20_WR_Q <- rounded.dates_moos20 %>%rename(discharge = Q) %>% 
+  select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_moos20_WR_Q$meanDepth <- rounded.dates_moos20_WR_Q$meanDepth /100
+
+moos_pt_wr_graph <- ggplot(rounded.dates_moos20_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+moos_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/moos_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+moos20_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_moos20_WR_Q)
+
+summary(moos20_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_moos20_WR_Q)
+# abline(moos20_depth_mod)
+
+#extract slope of model and develop rating curve
+moos.2020.q.dt$RatingCurveDepth <- moos20_depth_mod$coefficients[1]+(moos20_depth_mod$coefficients[2])*moos.2020.q.dt$Q
+
+
+######
+#MY METHOD
+
+
+
+# Poke 2020:
+
+#download flowmeter data
+WR_20.url <- "https://drive.google.com/drive/u/1/folders/1S2L8Qg08AIhQo1ZdKdaxlJliz4bi1ttr"
+WR.20.1 <- drive_get(as_id(WR_20.url))
+poke.wr20_glist <- drive_ls(WR.20.1, pattern = "R_Flowmeter Q calculation_POKE_for_R_JAA.csv")
+walk(poke.wr20_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+poke_WR_20.Data <- read.csv("R_Flowmeter Q calculation_POKE_for_R_JAA.csv",
+                           header = TRUE, na.strings=c("","NA","blank"))%>% rename(Date = ï..Date)
+
+poke_WR_20.Data <- poke_WR_20.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+poke_WR_20.Data <- poke_WR_20.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+
+
+poke_WR_20.Data$datetimeAK <- as.POSIXct(paste(as.character(poke_WR_20.Data$Date), poke_WR_20.Data$Time), format="%y%m%d %H:%M")
+
+poke_WR_20.Data <- poke_WR_20.Data %>%
+  select(Depth, datetimeAK)
+
+Poke_depth_20_WR <- ddply(na.omit(poke_WR_20.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth)))
+
+# poke_wr.lm <- lm(meanDepth~datetimeAK, Poke_depth_20)
+
+
+Poke_depth_20_WR <- setDT(Poke_depth_20_WR)
+
+Poke_depth_20_WR <- Poke_depth_20_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# poke.2020.pt <- poke.2020.pt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+
+
+
+
+# poke.2020.pt <- poke.2020.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2020-08-26 02:00:00" & datetimeAK <= "2020-09-08 12:15:00", NA, .)))
+
+
+
+poke.2020.q.dt <- POKE.2020.Q
+poke.2020.q.dt <- poke.2020.q.dt %>%
+dplyr::rename(datetimeAK = DateTime)
+
+setDT(Poke_depth_20_WR)
+setDT(poke.2020.q.dt)
+
+poke.2020.q.dt$datetimeAK1 <- poke.2020.q.dt$datetimeAK
+
+setkey( poke.2020.q.dt, datetimeAK )
+setkey( Poke_depth_20_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_poke20 <- poke.2020.q.dt[ Poke_depth_20_WR, roll = "nearest" ]
+
+rounded.dates_poke20_WR_Q <- rounded.dates_poke20 %>% rename(discharge = Q) %>% 
+  select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_poke20_WR_Q$meanDepth <- rounded.dates_poke20_WR_Q$meanDepth /100
+
+poke_pt_wr_graph <- ggplot(rounded.dates_poke20_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+poke_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/poke_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+poke20_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_poke20_WR_Q)
+
+summary(poke20_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_poke20_WR_Q)
+# abline(poke20_depth_mod)
+
+#extract slope of model and develop rating curve
+poke.2020.q.dt$RatingCurveDepth <- poke20_depth_mod$coefficients[1]+(poke20_depth_mod$coefficients[2])*poke.2020.q.dt$Q
+
+
+######
+
+
+#MY METHOD
+#MY METHOD
+
+#MY METHOD
+
+#MY METHOD
+#MY METHOD
+
+#MY METHOD
+
+
+
+# Vaul 2021:
+
+#download flowmeter data
+WR_21.url <- "https://drive.google.com/drive/u/1/folders/13avby555rryYttGDgO8sKE7umZPmo5uB"
+WR.21.1 <- drive_get(as_id(WR_21.url))
+vaul.wr21_glist <- drive_ls(WR.21.1, pattern = "R_Flowmeter Q calculation_VAUL_for_R_JAA_2021.csv")
+walk(vaul.wr21_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+vaul_WR_21.Data <- read.csv("R_Flowmeter Q calculation_VAUL_for_R_JAA_2021.csv",
+                             header = TRUE, na.strings=c("","NA","blank")) %>% rename(Date = ï..Date)
+
+vaul_WR_21.Data <- vaul_WR_21.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+vaul_WR_21.Data <- vaul_WR_21.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+
+vaul_WR_21.Data$datetimeAK <- as.POSIXct(paste(as.character(vaul_WR_21.Data$Date), vaul_WR_21.Data$Time), format="%y%m%d %H:%M")
+
+
+vaul_WR_21.Data <- vaul_WR_21.Data %>%
+  select(Depth..cm., datetimeAK)
+
+Vaul_depth_21_WR <- ddply(na.omit(vaul_WR_21.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+
+# vaul_wr.lm <- lm(meanDepth~datetimeAK, Vaul_depth_21)
+
+
+Vaul_depth_21_WR <- setDT(Vaul_depth_21_WR)
+
+Vaul_depth_21_WR <- Vaul_depth_21_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# vaul.2021.pt <- vaul.2021.pt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+
+
+
+# vaul.2021.pt <- vaul.2021.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2021-08-26 02:00:00" & datetimeAK <= "2021-09-08 12:15:00", NA, .)))
+
+
+
+vaul.2021.q.dt <- VAUL.2021.Q
+vaul.2021.q.dt <- vaul.2021.q.dt %>%
+dplyr::rename(datetimeAK = DateTime)
+
+
+setDT(Vaul_depth_21_WR)
+setDT(vaul.2021.q.dt)
+
+vaul.2021.q.dt$datetimeAK1 <- vaul.2021.q.dt$datetimeAK
+
+setkey( vaul.2021.q.dt, datetimeAK )
+setkey( Vaul_depth_21_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_vaul21 <- vaul.2021.q.dt[ Vaul_depth_21_WR, roll = "nearest" ]
+
+rounded.dates_vaul21_WR_Q <- rounded.dates_vaul21 %>% rename(discharge = Q) %>% 
+  select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_vaul21_WR_Q$meanDepth <- rounded.dates_vaul21_WR_Q$meanDepth /100
+
+vaul_pt_wr_graph <- ggplot(rounded.dates_vaul21_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+vaul_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/vaul_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+vaul21_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_vaul21_WR_Q)
+
+summary(vaul21_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_vaul21_WR_Q)
+# abline(vaul21_depth_mod)
+
+#extract slope of model and develop rating curve
+vaul.2021.q.dt$RatingCurveDepth <- vaul21_depth_mod$coefficients[1]+(vaul21_depth_mod$coefficients[2])*vaul.2021.q.dt$Q
+
+
+######
+
+
+# Strt 2021:
+
+#download flowmeter data
+WR_21.url <- "https://drive.google.com/drive/u/1/folders/1LTD4EFX3_Yas0ZCF8rKLl6dxSeZDvkDY"
+WR.21.1 <- drive_get(as_id(WR_21.url))
+strt.wr21_glist <- drive_ls(WR.21.1, pattern = "R_Flowmeter Q calculation_STRT_for_R_JAA_2021.csv")
+walk(strt.wr21_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+strt_WR_21.Data <- read.csv("R_Flowmeter Q calculation_STRT_for_R_JAA_2021.csv",
+                            header = TRUE, na.strings=c("","NA","blank"))
+strt_WR_21.Data <- strt_WR_21.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+strt_WR_21.Data <- strt_WR_21.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+
+
+strt_WR_21.Data$datetimeAK <- as.POSIXct(paste(as.character(strt_WR_21.Data$Date), strt_WR_21.Data$Time), format="%y%m%d %H:%M")
+
+
+
+strt_WR_21.Data <- strt_WR_21.Data %>%
+  select(Depth..cm., datetimeAK)
+
+Strt_depth_21_WR <- ddply(na.omit(strt_WR_21.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+
+# strt_wr.lm <- lm(meanDepth~datetimeAK, Strt_depth_21)
+
+
+Strt_depth_21_WR <- setDT(Strt_depth_21_WR)
+
+Strt_depth_21_WR <- Strt_depth_21_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# strt.2021.pt <- strt.2021.pt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+
+
+
+
+# strt.2021.pt <- strt.2021.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2021-08-26 02:00:00" & datetimeAK <= "2021-09-08 12:15:00", NA, .)))
+
+
+
+strt.2021.q.dt <- STRT.2021.Q
+strt.2021.q.dt <- strt.2021.q.dt %>%
+dplyr::rename(datetimeAK = DateTime)
+
+setDT(Strt_depth_21_WR)
+setDT(strt.2021.q.dt)
+
+strt.2021.q.dt$datetimeAK1 <- strt.2021.q.dt$datetimeAK
+
+setkey( strt.2021.q.dt, datetimeAK )
+setkey( Strt_depth_21_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_strt21 <- strt.2021.q.dt[ Strt_depth_21_WR, roll = "nearest" ]
+
+rounded.dates_strt21_WR_Q <- rounded.dates_strt21 %>% rename(discharge = Q) %>% 
+  select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_strt21_WR_Q$meanDepth <- rounded.dates_strt21_WR_Q$meanDepth /100
+
+strt_pt_wr_graph <- ggplot(rounded.dates_strt21_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+strt_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/strt_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+strt21_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_strt21_WR_Q)
+
+summary(strt21_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_strt21_WR_Q)
+# abline(strt21_depth_mod)
+
+#extract slope of model and develop rating curve
+strt.2021.q.dt$RatingCurveDepth <- strt21_depth_mod$coefficients[1]+(strt21_depth_mod$coefficients[2])*strt.2021.q.dt$Q
+
+
+######
+
+
+# Frch 2021:
+
+#download flowmeter data
+WR_21.url <- "https://drive.google.com/drive/u/1/folders/1MrFabu9Mzuv3v4naPl2-iCFaMj_DjkZG"
+WR.21.1 <- drive_get(as_id(WR_21.url))
+frch.wr21_glist <- drive_ls(WR.21.1, pattern = "R_Flowmeter_Q_calulation_FRCH_for_R_JAA_2021.csv")
+walk(frch.wr21_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+frch_WR_21.Data <- read.csv("R_Flowmeter_Q_calulation_FRCH_for_R_JAA_2021.csv",
+                          header = TRUE, na.strings=c("","NA","blank"))%>% rename(Date = ï..Date)
+
+frch_WR_21.Data <- frch_WR_21.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+frch_WR_21.Data <- frch_WR_21.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+
+frch_WR_21.Data$datetimeAK <- as.POSIXct(paste(as.character(frch_WR_21.Data$Date), frch_WR_21.Data$Time), format="%y%m%d %H:%M")
+
+
+
+frch_WR_21.Data <- frch_WR_21.Data %>%
+  select(Depth..cm., datetimeAK)
+
+Frch_depth_21_WR <- ddply(na.omit(frch_WR_21.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+
+# frch_wr.lm <- lm(meanDepth~datetimeAK, Frch_depth_21)
+
+
+Frch_depth_21_WR <- setDT(Frch_depth_21_WR)
+
+Frch_depth_21_WR <- Frch_depth_21_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# frch.2021.pt <- frch.2021.pt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+
+
+
+
+# frch.2021.pt <- frch.2021.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2021-08-26 02:00:00" & datetimeAK <= "2021-09-08 12:15:00", NA, .)))
+
+
+
+frch.2021.q.dt <- FRCH.2021.Q 
+frch.2021.q.dt <- frch.2021.q.dt %>%
+dplyr::rename(datetimeAK = DateTime)
+
+
+setDT(Frch_depth_21_WR)
+setDT(frch.2021.q.dt)
+
+frch.2021.q.dt$datetimeAK1 <- frch.2021.q.dt$datetimeAK
+
+setkey( frch.2021.q.dt, datetimeAK )
+setkey( Frch_depth_21_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_frch21 <- frch.2021.q.dt[ Frch_depth_21_WR, roll = "nearest" ]
+
+rounded.dates_frch21_WR_Q <- rounded.dates_frch21 %>% rename(discharge = Q) %>% 
+  select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_frch21_WR_Q$meanDepth <- rounded.dates_frch21_WR_Q$meanDepth /100
+
+frch_pt_wr_graph <- ggplot(rounded.dates_frch21_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+frch_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/frch_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+frch21_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_frch21_WR_Q)
+
+summary(frch21_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_frch21_WR_Q)
+# abline(frch21_depth_mod)
+
+#extract slope of model and develop rating curve
+frch.2021.q.dt$RatingCurveDepth <- frch21_depth_mod$coefficients[1]+(frch21_depth_mod$coefficients[2])*frch.2021.q.dt$Q
+
+
+######
+
+
+
+# Moos 2021:
+
+#download flowmeter data
+WR_21.url <- "https://drive.google.com/drive/u/1/folders/1-S_ixEutlA7RKfrvhi15aIBLrjYjg5O_"
+WR.21.1 <- drive_get(as_id(WR_21.url))
+moos.wr21_glist <- drive_ls(WR.21.1, pattern = "R_Flowmeter Q calculation_MOOS_for_R_JAA_2021.csv")
+walk(moos.wr21_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+moos_WR_21.Data <- read.csv("R_Flowmeter Q calculation_MOOS_for_R_JAA_2021.csv",
+                            header = TRUE, na.strings=c("","NA","blank")) %>% rename(Date = ï..Date)
+
+moos_WR_21.Data <- moos_WR_21.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+moos_WR_21.Data <- moos_WR_21.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+
+
+moos_WR_21.Data$datetimeAK <- as.POSIXct(paste(as.character(moos_WR_21.Data$Date), moos_WR_21.Data$Time), format="%y%m%d %H:%M")
+
+
+moos_WR_21.Data <- moos_WR_21.Data %>%
+  select(Depth..cm., datetimeAK)
+
+Moos_depth_21_WR <- ddply(na.omit(moos_WR_21.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+
+# moos_wr.lm <- lm(meanDepth~datetimeAK, Moos_depth_21)
+
+
+Moos_depth_21_WR <- setDT(Moos_depth_21_WR)
+
+Moos_depth_21_WR <- Moos_depth_21_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# moos.2021.pt <- moos.2021.pt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+
+
+
+
+# moos.2021.pt <- moos.2021.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2021-08-26 02:00:00" & datetimeAK <= "2021-09-08 12:15:00", NA, .)))
+
+
+
+moos.2021.q.dt <- MOOS.2021.Q
+moos.2021.q.dt <- moos.2021.q.dt %>%
+dplyr::rename(datetimeAK = DateTime)
+
+
+setDT(Moos_depth_21_WR)
+setDT(moos.2021.q.dt)
+
+moos.2021.q.dt$datetimeAK1 <- moos.2021.q.dt$datetimeAK
+
+setkey( moos.2021.q.dt, datetimeAK )
+setkey( Moos_depth_21_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_moos21 <- moos.2021.q.dt[ Moos_depth_21_WR, roll = "nearest" ]
+
+rounded.dates_moos21_WR_Q <- rounded.dates_moos21 %>%rename(discharge = Q) %>% 
+  select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_moos21_WR_Q$meanDepth <- rounded.dates_moos21_WR_Q$meanDepth /100
+
+moos_pt_wr_graph <- ggplot(rounded.dates_moos21_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+moos_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/moos_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+moos21_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_moos21_WR_Q)
+
+summary(moos21_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_moos21_WR_Q)
+# abline(moos21_depth_mod)
+
+#extract slope of model and develop rating curve
+moos.2021.q.dt$RatingCurveDepth <- moos21_depth_mod$coefficients[1]+(moos21_depth_mod$coefficients[2])*moos.2021.q.dt$Q
+
+
+######
+#MY METHOD
+
+
+
+# Poke 2021:
+
+#download flowmeter data
+WR_21.url <- "https://drive.google.com/drive/u/1/folders/18z6vSz6SE3DEvUVDyfM8I3gqkGaxQqOl"
+WR.21.1 <- drive_get(as_id(WR_21.url))
+poke.wr21_glist <- drive_ls(WR.21.1, pattern = "R_Flowmeter Q calculation_POKE_for_R_JAA_2021.csv")
+walk(poke.wr21_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+poke_WR_21.Data <- read.csv("R_Flowmeter Q calculation_POKE_for_R_JAA_2021.csv",
+                             header = TRUE, na.strings=c("","NA","blank")) %>% rename(Date = ï..Date)
+
+poke_WR_21.Data <- poke_WR_21.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+poke_WR_21.Data <- poke_WR_21.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+
+poke_WR_21.Data$datetimeAK <- as.POSIXct(paste(as.character(poke_WR_21.Data$Date), poke_WR_21.Data$Time), format="%y%m%d %H:%M")
+
+
+
+poke_WR_21.Data <- poke_WR_21.Data %>%
+  select(Depth..cm., datetimeAK)
+
+Poke_depth_21_WR <- ddply(na.omit(poke_WR_21.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+
+# poke_wr.lm <- lm(meanDepth~datetimeAK, Poke_depth_21)
+
+
+Poke_depth_21_WR <- setDT(Poke_depth_21_WR)
+
+Poke_depth_21_WR <- Poke_depth_21_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# poke.2021.pt <- poke.2021.pt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+
+
+
+
+# poke.2021.pt <- poke.2021.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2021-08-26 02:00:00" & datetimeAK <= "2021-09-08 12:15:00", NA, .)))
+
+
+
+poke.2021.q.dt <- POKE.2021.Q
+poke.2021.q.dt <- poke.2021.q.dt %>%
+dplyr::rename(datetimeAK = DateTime)
+
+setDT(Poke_depth_21_WR)
+setDT(poke.2021.q.dt)
+
+poke.2021.q.dt$datetimeAK1 <- poke.2021.q.dt$datetimeAK
+
+setkey( poke.2021.q.dt, datetimeAK )
+setkey( Poke_depth_21_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_poke21 <- poke.2021.q.dt[ Poke_depth_21_WR, roll = "nearest" ]
+
+rounded.dates_poke21_WR_Q <- rounded.dates_poke21 %>% rename(discharge = Q) %>% 
+  select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_poke21_WR_Q$meanDepth <- rounded.dates_poke21_WR_Q$meanDepth /100
+
+poke_pt_wr_graph <- ggplot(rounded.dates_poke21_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+poke_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/poke_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+poke21_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_poke21_WR_Q)
+
+summary(poke21_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_poke21_WR_Q)
+# abline(poke21_depth_mod)
+
+#extract slope of model and develop rating curve
+poke.2021.q.dt$RatingCurveDepth <- poke21_depth_mod$coefficients[1]+(poke21_depth_mod$coefficients[2])*poke.2021.q.dt$Q
+
+ 
+
+
+
+
+###### 2022 ####
+
+
+#MY METHOD
+
+
+
+# Vaul 2022:
+
+#download flowmeter data
+WR_22.url <- "https://drive.google.com/drive/u/1/folders/1oFozpmOtrb9URjhymcGOi1wkZJvOm4Ej"
+WR.22.1 <- drive_get(as_id(WR_22.url))
+vaul.wr22_glist <- drive_ls(WR.22.1, pattern = "R_Flowmeter Q calculation_VAUL_for_R_JAA_2022.csv")
+walk(vaul.wr22_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+vaul_WR_22.Data <- read.csv("R_Flowmeter Q calculation_VAUL_for_R_JAA_2022.csv",
+                             header = TRUE, na.strings=c("","NA","blank"))
+
+vaul_WR_22.Data <- vaul_WR_22.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+vaul_WR_22.Data <- vaul_WR_22.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+
+vaul_WR_22.Data$datetimeAK <- as.POSIXct(paste(as.character(vaul_WR_22.Data$Date), vaul_WR_22.Data$Time), format="%y%m%d %H:%M")
+
+
+vaul_WR_22.Data <- vaul_WR_22.Data %>%
+  select(Depth..cm., datetimeAK)
+
+Vaul_depth_22_WR <- ddply(na.omit(vaul_WR_22.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+
+# vaul_wr.lm <- lm(meanDepth~datetimeAK, Vaul_depth_22)
+
+
+Vaul_depth_22_WR <- setDT(Vaul_depth_22_WR)
+
+Vaul_depth_22_WR <- Vaul_depth_22_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# vaul.2022.pt <- vaul.2022.pt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+
+# vaul.2022.pt <- vaul.2022.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2022-08-26 02:00:00" & datetimeAK <= "2022-09-08 12:15:00", NA, .)))
+
+
+
+vaul.2022.q.dt <- VAUL.2022.Q
+vaul.2022.q.dt <- vaul.2022.q.dt %>%
+dplyr::rename(datetimeAK = DateTime)
+
+
+setDT(Vaul_depth_22_WR)
+setDT(vaul.2022.q.dt)
+
+vaul.2022.q.dt$datetimeAK1 <- vaul.2022.q.dt$datetimeAK
+
+setkey( vaul.2022.q.dt, datetimeAK )
+setkey( Vaul_depth_22_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_vaul22 <- vaul.2022.q.dt[ Vaul_depth_22_WR, roll = "nearest" ]
+
+rounded.dates_vaul22_WR_Q <- rounded.dates_vaul22 %>% rename(discharge = Q) %>% 
+  select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_vaul22_WR_Q$meanDepth <- rounded.dates_vaul22_WR_Q$meanDepth /100
+
+vaul_pt_wr_graph <- ggplot(rounded.dates_vaul22_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+vaul_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/vaul_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+vaul22_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_vaul22_WR_Q)
+
+summary(vaul22_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_vaul22_WR_Q)
+# abline(vaul22_depth_mod)
+
+#extract slope of model and develop rating curve
+vaul.2022.q.dt$RatingCurveDepth <- vaul22_depth_mod$coefficients[1]+(vaul22_depth_mod$coefficients[2])*vaul.2022.q.dt$Q
+
+
+######
+
+
+# Strt 2022:
+
+#download flowmeter data
+WR_22.url <- "https://drive.google.com/drive/u/1/folders/1PU_4MoogKBZTwHWnwMeSBw_0bKW67q6J"
+WR.22.1 <- drive_get(as_id(WR_22.url))
+strt.wr22_glist <- drive_ls(WR.22.1, pattern = "R_Flowmeter Q calculation_STRT _for_R_JAA_2022.csv")
+walk(strt.wr22_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+strt_WR_22.Data <- read.csv("R_Flowmeter Q calculation_STRT _for_R_JAA_2022.csv",
+                            header = TRUE, na.strings=c("","NA","blank"))
+
+strt_WR_22.Data <- strt_WR_22.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+strt_WR_22.Data <- strt_WR_22.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+
+
+strt_WR_22.Data$datetimeAK <- as.POSIXct(paste(as.character(strt_WR_22.Data$Date), strt_WR_22.Data$Time), format="%y%m%d %H:%M")
+
+
+
+strt_WR_22.Data <- strt_WR_22.Data %>%
+  select(Depth..cm., datetimeAK)
+
+Strt_depth_22_WR <- ddply(na.omit(strt_WR_22.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+
+# strt_wr.lm <- lm(meanDepth~datetimeAK, Strt_depth_22)
+
+
+Strt_depth_22_WR <- setDT(Strt_depth_22_WR)
+
+Strt_depth_22_WR <- Strt_depth_22_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# strt.2022.pt <- strt.2022.pt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+
+
+# strt.2022.pt <- strt.2022.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2022-08-26 02:00:00" & datetimeAK <= "2022-09-08 12:15:00", NA, .)))
+
+
+
+strt.2022.q.dt <- STRT.2022.Q
+strt.2022.q.dt <- strt.2022.q.dt %>%
+dplyr::rename(datetimeAK = DateTime)
+
+setDT(Strt_depth_22_WR)
+setDT(strt.2022.q.dt)
+
+strt.2022.q.dt$datetimeAK1 <- strt.2022.q.dt$datetimeAK
+
+setkey( strt.2022.q.dt, datetimeAK )
+setkey( Strt_depth_22_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_strt22 <- strt.2022.q.dt[ Strt_depth_22_WR, roll = "nearest" ]
+
+rounded.dates_strt22_WR_Q <- rounded.dates_strt22 %>% rename(discharge = Q) %>% 
+  select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_strt22_WR_Q$meanDepth <- rounded.dates_strt22_WR_Q$meanDepth /100
+
+strt_pt_wr_graph <- ggplot(rounded.dates_strt22_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+strt_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/strt_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+strt22_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_strt22_WR_Q)
+
+summary(strt22_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_strt22_WR_Q)
+# abline(strt22_depth_mod)
+
+#extract slope of model and develop rating curve
+strt.2022.q.dt$RatingCurveDepth <- strt22_depth_mod$coefficients[1]+(strt22_depth_mod$coefficients[2])*strt.2022.q.dt$Q
+
+
+######
+
+
+# Frch 2022:
+
+#download flowmeter data
+WR_22.url <- "https://drive.google.com/drive/u/1/folders/1kMafgFdmpQJhCry9zO_DVOKuUweOJG_3"
+WR.22.1 <- drive_get(as_id(WR_22.url))
+frch.wr22_glist <- drive_ls(WR.22.1, pattern = "R_flowmeter_Q_Calculation_FRCH_for_R_JAA_2022.csv")
+walk(frch.wr22_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+frch_WR_22.Data <- read.csv("R_flowmeter_Q_Calculation_FRCH_for_R_JAA_2022.csv",
+                          header = TRUE, na.strings=c("","NA","blank"))
+
+frch_WR_22.Data <- frch_WR_22.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+frch_WR_22.Data <- frch_WR_22.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+
+frch_WR_22.Data$datetimeAK <- as.POSIXct(paste(as.character(frch_WR_22.Data$Date), frch_WR_22.Data$Time), format="%y%m%d %H:%M")
+
+
+
+frch_WR_22.Data <- frch_WR_22.Data %>%
+  select(Depth..cm., datetimeAK)
+
+Frch_depth_22_WR <- ddply(na.omit(frch_WR_22.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+
+# frch_wr.lm <- lm(meanDepth~datetimeAK, Frch_depth_22)
+
+
+Frch_depth_22_WR <- setDT(Frch_depth_22_WR)
+
+Frch_depth_22_WR <- Frch_depth_22_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# frch.2022.pt <- frch.2022.pt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+
+
+# frch.2022.pt <- frch.2022.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2022-08-26 02:00:00" & datetimeAK <= "2022-09-08 12:15:00", NA, .)))
+
+
+
+frch.2022.q.dt <- FRCH.2022.Q
+frch.2022.q.dt <- frch.2022.q.dt %>%
+dplyr::rename(datetimeAK = DateTime)
+
+setDT(Frch_depth_22_WR)
+setDT(frch.2022.q.dt)
+
+frch.2022.q.dt$datetimeAK1 <- frch.2022.q.dt$datetimeAK
+
+setkey( frch.2022.q.dt, datetimeAK )
+setkey( Frch_depth_22_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_frch22 <- frch.2022.q.dt[ Frch_depth_22_WR, roll = "nearest" ]
+
+rounded.dates_frch22_WR_Q <- rounded.dates_frch22 %>% rename(discharge = Q) %>% 
+  select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_frch22_WR_Q$meanDepth <- rounded.dates_frch22_WR_Q$meanDepth /100
+
+frch_pt_wr_graph <- ggplot(rounded.dates_frch22_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+frch_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/frch_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+frch22_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_frch22_WR_Q)
+
+summary(frch22_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_frch22_WR_Q)
+# abline(frch22_depth_mod)
+
+#extract slope of model and develop rating curve
+frch.2022.q.dt$RatingCurveDepth <- frch22_depth_mod$coefficients[1]+(frch22_depth_mod$coefficients[2])*frch.2022.q.dt$Q
+
+
+######
+
+
+
+# Moos 2022:
+
+#download flowmeter data
+WR_22.url <- "https://drive.google.com/drive/u/1/folders/1Bn_Qqd_MHQuM4Jz7CpQCQEjqwuVTVJLW"
+WR.22.1 <- drive_get(as_id(WR_22.url))
+moos.wr22_glist <- drive_ls(WR.22.1, pattern = "R_flowmeter_Q_Calculation_MOOS_for_R_JAA_2022.csv")
+walk(moos.wr22_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+moos_WR_22.Data <- read.csv("R_flowmeter_Q_Calculation_MOOS_for_R_JAA_2022.csv",
+                            header = TRUE, na.strings=c("","NA","blank"))
+
+moos_WR_22.Data <- moos_WR_22.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+moos_WR_22.Data <- moos_WR_22.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+
+
+moos_WR_22.Data$datetimeAK <- as.POSIXct(paste(as.character(moos_WR_22.Data$Date), moos_WR_22.Data$Time), format="%y%m%d %H:%M")
+
+
+moos_WR_22.Data <- moos_WR_22.Data %>%
+  select(Depth..cm., datetimeAK)
+
+Moos_depth_22_WR <- ddply(na.omit(moos_WR_22.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+
+# moos_wr.lm <- lm(meanDepth~datetimeAK, Moos_depth_22)
+
+
+Moos_depth_22_WR <- setDT(Moos_depth_22_WR)
+
+Moos_depth_22_WR <- Moos_depth_22_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# moos.2022.pt <- moos.2022.pt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+
+
+
+
+# moos.2022.pt <- moos.2022.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2022-08-26 02:00:00" & datetimeAK <= "2022-09-08 12:15:00", NA, .)))
+
+
+
+moos.2022.q.dt <- MOOS.2022.Q
+moos.2022.q.dt <- moos.2022.q.dt %>%
+dplyr::rename(datetimeAK = DateTime)
+
+
+setDT(Moos_depth_22_WR)
+setDT(moos.2022.q.dt)
+
+moos.2022.q.dt$datetimeAK1 <- moos.2022.q.dt$datetimeAK
+
+setkey( moos.2022.q.dt, datetimeAK )
+setkey( Moos_depth_22_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_moos22 <- moos.2022.q.dt[ Moos_depth_22_WR, roll = "nearest" ]
+
+rounded.dates_moos22_WR_Q <- rounded.dates_moos22 %>%rename(discharge = Q) %>% 
+  select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_moos22_WR_Q$meanDepth <- rounded.dates_moos22_WR_Q$meanDepth /100
+
+moos_pt_wr_graph <- ggplot(rounded.dates_moos22_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+moos_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/moos_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+moos22_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_moos22_WR_Q)
+
+summary(moos22_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_moos22_WR_Q)
+# abline(moos22_depth_mod)
+
+#extract slope of model and develop rating curve
+moos.2022.q.dt$RatingCurveDepth <- moos22_depth_mod$coefficients[1]+(moos22_depth_mod$coefficients[2])*moos.2022.q.dt$Q
+
+
+######
+#MY METHOD
+
+
+
+# Poke 2022:
+
+#download flowmeter data
+WR_22.url <- "https://drive.google.com/drive/u/1/folders/1ieT9Qo9eMw84zGff5VviAh0wp3P9Z37A"
+WR.22.1 <- drive_get(as_id(WR_22.url))
+poke.wr22_glist <- drive_ls(WR.22.1, pattern = "R_Flowmeter Q calculation_POKE_for_R_JAA_2022.csv")
+walk(poke.wr22_glist$id, ~ drive_download(as_id(.x), overwrite = TRUE))
+poke_WR_22.Data <- read.csv("R_Flowmeter Q calculation_POKE_for_R_JAA_2022.csv",
+                             header = TRUE, na.strings=c("","NA","blank"))
+
+poke_WR_22.Data <- poke_WR_22.Data %>% tidyr::fill(Date, .direction = ("down"))
+
+poke_WR_22.Data <- poke_WR_22.Data %>% tidyr::fill(Time, .direction = ("down"))
+
+
+poke_WR_22.Data$datetimeAK <- as.POSIXct(paste(as.character(poke_WR_22.Data$Date), poke_WR_22.Data$Time), format="%y%m%d %H:%M")
+
+
+
+poke_WR_22.Data <- poke_WR_22.Data %>%
+  select(Depth..cm., datetimeAK)
+
+Poke_depth_22_WR <- ddply(na.omit(poke_WR_22.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+
+# poke_wr.lm <- lm(meanDepth~datetimeAK, Poke_depth_22)
+
+
+Poke_depth_22_WR <- setDT(Poke_depth_22_WR)
+
+Poke_depth_22_WR <- Poke_depth_22_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# poke.2022.pt <- poke.2022.pt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+
+
+
+# poke.2022.pt <- poke.2022.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2022-08-26 02:00:00" & datetimeAK <= "2022-09-08 12:15:00", NA, .)))
+
+
+
+poke.2022.q.dt <- POKE.2022.Q
+poke.2022.q.dt <- poke.2022.q.dt %>%
+dplyr::rename(datetimeAK = DateTime)
+
+setDT(Poke_depth_22_WR)
+setDT(poke.2022.q.dt)
+
+poke.2022.q.dt$datetimeAK1 <- poke.2022.q.dt$datetimeAK
+
+setkey( poke.2022.q.dt, datetimeAK )
+setkey( Poke_depth_22_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_poke22 <- poke.2022.q.dt[ Poke_depth_22_WR, roll = "nearest" ]
+
+rounded.dates_poke22_WR_Q <- rounded.dates_poke22 %>% rename(discharge = Q) %>% 
+  select(datetimeAK, discharge, meanDepth)
+
+#convert to meters
+rounded.dates_poke22_WR_Q$meanDepth <- rounded.dates_poke22_WR_Q$meanDepth /100
+
+poke_pt_wr_graph <- ggplot(rounded.dates_poke22_WR_Q, aes(discharge, meanDepth)) +
+  geom_point()
+# Add regression line
+poke_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/poke_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+poke22_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_poke22_WR_Q)
+
+summary(poke22_depth_mod)
+
+plot(meanDepth~discharge, data = rounded.dates_poke22_WR_Q)
+# abline(poke22_depth_mod)
+
+#extract slope of model and develop rating curve
+poke.2022.q.dt$RatingCurveDepth <- poke22_depth_mod$coefficients[1]+(poke22_depth_mod$coefficients[2])*poke.2022.q.dt$Q
+
+
+######
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### combine ####
+
+poke.2019.depth <- poke.2019.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+poke.2020.depth <- poke.2020.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+poke.2021.depth <- poke.2021.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+poke.2022.depth <- poke.2022.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+poke.depth <- rbind (poke.2019.depth, poke.2020.depth, poke.2021.depth, poke.2022.depth)
+
+poke.depth = poke.depth[-1,]
+
+
+vaul.2019.depth <- vaul.2019.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+vaul.2020.depth <- vaul.2020.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+vaul.2020.depth <- vaul.2020.depth %>% filter(datetimeAK <= "2020-10-14 03:45:00")
+
+vaul.2021.depth <- vaul.2021.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+vaul.2022.depth <- vaul.2022.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+vaul.depth <- rbind (vaul.2019.depth, vaul.2020.depth, vaul.2021.depth, vaul.2022.depth)
+
+
+
+moos.2019.depth <- moos.2019.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+moos.2020.depth <- moos.2020.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+moos.2020.depth <- moos.2020.depth %>% filter(datetimeAK <= "2020-10-15 08:45:00")
+
+
+
+moos.2021.depth <- moos.2021.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+moos.2022.depth <- moos.2022.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+moos.depth <- rbind (moos.2019.depth, moos.2020.depth, moos.2021.depth, moos.2022.depth)
+
+
+
+
+frch.2019.depth <- frch.2019.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+frch.2020.depth <- frch.2020.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+frch.2020.depth <- frch.2020.depth %>% filter(datetimeAK >= "2020-01-01 00:00:00" & datetimeAK <= "2020-10-15 02:30:00")
+
+frch.2021.depth <- frch.2021.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+frch.2022.depth <- frch.2022.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+frch.depth <- rbind (frch.2019.depth, frch.2020.depth, frch.2021.depth, frch.2022.depth)
+
+
+
+strt.2019.depth <- strt.2019.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+strt.2020.depth <- strt.2020.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+strt.2020.depth <- strt.2020.depth %>% filter(datetimeAK <= "2020-10-13 06:30:00")
+
+strt.2021.depth <- strt.2021.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+strt.2022.depth <- strt.2022.q.dt %>%
+  select(RatingCurveDepth, datetimeAK)
+
+strt.depth <- rbind (strt.2019.depth, strt.2020.depth, strt.2021.depth, strt.2022.depth)
+
+
+
+```
+
+```{r}
+########################### INPUT SYNTHESIS AND PLOTS ####################
+
+# Make Figures with data 
+#Packages I think I might perhaps maybe need...
+library(ggpubr)
+library(anytime)
+library(googlesheets4)
+library(ggpmisc)
+library(plyr)
+
+library(dplyr)
+library(lubridate)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(scales)
+
+library(zoo)
+library(xts)
+library(forecast)
+library(googledrive)
+library(streamMetabolizer)
+library(readr)
+library(ggpubr)
+library(here)
+#start in DO stitch and other stitch scripts
+#run script 1 again if it does not work
+
+
+
+##### FRCH ####
+#DO and Temp Data
+All.years.frch.MESSY
+
+All.years.frch.MESSY <- All.years.frch.MESSY %>%
+  select(temp.water, ODO.Psat, ODO.Ploc, DO.obs, datetimeAK)
+
+All.years.frch.MESSY$datetimeAK <- as.POSIXct(All.years.frch.MESSY$datetimeAK)
+
+
+# DO SAT CALCS Summary
+All.years.frch.MESSY$DO.sat.EXO = All.years.frch.MESSY$DO.obs /(All.years.frch.MESSY$ODO.Psat/100)
+
+
+#discharge
+FRCH.ALL.Q <- FRCH.ALL.Q %>% rename(datetimeAK = DateTime)
+
+
+
+#already in AKDT
+FRCH.ALL.Q$datetimeAK <- as.POSIXct(FRCH.ALL.Q$datetimeAK)
+FRCH.ALL.Q <- FRCH.ALL.Q[order(as.Date(FRCH.ALL.Q$datetimeAK, format="%m/%d/%Y %H:%M")),]
+
+
+setDT(FRCH.ALL.Q)[, datetimeAK := datetimeAK[1L],
+                  by = cumsum(as.POSIXlt(datetimeAK, format = "%m/%d/%Y %H:%M")$min %% 15 == 0)]
+
+FRCH.ALL.Q <- aggregate(Q ~ datetimeAK, data=FRCH.ALL.Q, FUN=mean)
+
+FRCH.ALL.Q <- FRCH.ALL.Q %>% rename(discharge = Q)
+#air Pressure
+# frch.ap.data
+# 
+# frch.ap.data <- frch.ap.data %>%
+#   dplyr::rename(datetimeAK = DateTime)
+# 
+# frch.ap.data$datetimeAK <- as.POSIXct(frch.ap.data$datetimeAK)
+# 
+
+#light
+frch.combinded.par
+
+frch.combinded.par <- frch.combinded.par %>%
+  dplyr::rename(datetimeAK = DateTime)
+
+frch.combinded.par <- frch.combinded.par %>%
+  dplyr::rename(light = Calibrated.Value)
+
+frch.combinded.par$datetimeAK <- as.POSIXct(frch.combinded.par$datetimeAK)
+
+
+#depth rating curve
+frch.depth
+
+frch.depth <- frch.depth %>%
+  dplyr::rename(depth = RatingCurveDepth)
+
+frch.depth$datetimeAK <- as.POSIXct(frch.depth$datetimeAK)
+
+setDT(frch.depth)[, datetimeAK := datetimeAK[1L],
+                  by = cumsum(as.POSIXlt(datetimeAK, format = "%m/%d/%Y %H:%M")$min %% 15 == 0)]
+
+frch.depth <- aggregate(depth ~ datetimeAK, data=frch.depth, FUN=mean)
+
+
+#Combine
+
+FRCH.comb <- merge(All.years.frch.MESSY, na.omit(FRCH.ALL.Q), 
+                   # frch.depth, frch.combinded.par,frch.ap.data, 
+                   by = "datetimeAK", all = TRUE)
+
+FRCH.comb <- merge(FRCH.comb, frch.depth,
+                   # frch.combinded.par,frch.ap.data, 
+                   by = "datetimeAK", all = TRUE)
+FRCH.comb <- merge(FRCH.comb, frch.combinded.par,
+                   # frch.ap.data, 
+                   by = "datetimeAK", all = TRUE)
+
+# FRCH.comb$DO.sat <- calc_DO_sat(FRCH.comb$temp.water, FRCH.comb$air.pressure.mbar, model = "garcia-benson")
+
+
+
+
+FRCH.comb$solar.time <- calc_solar_time(FRCH.comb$datetimeAK,-146.915323)
+
+FRCH.comb <- distinct(FRCH.comb)
+
+FRCH.comb
+
+
+# #remove outliers (find a better way to do this)
+# FRCH.comb <- FRCH.comb[-c(23773,23774)]
+# FRCH.comb <- FRCH.comb[-c(29660)]
+# FRCH.comb <- FRCH.comb[-c(25015,25016,25017)]
+
+FRCH.comb$DO.sat <- FRCH.comb$DO.sat.EXO
+
+
+
+
+here()
+
+write.csv(FRCH.comb, here("outputs", "frch.comb.csv"))
+
+# ALL YEARS
+frch.plot1 <- FRCH.comb %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "French ODO, 2019 - 2021")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge='m^3/sec')
+frchPlot2 <- FRCH.comb %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge', 'air.pressure.mbar')),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/FRCH_comb_2019-2021.pdf", height= 8.5)
+ggarrange(frch.plot1, frchPlot2, ncol = 1, nrow = 2)
+dev.off()
+
+
+#2019
+
+#
+frch.plot1.19 <- FRCH.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "French ODO, 2019")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+frchPlot2.19 <- FRCH.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge', 'air.pressure.mbar')),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/FRCH_comb.2019.pdf", height= 8.5)
+ggarrange(frch.plot1.19, frchPlot2.19, ncol = 1, nrow = 2)
+dev.off()
+
+#2020
+
+#
+frch.plot1.20 <- FRCH.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "French ODO, 2020")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+frchPlot2.20 <- FRCH.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>%
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light', 'discharge', 'air.pressure.mbar')),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/FRCH_comb.2020.pdf", height= 8.5)
+ggarrange(frch.plot1.20, frchPlot2.20, ncol = 1, nrow = 2)
+dev.off()
+
+#2021
+
+#
+frch.plot1.21 <- FRCH.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "French ODO, 2121")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+frchPlot2.21 <- FRCH.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge', "air.pressure.mbar")),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/FRCH_comb.2021.pdf", height= 8.5)
+ggarrange(frch.plot1.21, frchPlot2.21, ncol = 1, nrow = 2)
+dev.off()
+
+
+
+#2022
+
+#
+frch.plot1.22 <- FRCH.comb %>% filter(datetimeAK >= "2022-01-01 00:00:00") %>% filter(datetimeAK <= "2023-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "French ODO, 2222")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+frchPlot2.22 <- FRCH.comb %>% filter(datetimeAK >= "2022-01-01 00:00:00") %>% filter(datetimeAK <= "2023-01-01 00:00:00") %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge')),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/FRCH_comb.2022.pdf", height= 8.5)
+ggarrange(frch.plot1.22, frchPlot2.22, ncol = 1, nrow = 2)
+dev.off()
+
+
+
+#MOOS
+#DO and Temp Data
+All.years.moos.MESSY
+
+All.years.moos.MESSY <- All.years.moos.MESSY %>%
+  select(temp.water, ODO.Psat, ODO.Ploc, DO.obs, datetimeAK)
+
+All.years.moos.MESSY$datetimeAK <- as.POSIXct(All.years.moos.MESSY$datetimeAK)
+
+#discharge
+MOOS.ALL.Q
+
+MOOS.ALL.Q <- MOOS.ALL.Q %>% rename(datetimeAK = DateTime)
+
+MOOS.ALL.Q$datetimeAK <- as.POSIXct(MOOS.ALL.Q$datetimeAK)
+
+setDT(MOOS.ALL.Q)[, datetimeAK := datetimeAK[1L], 
+                  by = cumsum(as.POSIXlt(datetimeAK, format = "%m/%d/%Y %H:%M")$min %% 15 == 0)]
+
+MOOS.ALL.Q <- aggregate(Q ~ datetimeAK, data=MOOS.ALL.Q, FUN=mean)
+
+MOOS.ALL.Q <- MOOS.ALL.Q %>%
+  dplyr::rename(discharge = Q)
+
+# #air Pressure
+# moos.ap.data
+# 
+# moos.ap.data <- moos.ap.data %>%
+#   dplyr::rename(datetimeAK = DateTime)
+# 
+# moos.ap.data$datetimeAK <- as.POSIXct(moos.ap.data$datetimeAK)
+
+
+#light
+moos.combinded.par
+
+moos.combinded.par <- moos.combinded.par %>%
+  dplyr::rename(datetimeAK = DateTime)
+
+moos.combinded.par <- moos.combinded.par %>%
+  dplyr::rename(light = Calibrated.Value)
+
+moos.combinded.par$datetimeAK <- as.POSIXct(moos.combinded.par$datetimeAK)
+
+
+#depth rating curve
+moos.depth
+
+moos.depth <- moos.depth %>%
+  dplyr::rename(depth = RatingCurveDepth)
+
+moos.depth$datetimeAK <- as.POSIXct(moos.depth$datetimeAK)
+
+setDT(moos.depth)[, datetimeAK := datetimeAK[1L], 
+                  by = cumsum(as.POSIXlt(datetimeAK, format = "%m/%d/%Y %H:%M")$min %% 15 == 0)]
+
+moos.depth <- aggregate(depth ~ datetimeAK, data=moos.depth, FUN=mean)
+
+
+#Combine
+
+MOOS.comb <- merge(All.years.moos.MESSY, MOOS.ALL.Q, 
+                   # moos.depth, moos.combinded.par,moos.ap.data, 
+                   by = "datetimeAK", all = TRUE)
+MOOS.comb <- merge(MOOS.comb, moos.depth,
+                   # moos.combinded.par,moos.ap.data, 
+                   by = "datetimeAK", all = TRUE)
+MOOS.comb <- merge(MOOS.comb, moos.combinded.par,
+                   # moos.ap.data, 
+                   by = "datetimeAK", all = TRUE)
+
+# DO SAT CALCS Summary
+MOOS.comb$DO.sat.EXO = MOOS.comb$DO.obs /(MOOS.comb$ODO.Psat/100)
+
+MOOS.comb$solar.time <- calc_solar_time(MOOS.comb$datetimeAK,-146.915323)
+
+MOOS.comb <- distinct(MOOS.comb)
+
+write.csv(MOOS.comb, here("outputs", "moos.comb.csv"))
+
+# ALL YEARS
+moos.plot1 <- MOOS.comb %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Moose ODO, 2019 - 2021")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge='m^3/sec')
+moosPlot2 <- MOOS.comb %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge', 'air.pressure.mbar')),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/MOOS_comb_2019-2021.pdf", height= 8.5)
+ggarrange(moos.plot1, moosPlot2, ncol = 1, nrow = 2)
+dev.off()
+
+
+#2019
+
+#
+moos.plot1.19 <- MOOS.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Moose ODO, 2019")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+moosPlot2.19 <- MOOS.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge', 'air.pressure.mbar')),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/MOOS_comb.2019.pdf", height= 8.5)
+ggarrange(moos.plot1.19, moosPlot2.19, ncol = 1, nrow = 2)
+dev.off()
+
+#2020
+
+#
+moos.plot1.20 <- MOOS.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Moose ODO, 2020")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+moosPlot2.20 <- MOOS.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>%
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light', 'discharge', 'air.pressure.mbar')),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/MOOS_comb.2020.pdf", height= 8.5)
+ggarrange(moos.plot1.20, moosPlot2.20, ncol = 1, nrow = 2)
+dev.off()
+
+#2021
+
+#
+moos.plot1.21 <- MOOS.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Moose ODO, 2021")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+moosPlot2.21 <- MOOS.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge', "air.pressure.mbar")),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/MOOS_comb.2021.pdf", height= 8.5)
+ggarrange(moos.plot1.21, moosPlot2.21, ncol = 1, nrow = 2)
+dev.off()
+
+
+
+#2022
+
+#
+moos.plot1.22 <- MOOS.comb %>% filter(datetimeAK >= "2022-01-01 00:00:00") %>% filter(datetimeAK <= "2023-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Moose ODO, 2022")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+moosPlot2.22 <- MOOS.comb %>% filter(datetimeAK >= "2022-01-01 00:00:00") %>% filter(datetimeAK <= "2023-01-01 00:00:00") %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge', "air.pressure.mbar")),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/MOOS_comb.2022.pdf", height= 8.5)
+ggarrange(moos.plot1.22, moosPlot2.22, ncol = 1, nrow = 2)
+dev.off()
+
+
+
+
+
+##### STRT ####
+
+#STRT
+#DO and Temp Data
+All.years.strt.MESSY
+
+All.years.strt.MESSY <- All.years.strt.MESSY %>%
+  select(temp.water, ODO.Psat, ODO.Ploc, DO.obs, datetimeAK)
+
+All.years.strt.MESSY$datetimeAK <- as.POSIXct(All.years.strt.MESSY$datetimeAK)
+
+#discharge
+STRT.ALL.Q
+
+STRT.ALL.Q <- STRT.ALL.Q %>% rename(datetimeAK = DateTime)
+# 
+# STRT.ALL.Q <- STRT.ALL.Q %>%
+#   dplyr::rename(Q = discharge)
+
+
+STRT.ALL.Q$datetimeAK <- as.POSIXct(STRT.ALL.Q$datetimeAK)
+
+# setDT(STRT.ALL.Q)[, datetimeAK := datetimeAK[1L], 
+#                   by = cumsum(as.POSIXlt(datetimeAK, format = "%m/%d/%Y %H:%M")$min %% 15 == 0)]
+
+STRT.ALL.Q <- dplyr::mutate(STRT.ALL.Q, t2 = cut.POSIXt(x = datetimeAK, breaks = "15 mins")) %>% 
+  dplyr::group_by(t2) %>% 
+  dplyr::summarise(am = mean(Q, na.rm = T))
+
+STRT.ALL.Q <- STRT.ALL.Q %>%
+  dplyr::rename(datetimeAK = t2)
+
+STRT.ALL.Q <- STRT.ALL.Q %>%
+  dplyr::rename(Q = am)
+
+STRT.ALL.Q <- aggregate(Q ~ datetimeAK, data=STRT.ALL.Q, FUN=mean)
+
+STRT.ALL.Q <- STRT.ALL.Q %>%
+  dplyr::rename(discharge = Q)
+
+
+STRT.ALL.Q$datetimeAK <- as.POSIXct(STRT.ALL.Q$datetimeAK)
+
+#air Pressure
+# strt.ap.data
+# 
+# # strt.ap.data <- strt.ap.data %>%
+#   # dplyr::rename(datetimeAK = DateTime)
+# 
+# strt.ap.data$datetimeAK <- as.POSIXct(strt.ap.data$datetimeAK)
+# 
+
+#light
+strt.combinded.par
+
+strt.combinded.par <- strt.combinded.par %>%
+  dplyr::rename(datetimeAK = DateTime)
+
+strt.combinded.par <- strt.combinded.par %>%
+  dplyr::rename(light = Calibrated.Value)
+
+strt.combinded.par$datetimeAK <- as.POSIXct(strt.combinded.par$datetimeAK)
+
+strt.combinded.par$datetimeAK <- lubridate::round_date(strt.combinded.par$datetimeAK, "15 minutes") 
+
+
+
+#depth rating curve
+strt.depth <- strt.depth %>% filter(datetimeAK >= "2019-05-21 14:45:00")
+
+
+strt.depth <- strt.depth %>%
+  dplyr::rename(depth = RatingCurveDepth)
+
+strt.depth$datetimeAK <- as.POSIXct(strt.depth$datetimeAK)
+
+setDT(strt.depth)[, datetimeAK := datetimeAK[1L], 
+                  by = cumsum(as.POSIXlt(datetimeAK, format = "%m/%d/%Y %H:%M")$min %% 15 == 0)]
+
+strt.depth <- aggregate(depth ~ datetimeAK, data=strt.depth, FUN=mean)
+
+
+#Combine
+
+STRT.comb <- merge(All.years.strt.MESSY, STRT.ALL.Q, 
+                   # strt.depth, strt.combinded.par,strt.ap.data, 
+                   by = "datetimeAK", all = TRUE)
+STRT.comb <- merge(STRT.comb, strt.depth,
+                   # strt.combinded.par,strt.ap.data, 
+                   by = "datetimeAK", all = TRUE)
+STRT.comb <- merge(STRT.comb, strt.combinded.par,
+                   # strt.ap.data, 
+                   by = "datetimeAK", all = TRUE)
+
+# test1 <- strt.ap.data[-c(1)]
+# 
+# STRT.comb <- merge(STRT.comb, test1,
+#                    # , 
+#                    by = "datetimeAK", all = TRUE)
+
+
+# DO SAT CALCS Summary
+STRT.comb$DO.sat.EXO = STRT.comb$DO.obs /(STRT.comb$ODO.Psat/100)
+
+STRT.comb$datetimeAK <- as.POSIXct(STRT.comb$datetimeAK) 
+
+STRT.comb$solar.time <- calc_solar_time(STRT.comb$datetimeAK,-146.915323)
+
+STRT.comb$light[STRT.comb$datetimeAK >= '2019-08-23 14:15:00' & STRT.comb$datetimeAK <= '2019-09-17 12:00:00'] <- NA
+
+STRT.comb$datetimeAK <- as.character(STRT.comb$datetimeAK)
+
+
+light2020formax <- STRT.comb %>% filter(datetimeAK >= '2020-00-00 14:15:00' & datetimeAK <= '2021-00-00 00:00:00')
+max(light2020formax$light, na.rm = TRUE)
+
+light2021formax <- STRT.comb %>% filter(STRT.comb$datetimeAK >= '2021-00-00 14:15:00' & STRT.comb$datetimeAK <= '2022-00-00 00:00:00')
+max(light2021formax$light, na.rm = TRUE)
+
+
+
+STRT.comb$modeled.light <- calc_light(STRT.comb$solar.time, 64.754280, -146.477647, max.PAR = 1932.084)
+
+
+# STRT.comb$light[STRT.comb$datetimeAK >= '2019-08-23 14:15:00' & STRT.comb$datetimeAK <= '2019-09-17 12:00:00'] <- STRT.comb$modeled.light
+
+
+STRT.comb.fill.light <- STRT.comb %>% filter(STRT.comb$datetimeAK >= '2019-08-23 14:15:00' & STRT.comb$datetimeAK <= '2019-09-17 12:00:00') %>% 
+  mutate(light = coalesce(light,modeled.light))
+
+
+STRT.comb.1 <- STRT.comb %>% filter(STRT.comb$datetimeAK < '2019-08-23 14:15:00')
+
+STRT.comb.3 <- STRT.comb %>% filter(STRT.comb$datetimeAK > '2019-09-17 12:00:00')
+
+STRT.comb <- rbind(STRT.comb.1, STRT.comb.fill.light, STRT.comb.3)
+
+
+
+STRT.comb <- distinct(STRT.comb)
+
+getwd()
+write.csv(STRT.comb, here("outputs", "strt.comb.csv"))
+
+
+# ALL YEARS
+strt.plot1 <- STRT.comb %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Stuart ODO, 2019 - 2021")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge='m^3/sec')
+strtPlot2 <- STRT.comb %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge', 'air.pressure.mbar')),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/STRT_comb_2019-2021.pdf", height= 8.5)
+ggarrange(strt.plot1, strtPlot2, ncol = 1, nrow = 2)
+dev.off()
+
+
+#2019
+
+#
+strt.plot1.19 <- STRT.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Stuart ODO, 2019")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+strtPlot2.19 <- STRT.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge', 'air.pressure.mbar')),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/STRT_comb.2019.pdf", height= 8.5)
+ggarrange(strt.plot1.19, strtPlot2.19, ncol = 1, nrow = 2)
+dev.off()
+
+#2020
+
+#
+strt.plot1.20 <- STRT.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Stuart ODO, 2020")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+strtPlot2.20 <- STRT.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>%
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light', 'discharge', 'air.pressure.mbar')),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/STRT_comb.2020.pdf", height= 8.5)
+ggarrange(strt.plot1.20, strtPlot2.20, ncol = 1, nrow = 2)
+dev.off()
+
+#2021
+
+#
+strt.plot1.21 <- STRT.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Stuart ODO, 2021")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+strtPlot2.21 <- STRT.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge', "air.pressure.mbar")),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/STRT_comb.2021.pdf", height= 8.5)
+ggarrange(strt.plot1.21, strtPlot2.21, ncol = 1, nrow = 2)
+dev.off()
+
+#2022
+
+#
+strt.plot1.22 <- STRT.comb %>% filter(datetimeAK >= "2022-01-01 00:00:00") %>% filter(datetimeAK <= "2023-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Stuart ODO, 2022")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+strtPlot2.22 <- STRT.comb %>% filter(datetimeAK >= "2022-01-01 00:00:00") %>% filter(datetimeAK <= "2023-01-01 00:00:00") %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge', "air.pressure.mbar")),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/STRT_comb.2022.pdf", height= 8.5)
+ggarrange(strt.plot1.22, strtPlot2.22, ncol = 1, nrow = 2)
+dev.off()
+
+
+##### POKE ####
+
+#POKE
+#DO and Temp Data
+All.years.poke.MESSY
+
+All.years.poke.MESSY <- All.years.poke.MESSY %>%
+  select(temp.water, ODO.Psat, ODO.Ploc, DO.obs, datetimeAK)
+
+All.years.poke.MESSY$datetimeAK <- as.POSIXct(All.years.poke.MESSY$datetimeAK)
+
+#discharge
+POKE.ALL.Q
+
+POKE.ALL.Q <- POKE.ALL.Q %>% rename(datetimeAK = DateTime)
+
+
+
+POKE.ALL.Q$datetimeAK <- as.POSIXct(POKE.ALL.Q$datetimeAK)
+
+# setDT(POKE.ALL.Q)[, datetimeAK := datetimeAK[1L], 
+                  # by = cumsum(as.POSIXlt(datetimeAK, format = "%m/%d/%Y %H:%M")$min %% 15 == 0)]
+
+# POKE.ALL.Q <- aggregate(Q ~ datetimeAK, data=POKE.ALL.Q, FUN=mean)
+
+POKE.ALL.Q <- POKE.ALL.Q %>%
+  dplyr::rename(discharge = Q)
+
+# #air Pressure
+# poke.ap.data
+# 
+# poke.ap.data <- poke.ap.data %>%
+#   dplyr::rename(datetimeAK = DateTime)
+# 
+# poke.ap.data$datetimeAK <- as.POSIXct(poke.ap.data$datetimeAK)
+
+
+#light
+poke.combinded.par
+
+poke.combinded.par <- poke.combinded.par %>%
+  dplyr::rename(datetimeAK = DateTime)
+
+poke.combinded.par <- poke.combinded.par %>%
+  dplyr::rename(light = Calibrated.Value)
+
+poke.combinded.par$datetimeAK <- as.POSIXct(poke.combinded.par$datetimeAK)
+
+
+#depth rating curve
+poke.depth
+
+poke.depth <- poke.depth %>%
+  dplyr::rename(depth = RatingCurveDepth)
+
+poke.depth$datetimeAK <- as.POSIXct(poke.depth$datetimeAK)
+
+setDT(poke.depth)[, datetimeAK := datetimeAK[1L], 
+                  by = cumsum(as.POSIXlt(datetimeAK, format = "%m/%d/%Y %H:%M")$min %% 15 == 0)]
+
+poke.depth <- aggregate(depth ~ datetimeAK, data=poke.depth, FUN=mean)
+
+
+#Combine
+
+POKE.comb <- merge(All.years.poke.MESSY, POKE.ALL.Q, 
+                   # poke.depth, poke.combinded.par,poke.ap.data, 
+                   by = "datetimeAK", all = TRUE)
+POKE.comb <- merge(POKE.comb, poke.depth,
+                   # poke.combinded.par,poke.ap.data, 
+                   by = "datetimeAK", all = TRUE)
+POKE.comb <- merge(POKE.comb, poke.combinded.par,
+                   # poke.ap.data, 
+                   by = "datetimeAK", all = TRUE)
+# POKE.comb <- merge(POKE.comb, poke.ap.data,
+                   # , 
+                   # by = "datetimeAK", all = TRUE)
+
+# DO SAT CALCS Summary
+POKE.comb$DO.sat.EXO = POKE.comb$DO.obs /(POKE.comb$ODO.Psat/100)
+
+POKE.comb$solar.time <- calc_solar_time(POKE.comb$datetimeAK,-146.915323)
+
+POKE.comb <- distinct(POKE.comb)
+
+write.csv(POKE.comb, here("outputs", "poke.comb.csv"))
+
+# ALL YEARS
+poke.plot1 <- POKE.comb %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Poker ODO, 2019 - 2021")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge='m^3/sec')
+pokePlot2 <- POKE.comb %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge', 'air.pressure.mbar')),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/POKE_comb_2019-2021.pdf", height= 8.5)
+ggarrange(poke.plot1, pokePlot2, ncol = 1, nrow = 2)
+dev.off()
+
+
+#2019
+
+#
+poke.plot1.19 <- POKE.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Poker ODO, 2019")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+pokePlot2.19 <- POKE.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge', 'air.pressure.mbar')),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/POKE_comb.2019.pdf", height= 8.5)
+ggarrange(poke.plot1.19, pokePlot2.19, ncol = 1, nrow = 2)
+dev.off()
+
+#2020
+
+#
+poke.plot1.20 <- POKE.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Poker ODO, 2020")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+pokePlot2.20 <- POKE.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>%
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light', 'discharge', 'air.pressure.mbar')),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/POKE_comb.2020.pdf", height= 8.5)
+ggarrange(poke.plot1.20, pokePlot2.20, ncol = 1, nrow = 2)
+dev.off()
+
+#2021
+
+#
+poke.plot1.21 <- POKE.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Poker ODO, 2021")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+pokePlot2.21 <- POKE.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge', "air.pressure.mbar")),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/POKE_comb.2021.pdf", height= 8.5)
+ggarrange(poke.plot1.21, pokePlot2.21, ncol = 1, nrow = 2)
+dev.off()
+
+
+#2022
+
+#
+poke.plot1.22 <- POKE.comb %>% filter(datetimeAK >= "2022-01-01 00:00:00") %>% filter(datetimeAK <= "2023-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Poker ODO, 2022")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+pokePlot2.22 <- POKE.comb %>% filter(datetimeAK >= "2022-01-01 00:00:00") %>% filter(datetimeAK <= "2023-01-01 00:00:00") %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge', "air.pressure.mbar")),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/POKE_comb.2022.pdf", height= 8.5)
+ggarrange(poke.plot1.22, pokePlot2.22, ncol = 1, nrow = 2)
+dev.off()
+
+
+
+
+##### VAUL ####
+
+#VAUL
+#DO and Temp Data
+All.years.vaul.MESSY
+
+All.years.vaul.MESSY <- All.years.vaul.MESSY %>%
+  select(temp.water, ODO.Psat, ODO.Ploc, DO.obs, datetimeAK)
+
+All.years.vaul.MESSY$datetimeAK <- as.POSIXct(All.years.vaul.MESSY$datetimeAK)
+
+#discharge
+VAUL.ALL.Q
+VAUL.ALL.Q <- VAUL.ALL.Q %>% rename(datetimeAK = DateTime)
+# 
+# VAUL.ALL.Q <- VAUL.ALL.Q %>%
+#   dplyr::rename(Q = discharge)
+
+
+VAUL.ALL.Q$datetimeAK <- as.POSIXct(VAUL.ALL.Q$datetimeAK)
+
+setDT(VAUL.ALL.Q)[, datetimeAK := datetimeAK[1L], 
+                  by = cumsum(as.POSIXlt(datetimeAK, format = "%m/%d/%Y %H:%M")$min %% 15 == 0)]
+
+VAUL.ALL.Q <- aggregate(Q ~ datetimeAK, data=VAUL.ALL.Q, FUN=mean)
+
+VAUL.ALL.Q <- VAUL.ALL.Q %>%
+  dplyr::rename(discharge = Q)
+
+# #air Pressure
+# vaul.ap.data
+# 
+# vaul.ap.data <- vaul.ap.data %>%
+#   dplyr::rename(datetimeAK = DateTime)
+# 
+# vaul.ap.data$datetimeAK <- as.POSIXct(vaul.ap.data$datetimeAK)
+# 
+
+#light
+vaul.combinded.par
+
+vaul.combinded.par <- vaul.combinded.par %>%
+  dplyr::rename(datetimeAK = DateTime)
+
+vaul.combinded.par <- vaul.combinded.par %>%
+  dplyr::rename(light = Calibrated.Value)
+
+vaul.combinded.par$datetimeAK <- as.POSIXct(vaul.combinded.par$datetimeAK)
+
+
+#depth rating curve
+vaul.depth
+
+vaul.depth <- vaul.depth %>%
+  dplyr::rename(depth = RatingCurveDepth)
+
+vaul.depth$datetimeAK <- as.POSIXct(vaul.depth$datetimeAK)
+
+setDT(vaul.depth)[, datetimeAK := datetimeAK[1L], 
+                  by = cumsum(as.POSIXlt(datetimeAK, format = "%m/%d/%Y %H:%M")$min %% 15 == 0)]
+
+vaul.depth <- aggregate(depth ~ datetimeAK, data=vaul.depth, FUN=mean)
+
+
+#Combine
+
+VAUL.comb <- merge(All.years.vaul.MESSY, VAUL.ALL.Q, 
+                   # vaul.depth, vaul.combinded.par,vaul.ap.data, 
+                   by = "datetimeAK", all = TRUE)
+VAUL.comb <- merge(VAUL.comb, vaul.depth,
+                   # vaul.combinded.par,vaul.ap.data, 
+                   by = "datetimeAK", all = TRUE)
+VAUL.comb <- merge(VAUL.comb, vaul.combinded.par,
+                   # vaul.ap.data, 
+                   by = "datetimeAK", all = TRUE)
+# VAUL.comb <- merge(VAUL.comb, vaul.ap.data,
+                   # , 
+                   # by = "datetimeAK", all = TRUE)
+
+
+VAUL.comb <- distinct(VAUL.comb)
+
+VAUL.comb$solar.time <- calc_solar_time(VAUL.comb$datetimeAK,-146.915323)
+
+# DO SAT CALCS Summary
+VAUL.comb$DO.sat.EXO = VAUL.comb$DO.obs /(VAUL.comb$ODO.Psat/100)
+
+
+VAUL.comb <- distinct(VAUL.comb)
+
+write.csv(VAUL.comb, here("outputs", "vaul.comb.csv"))
+
+# ALL YEARS
+vaul.plot1 <- VAUL.comb %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Vault ODO, 2019 - 2021")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge='m^3/sec')
+vaulPlot2 <- VAUL.comb %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge', 'air.pressure.mbar')),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/VAUL_comb_2019-2021.pdf", height= 8.5)
+ggarrange(vaul.plot1, vaulPlot2, ncol = 1, nrow = 2)
+dev.off()
+
+
+#2019
+
+#
+vaul.plot1.19 <- VAUL.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Vault ODO, 2019")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+vaulPlot2.19 <- VAUL.comb %>% filter(datetimeAK <= "2020-01-01 00:00:00") %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge', 'air.pressure.mbar')),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/VAUL_comb.2019.pdf", height= 8.5)
+ggarrange(vaul.plot1.19, vaulPlot2.19, ncol = 1, nrow = 2)
+dev.off()
+
+#2020
+
+#
+vaul.plot1.20 <- VAUL.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Vault ODO, 2020")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+vaulPlot2.20 <- VAUL.comb %>% filter(datetimeAK >= "2020-01-01 00:00:00") %>% filter(datetimeAK <= "2021-01-01 00:00:00") %>%
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light', 'discharge', 'air.pressure.mbar')),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/VAUL_comb.2020.pdf", height= 8.5)
+ggarrange(vaul.plot1.20, vaulPlot2.20, ncol = 1, nrow = 2)
+dev.off()
+
+#2021
+
+#
+vaul.plot1.21 <- VAUL.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Vault ODO, 2021")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+vaulPlot2.21 <- VAUL.comb %>% filter(datetimeAK >= "2021-01-01 00:00:00") %>% filter(datetimeAK <= "2022-01-01 00:00:00") %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge', "air.pressure.mbar")),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/VAUL_comb.2021.pdf", height= 8.5)
+ggarrange(vaul.plot1.21, vaulPlot2.21, ncol = 1, nrow = 2)
+dev.off()
+
+#2022
+
+#
+vaul.plot1.22 <- VAUL.comb %>% filter(datetimeAK >= "2022-01-01 00:00:00") %>% filter(datetimeAK <= "2023-01-01 00:00:00") %>% 
+  mutate(DO.pctsat = 100 * (DO.obs / DO.sat.EXO)) %>%
+  select(solar.time, starts_with('DO')) %>%
+  gather(type, DO.value, starts_with('DO')) %>%
+  mutate(units=ifelse(type == 'DO.pctsat', 'DO\n(% sat)', 'DO\n(mg/L)')) %>%
+  ggplot(aes(x=solar.time, y=DO.value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "Vault ODO, 2022")
+
+labels <- c(depth='depth\n(m)', temp.water='water temp\n(deg C)', light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+vaulPlot2.22 <- VAUL.comb %>% filter(datetimeAK >= "2022-01-01 00:00:00") %>% filter(datetimeAK <= "2023-01-01 00:00:00") %>% 
+  select(solar.time, depth, temp.water, light, discharge) %>%
+  gather(type, value, depth, temp.water, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('depth','temp.water','light','discharge', "air.pressure.mbar")),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')
+
+pdf(file = "C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/Plots/VAUL_comb.2022.pdf", height= 8.5)
+ggarrange(vaul.plot1.22, vaulPlot2.22, ncol = 1, nrow = 2)
+dev.off()
+
+```
+
+
+
+#
+
+
+
+#
+
+
+
+
+
+#
