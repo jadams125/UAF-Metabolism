@@ -48,7 +48,7 @@ library(purrr)
 
 
 #slope
-moos.slope <- 3.0369/100
+moos.slope <- 0.163971/100
 
 
 Q_2019 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2019/Q_2019.csv")
@@ -337,7 +337,7 @@ K.plot1_moose_2019
 
 
 #slope
-moos.slope <- 3.0369/100
+moos.slope <- 0.163971/100
 
 
 Q_2020 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2020/Q_2020.csv")
@@ -583,7 +583,7 @@ data <- merge(daily.mean.velocity.moos,daily.mean.depth.moos, by = "date")
 data <- merge(data, moos.discharge, by = "date")
 
 #slope
-moos.slope <- 3.0369/100
+moos.slope <- 0.163971/100
 
 #Equations
 
@@ -632,7 +632,7 @@ K.plot1_moose_2020
 
 
 #slope
-moos.slope <- 3.0369/100
+moos.slope <- 0.163971/100
 
 
 Q_2021 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2021/Q_2021.csv")
@@ -879,7 +879,7 @@ data <- merge(daily.mean.velocity.moos,daily.mean.depth.moos, by = "date")
 data <- merge(data, moos.discharge, by = "date")
 
 #slope
-moos.slope <- 3.0369/100
+moos.slope <- 0.163971/100
 
 #Equations
 
@@ -927,7 +927,7 @@ K.plot1_moose_2021
 
 
 #slope
-frch.slope <- 2.8244/100
+frch.slope <- 0.288/100
 
 
 Q_2019 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2019/Q_2019.csv")
@@ -1218,7 +1218,7 @@ K.plot1_french_2019
 
 
 #slope
-frch.slope <- 2.8244/100
+frch.slope <- 0.288/100
 
 
 Q_2020 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2020/Q_2020.csv")
@@ -1459,7 +1459,7 @@ data <- merge(daily.mean.velocity.frch,daily.mean.depth.frch, by = "date")
 data <- merge(data, frch.discharge, by = "date")
 
 #slope
-frch.slope <- 2.8244/100
+frch.slope <- 0.288/100
 
 #Equations
 
@@ -1508,7 +1508,7 @@ K.plot1_french_2020
 
 
 #slope
-frch.slope <- 2.8244/100
+frch.slope <- 0.288/100
 
 
 Q_2021 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2021/Q_2021.csv")
@@ -1751,7 +1751,7 @@ data <- merge(daily.mean.velocity.frch,daily.mean.depth.frch, by = "date")
 data <- merge(data, frch.discharge, by = "date")
 
 #slope
-frch.slope <- 2.8244/100
+frch.slope <- 0.288/100
 
 #Equations
 
@@ -1807,7 +1807,7 @@ K.plot1_french_2021
 
 
 #slope
-vaul.slope <- 0.90629/100
+vaul.slope <- 1.303354/100
 
 
 Q_2019 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2019/Q_2019.csv")
@@ -2098,7 +2098,7 @@ K.plot1_vault_2019
 
 
 #slope
-vaul.slope <- 0.90629/100
+vaul.slope <- 1.303354/100
 
 
 Q_2020 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2020/Q_2020.csv")
@@ -2343,7 +2343,7 @@ data <- merge(daily.mean.velocity.vaul,daily.mean.depth.vaul, by = "date")
 data <- merge(data, vaul.discharge, by = "date")
 
 #slope
-vaul.slope <- 0.90629/100
+vaul.slope <- 1.303354/100
 
 #Equations
 
@@ -2392,7 +2392,7 @@ K.plot1_vault_2020
 
 
 #slope
-vaul.slope <- 0.90629/100
+vaul.slope <- 1.303354/100
 
 
 Q_2021 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2021/Q_2021.csv")
@@ -2637,7 +2637,7 @@ data <- merge(daily.mean.velocity.vaul,daily.mean.depth.vaul, by = "date")
 data <- merge(data, vaul.discharge, by = "date")
 
 #slope
-vaul.slope <- 0.90629/100
+vaul.slope <- 1.303354/100
 
 #Equations
 
@@ -2686,7 +2686,7 @@ K.plot1_vault_2021
 
 
 #slope
-poke.slope <- 2.36021/100
+poke.slope <- 0.570105/100
 
 
 Q_2019 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2019/Q_2019.csv")
@@ -2979,7 +2979,7 @@ K.plot1_poker_2019
 
 
 #slope
-poke.slope <- 2.36021/100
+poke.slope <- 0.570105/100
 
 
 Q_2020 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2020/Q_2020.csv")
@@ -3227,7 +3227,7 @@ data <- merge(daily.mean.velocity.poke,daily.mean.depth.poke, by = "date")
 data <- merge(data, poke.discharge, by = "date")
 
 #slope
-poke.slope <- 2.36021/100
+poke.slope <- 0.570105/100
 
 #Equations
 
@@ -3276,7 +3276,7 @@ K.plot1_poker_2020
 
 
 #slope
-poke.slope <- 2.36021/100
+poke.slope <- 0.570105/100
 
 
 Q_2021 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2021/Q_2021.csv")
@@ -3524,7 +3524,7 @@ data <- merge(daily.mean.velocity.poke,daily.mean.depth.poke, by = "date")
 data <- merge(data, poke.discharge, by = "date")
 
 #slope
-poke.slope <- 2.36021/100
+poke.slope <- 0.570105/100
 
 #Equations
 
@@ -3590,7 +3590,7 @@ K.plot1_poker_2021
 
 
 #slope
-strt.slope <- 2.13534/100
+strt.slope <- 0.454192/100
 
 
 Q_2019 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2019/Q_2019.csv")
@@ -3879,7 +3879,7 @@ K.plot1_stuart_2019
 
 
 #slope
-strt.slope <- 2.13534/100
+strt.slope <- 0.454192/100
 
 
 Q_2020 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2020/Q_2020.csv")
@@ -4124,7 +4124,7 @@ data <- merge(daily.mean.velocity.strt,daily.mean.depth.strt, by = "date")
 data <- merge(data, strt.discharge, by = "date")
 
 #slope
-strt.slope <- 2.13534/100
+strt.slope <- 0.454192/100
 
 #Equations
 
@@ -4173,7 +4173,7 @@ K.plot1_stuart_2020
 
 
 #slope
-strt.slope <- 2.13534/100
+strt.slope <- 0.454192/100
 
 
 Q_2021 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2021/Q_2021.csv")
@@ -4421,7 +4421,7 @@ data <- merge(daily.mean.velocity.strt,daily.mean.depth.strt, by = "date")
 data <- merge(data, strt.discharge, by = "date")
 
 #slope
-strt.slope <- 2.13534/100
+strt.slope <- 0.454192/100
 
 #Equations
 
