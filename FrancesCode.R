@@ -1204,7 +1204,7 @@ node.dev<-(q.max-q.min)/10 #half the difference between centers. use for nodedif
 bayes_name <- mm_name(type = "bayes", pool_K600 = "binned", err_obs_iid = T, err_proc_iid = T, GPP_fun = "linlight", ER_fun= "constant")
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps =4000, saved_steps = 1500, n_chains = 4, n_cores = 4,
+                     burnin_steps =3000, saved_steps = 1000, n_chains = 4, n_cores = 4,
                      GPP_daily_mu = 3.1, GPP_daily_sigma = 6, ER_daily_mu = -7.1, ER_daily_sigma = 7.1,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      K600_lnQ_nodes_centers = nodes, K600_lnQ_nodediffs_sdlog = node.dev)
@@ -1459,7 +1459,7 @@ node.dev<-(q.max-q.min)/10 #half the difference between centers. use for nodedif
 bayes_name <- mm_name(type = "bayes", pool_K600 = "binned", err_obs_iid = T, err_proc_iid = T, GPP_fun = "linlight", ER_fun= "constant")
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps =4000, saved_steps = 1500, n_chains = 4, n_cores = 4,
+                     burnin_steps =3000, saved_steps = 1000, n_chains = 4, n_cores = 4,
                      GPP_daily_mu = 3.1, GPP_daily_sigma = 6, ER_daily_mu = -7.1, ER_daily_sigma = 7.1,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      K600_lnQ_nodes_centers = nodes, K600_lnQ_nodediffs_sdlog = node.dev)
