@@ -138,6 +138,7 @@ ggsave(path = here("outputs"), file = "strt2019.pdf", fig2019, width = 30, heigh
 
 
 
+rm(list=ls())
 
 
 
@@ -264,6 +265,7 @@ ggsave(path = here("outputs"), file = "strt2020.pdf", fig2020, width = 30, heigh
 
 
 
+rm(list=ls())
 
 
 
@@ -484,6 +486,7 @@ grid.draw(rbind(panA, panB,panK600, panC, panD,panE,panp2,panF, panG,size="max")
 fig2022 <- arrangeGrob(rbind(panA, panB,panK600, panC, panD,panE,panp2,panF,panG, size="max"))
 ggsave(path = here("outputs"), file = "strt2022.pdf", fig2022, width = 30, height = 55, units = "in", limitsize = FALSE)
 
+rm(list=ls())
 
 
 
@@ -558,6 +561,7 @@ rsq <-  summary(lm(vaul.DO.pred$DO.mod~vaul.DO.pred$DO.obs))$r.squared
 p1 <- ggplot(vaul.DO.pred, aes(x = solar.time)) + geom_point(aes(y=DO.obs, colour = "Observed DO"), color = "darkcyan") + geom_line(aes(y = DO.mod, colour= "Modeled DO"), color = "blue4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) + labs(colour="Green", y = "DO (mg/L)") +  theme(legend.position="none") + ggtitle("Observed (points) and Modeled (lines)")
 
 p2 <- ggplot(vaul.DO.pred, aes(x = solar.time)) + geom_point(aes(y=adj.R2))
+
 
 
 library(grid)
