@@ -1,0 +1,32 @@
+---
+title: "PlotsForTKH"
+author: "Jacob Adams"
+date: "2/6/2023"
+output: html_document
+---
+
+
+
+```{r}
+
+
+strt.comb <- read.csv(here("outputs", "strt.comb.csv"))
+strt.comb$solar.time <- as.POSIXct(strt.comb$solar.time, tz = "UTC")
+
+
+strt.metab <- read.csv(here("outputs", "stuart2019-Run_2023-Full.rerun.02.04.csv"))
+
+
+
+labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+strtPlot2.20 <- strt.comb %>% filter(solar.time >= "2019-01-01 00:00:00") %>% filter(solar.time <= "2020-01-01 00:00:00") %>%
+  select(solar.time, light, discharge) %>%
+  gather(type, value, light, discharge) %>%
+  mutate(
+    type=ordered(type, levels=c('light', 'discharge')),
+    units=ordered(labels[type], unname(labels))) %>%
+  ggplot(aes(x=solar.time, y=value, color=type)) + geom_line() + 
+  facet_grid(units ~ ., scale='free_y') + theme_bw() +
+  scale_color_discrete('variable')+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))
+
+```
