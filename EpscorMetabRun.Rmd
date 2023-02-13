@@ -1,6 +1,37 @@
 
 ```{r setup, include = FALSE}
 # Load packages #
+library(ggpubr)
+library(anytime)
+library(googlesheets4)
+library(ggpmisc)
+library(plyr)
+library(dplyr)
+library(lubridate)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(scales)
+library(zoo)
+library(xts)
+library(forecast)
+library(googledrive)
+library(streamMetabolizer)
+library(readr)
+library(here)
+library(rstan)
+library(imputeTS)
+library(itsmr)
+library(purrr)
+library(naniar)
+library(data.table)
+library(grid)
+library(ggtext)
+library(grid)
+library(ggeffects)
+library(gridExtra)
+library(gtable)
+
 library(tidyverse)
 library(lubridate)
 library(data.table)
@@ -175,10 +206,9 @@ merged <- full_join(EpscorMiniDot, AP_epscor, by=c("datetimeAK","site"))
 
 merged$AirPressureCorrected <- merged$AirPressureCorrected *10
 
-
+library(streamMetabolizer)
 
 merged$DO.sat <- calc_DO_sat(merged$temp.water.downstream, merged$AirPressureCorrected, model = "garcia-benson")
-
 
 
 
@@ -188,6 +218,10 @@ merged  %>%filter(site == "MAST") %>%  ggplot(aes(x=datetimeAK, y=DO.sat))+geom_
 merged  %>%filter(site == "CRAW") %>%  ggplot(aes(x=datetimeAK, y=DO.sat))+geom_point() +geom_point(aes(y=DO.obs.downstream, color = "red"))
 
 merged  %>%filter(site == "SHOV") %>%  ggplot(aes(x=datetimeAK, y=DO.sat))+geom_point() +geom_point(aes(y=DO.obs.downstream, color = "red"))
+
+
+
+
 
 ```
 
@@ -603,6 +637,8 @@ p6 <- DoD_Epscor_Q_remove_shov %>% ggplot(aes(x=SHOV,y= chena)) + geom_point()+ 
 
 dev.next()
 
+library(ggpubr)
+
 ggarrange(p1,p2,p3,p4,p5,p6, ncol = 3, nrow = 2)
 
 
@@ -684,6 +720,10 @@ shov_WR_19.Data <- shov_WR %>% rename(datetimeAK = datetime)
 
 shov_WR_19.Data <- shov_WR_19.Data %>%
   select(depth_cm, datetimeAK)
+
+
+
+
 
 shov_depth_19_WR <- ddply(na.omit(shov_WR_19.Data), .(datetimeAK), summarize, medianDepth = median(as.numeric(depth_cm)))
 
@@ -858,6 +898,9 @@ ShovData.mm$discharge <- na_kalman(ShovData.mm$discharge)
 ```{r}
 
 data.shov.mm.all <- ShovData.mm
+
+
+write.csv(data.shov.mm.all, here("outputs","craw.comb.csv"))
 
 #change Discharge to m3/s
 data.shov.mm.all$discharge <- data.shov.mm.all$discharge / 1000
