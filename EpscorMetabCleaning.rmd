@@ -36,3 +36,36 @@ library(data.table)
 library(grid)
 library(ggtext)
 ```
+
+
+
+DO and Temp data:
+
+```{r}
+#from internal log script
+
+CrawMiniDot <- read.csv(here("outputs", "craw.clean.miniDOT.csv")) 
+CrawMiniDot <- CrawMiniDot %>% rename(DO.obs.upstream = DO.obs.CUS, DO.obs.downstream = DO.obs.CDS, temp.water.upstream = temp.water.CUS, temp.water.downstream = temp.water.CDS)
+
+MastMiniDot <- read.csv(here("outputs", "mast.clean.miniDOT.csv"))
+MastMiniDot <- MastMiniDot %>% rename(DO.obs.upstream = DO.obs.MUS, DO.obs.downstream = DO.obs.MDS, temp.water.upstream = temp.water.MUS, temp.water.downstream = temp.water.MDS)
+MastMiniDot$Site <- "MAST"
+
+ShovMiniDot <- read.csv(here("outputs", "shov.clean.miniDOT.csv"))
+ShovMiniDot <- ShovMiniDot %>% rename(DO.obs.upstream = DO.obs.SUS, DO.obs.downstream = DO.obs.SDS, temp.water.upstream = temp.water.SUS, temp.water.downstream = temp.water.SDS)
+
+
+EpscorMiniDot <- rbind(CrawMiniDot,MastMiniDot,ShovMiniDot)
+
+
+
+
+```
+
+
+
+```{r}
+
+
+
+```

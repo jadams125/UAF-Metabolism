@@ -42,284 +42,25 @@ library(gtable)
 
 ```{r}
 
-strt.metab <- read.csv(here("outputs", "stuart2019-Run_2023-Full.rerun.02.04.csv"))
-strt.metab$date <- as.POSIXct(strt.metab$date)
-
-labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
-
-gpp <- ggplot(data=strt.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("Stuart Creek, 2019")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(strt.metab$GPP_mean)) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
-
-
-
-strt.comb <- read.csv(here("outputs", "strt.comb.csv"))
-strt.comb$solar.time <- as.POSIXct(strt.comb$solar.time, tz = "UTC")
-
-strt.comb$discharge  <- strt.comb$discharge 
-
-
-q.fig <-  strt.comb %>% filter(datetimeAK >= min(strt.metab$date)) %>% filter(datetimeAK <= max(strt.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(strt.comb$discharge))+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))
-
-#L.fig <- strt.comb  %>% filter(datetimeAK >= min(strt.metab$date)) %>% filter(datetimeAK <= max(strt.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(strt.comb$light))
-
-
-panGPP <- ggplotGrob(gpp)
- 
-panQ <- ggplotGrob(q.fig)
-grid::grid.newpage()
-grid.draw(rbind(panGPP,  panQ,size="max"))
-fig2019 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
-ggsave(path = here("plots"), file = "strt2019.gpp.q.pdf", fig2019, width = 12,  height = 6, units = "in", limitsize = FALSE)
-
-
-```
-
-```{r}
-strt.metab <- read.csv(here("outputs", "stuart2020-Run_2023-Full.rerun.02.04.csv"))
-strt.metab$date <- as.POSIXct(strt.metab$date)
-
-labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
-
-gpp <- ggplot(data=strt.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("Stuart Creek, 2020")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(strt.metab$GPP_mean)) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
-
-
-
-strt.comb <- read.csv(here("outputs", "strt.comb.csv"))
-strt.comb$solar.time <- as.POSIXct(strt.comb$solar.time, tz = "UTC")
-
-strt.comb$discharge  <- strt.comb$discharge 
-
-
-
-q.fig <-  strt.comb %>% filter(datetimeAK >= min(strt.metab$date)) %>% filter(datetimeAK <= max(strt.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(strt.comb$discharge))+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))
-
-#L.fig <- strt.comb  %>% filter(datetimeAK >= min(strt.metab$date)) %>% filter(datetimeAK <= max(strt.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(strt.comb$light))
-
-
-panGPP <- ggplotGrob(gpp)
- 
-panQ <- ggplotGrob(q.fig)
-grid::grid.newpage()
-grid.draw(rbind(panGPP,  panQ,size="max"))
-fig2020 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
-ggsave(path = here("plots"), file = "strt2020.gpp.q.pdf", fig2020, width = 12,  height = 6, units = "in", limitsize = FALSE)
-
-
-```
-
-
-```{r}
-strt.metab <- read.csv(here("outputs", "stuart2021-Run_2023-Full.rerun.02.04.csv"))
-strt.metab$date <- as.POSIXct(strt.metab$date)
-
-labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
-
-gpp <- ggplot(data=strt.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("Stuart Creek, 2021")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(strt.metab$GPP_mean)) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
-
-
-
-strt.comb <- read.csv(here("outputs", "strt.comb.csv"))
-strt.comb$solar.time <- as.POSIXct(strt.comb$solar.time, tz = "UTC")
-
-strt.comb$discharge  <- strt.comb$discharge 
-
-
-q.fig <-  strt.comb %>% filter(datetimeAK >= min(strt.metab$date)) %>% filter(datetimeAK <= max(strt.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(strt.comb$discharge))+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))
-
-#L.fig <- strt.comb  %>% filter(datetimeAK >= min(strt.metab$date)) %>% filter(datetimeAK <= max(strt.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(strt.comb$light))
-
-
-panGPP <- ggplotGrob(gpp)
- 
-panQ <- ggplotGrob(q.fig)
-grid::grid.newpage()
-grid.draw(rbind(panGPP,  panQ,size="max"))
-fig2021 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
-ggsave(path = here("plots"), file = "strt2021.gpp.q.pdf", fig2021, width = 12,  height = 6, units = "in", limitsize = FALSE)
-
-
-```
-
-```{r}
-strt.metab <- read.csv(here("outputs", "stuart2022-Run_2023-Full.rerun.02.04.csv"))
-strt.metab$date <- as.POSIXct(strt.metab$date)
-
-labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
-
-gpp <- ggplot(data=strt.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("Stuart Creek, 2022")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(strt.metab$GPP_mean)) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
-
-
-
-strt.comb <- read.csv(here("outputs", "strt.comb.csv"))
-strt.comb$solar.time <- as.POSIXct(strt.comb$solar.time, tz = "UTC")
-
-strt.comb$discharge  <- strt.comb$discharge 
-
-
-q.fig <-  strt.comb %>% filter(datetimeAK >= min(strt.metab$date)) %>% filter(datetimeAK <= max(strt.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(strt.comb$discharge))+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))
-
-#L.fig <- strt.comb  %>% filter(datetimeAK >= min(strt.metab$date)) %>% filter(datetimeAK <= max(strt.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(strt.comb$light))
-
-
-panGPP <- ggplotGrob(gpp)
- 
-panQ <- ggplotGrob(q.fig)
-grid::grid.newpage()
-grid.draw(rbind(panGPP,  panQ,size="max"))
-fig2022 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
-ggsave(path = here("plots"), file = "strt2022.gpp.q.pdf", fig2022, width = 12,  height = 6, units = "in", limitsize = FALSE)
-
-
-```
-
-
-
-#### POKER 
-
-
-
-
-```{r}
-
-poke.metab <- read.csv(here("outputs", "poker2019-Run_2023-Full.rerun.02.04.csv"))
-poke.metab$date <- as.POSIXct(poke.metab$date)
-
-labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
-
-gpp <- ggplot(data=poke.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("Poker Creek, 2019")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(poke.metab$GPP_mean)) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
-
-
-
-poke.comb <- read.csv(here("outputs", "poke.comb.csv"))
-poke.comb$solar.time <- as.POSIXct(poke.comb$solar.time, tz = "UTC")
-
-poke.comb$discharge  <- poke.comb$discharge 
-
-
-q.fig <-  poke.comb %>% filter(datetimeAK >= min(poke.metab$date)) %>% filter(datetimeAK <= max(poke.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(poke.comb$discharge))+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))
-
-#L.fig <- poke.comb  %>% filter(datetimeAK >= min(poke.metab$date)) %>% filter(datetimeAK <= max(poke.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(poke.comb$light))
-
-
-panGPP <- ggplotGrob(gpp)
- 
-panQ <- ggplotGrob(q.fig)
-grid::grid.newpage()
-grid.draw(rbind(panGPP,  panQ,size="max"))
-fig2019 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
-ggsave(path = here("plots"), file = "poke2019.gpp.q.pdf", fig2019, width = 12,  height = 6, units = "in", limitsize = FALSE)
-
-
-```
-
-```{r}
-poke.metab <- read.csv(here("outputs", "poker2020-Run_2023-Full.rerun.02.04.csv"))
-poke.metab$date <- as.POSIXct(poke.metab$date)
-
-labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
-
-gpp <- ggplot(data=poke.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("Poker Creek, 2020")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(poke.metab$GPP_mean)) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
-
-
-
-poke.comb <- read.csv(here("outputs", "poke.comb.csv"))
-poke.comb$solar.time <- as.POSIXct(poke.comb$solar.time, tz = "UTC")
-
-poke.comb$discharge  <- poke.comb$discharge 
-
-
-
-q.fig <-  poke.comb %>% filter(datetimeAK >= min(poke.metab$date)) %>% filter(datetimeAK <= max(poke.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(poke.comb$discharge))+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))
-
-#L.fig <- poke.comb  %>% filter(datetimeAK >= min(poke.metab$date)) %>% filter(datetimeAK <= max(poke.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(poke.comb$light))
-
-
-panGPP <- ggplotGrob(gpp)
- 
-panQ <- ggplotGrob(q.fig)
-grid::grid.newpage()
-grid.draw(rbind(panGPP,  panQ,size="max"))
-fig2020 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
-ggsave(path = here("plots"), file = "poke2020.gpp.q.pdf", fig2020, width = 12,  height = 6, units = "in", limitsize = FALSE)
-
-
-```
-
-
-```{r}
-poke.metab <- read.csv(here("outputs", "poker2021-Run_2023-Full.rerun.02.04.csv"))
-poke.metab$date <- as.POSIXct(poke.metab$date)
-
-labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
-
-gpp <- ggplot(data=poke.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("Poker Creek, 2021")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(poke.metab$GPP_mean)) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
-
-
-
-poke.comb <- read.csv(here("outputs", "poke.comb.csv"))
-poke.comb$solar.time <- as.POSIXct(poke.comb$solar.time, tz = "UTC")
-
-poke.comb$discharge  <- poke.comb$discharge 
-
-
-q.fig <-  poke.comb %>% filter(datetimeAK >= min(poke.metab$date)) %>% filter(datetimeAK <= max(poke.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(poke.comb$discharge))+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))
-
-#L.fig <- poke.comb  %>% filter(datetimeAK >= min(poke.metab$date)) %>% filter(datetimeAK <= max(poke.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(poke.comb$light))
-
-
-panGPP <- ggplotGrob(gpp)
- 
-panQ <- ggplotGrob(q.fig)
-grid::grid.newpage()
-grid.draw(rbind(panGPP,  panQ,size="max"))
-fig2021 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
-ggsave(path = here("plots"), file = "poke2021.gpp.q.pdf", fig2021, width = 12,  height = 6, units = "in", limitsize = FALSE)
-
-
-```
-
-```{r}
-poke.metab <- read.csv(here("outputs", "poker2022-Run_2023-Full.rerun.02.04.csv"))
-poke.metab$date <- as.POSIXct(poke.metab$date)
-
-labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
-
-gpp <- ggplot(data=poke.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("Poker Creek, 2022")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(poke.metab$GPP_mean)) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
-
-
-
-poke.comb <- read.csv(here("outputs", "poke.comb.csv"))
-poke.comb$solar.time <- as.POSIXct(poke.comb$solar.time, tz = "UTC")
-
-poke.comb$discharge  <- poke.comb$discharge 
-
-
-q.fig <-  poke.comb %>% filter(datetimeAK >= min(poke.metab$date)) %>% filter(datetimeAK <= max(poke.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(poke.comb$discharge))+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))
-
-#L.fig <- poke.comb  %>% filter(datetimeAK >= min(poke.metab$date)) %>% filter(datetimeAK <= max(poke.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(poke.comb$light))
-
-
-panGPP <- ggplotGrob(gpp)
- 
-panQ <- ggplotGrob(q.fig)
-grid::grid.newpage()
-grid.draw(rbind(panGPP,  panQ,size="max"))
-fig2022 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
-ggsave(path = here("plots"), file = "poke2022.gpp.q.pdf", fig2022, width = 12,  height = 6, units = "in", limitsize = FALSE)
-
-
-```
-
-
-
-
-```{r}
-
 frch.metab <- read.csv(here("outputs", "french2019-Run_2023-Full.rerun.02.04.csv"))
 frch.metab$date <- as.POSIXct(frch.metab$date)
 
-labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp <- ggplot(data=frch.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("French Creek, 2019")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(frch.metab$GPP_mean)) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+# grob <- grobTree(textGrob("2019", x="2019-09-01", y=4, hjust=0,
+#   gp=gpar(col="black", fontsize=20, fontface="italic")))
+# Plo
+
+
+
+
+
+gpp2019 <- ggplot(data=frch.metab, aes(x=(date), y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 15)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+ annotate("text", x= as.POSIXct("2019-09-11"), y=max(frch.metab$GPP_mean),label="2019")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ annotation_custom(grobTree(textGrob("2019", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+
+
+
+
+
+
 
 
 
@@ -329,14 +70,15 @@ frch.comb$solar.time <- as.POSIXct(frch.comb$solar.time, tz = "UTC")
 frch.comb$discharge  <- frch.comb$discharge 
 
 
-q.fig <-  frch.comb %>% filter(datetimeAK >= min(frch.metab$date)) %>% filter(datetimeAK <= max(frch.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(frch.comb$discharge))+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))
+q.fig2019 <-  frch.comb %>% filter(datetimeAK >= min(frch.metab$date)) %>% filter(datetimeAK <= max(frch.metab$date)) %>% ggplot(aes(x = as.POSIXct(solar.time))) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 5000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20)) +scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
 
 #L.fig <- frch.comb  %>% filter(datetimeAK >= min(frch.metab$date)) %>% filter(datetimeAK <= max(frch.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(frch.comb$light))
 
 
-panGPP <- ggplotGrob(gpp)
+panGPP <- ggplotGrob(gpp2019)
  
-panQ <- ggplotGrob(q.fig)
+panQ <- ggplotGrob(q.fig2019)
 grid::grid.newpage()
 grid.draw(rbind(panGPP,  panQ,size="max"))
 fig2019 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
@@ -351,8 +93,7 @@ frch.metab$date <- as.POSIXct(frch.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp <- ggplot(data=frch.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("French Creek, 2020")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(frch.metab$GPP_mean)) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
-
+gpp2020 <- ggplot(data=frch.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 15) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2020", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 frch.comb <- read.csv(here("outputs", "frch.comb.csv"))
@@ -362,14 +103,15 @@ frch.comb$discharge  <- frch.comb$discharge
 
 
 
-q.fig <-  frch.comb %>% filter(datetimeAK >= min(frch.metab$date)) %>% filter(datetimeAK <= max(frch.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(frch.comb$discharge))+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))
+q.fig2020 <-  frch.comb %>% filter(datetimeAK >= min(frch.metab$date)) %>% filter(datetimeAK <= max(frch.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 5000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )
+
 
 #L.fig <- frch.comb  %>% filter(datetimeAK >= min(frch.metab$date)) %>% filter(datetimeAK <= max(frch.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(frch.comb$light))
 
 
-panGPP <- ggplotGrob(gpp)
+panGPP <- ggplotGrob(gpp2020)
  
-panQ <- ggplotGrob(q.fig)
+panQ <- ggplotGrob(q.fig2020)
 grid::grid.newpage()
 grid.draw(rbind(panGPP,  panQ,size="max"))
 fig2020 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
@@ -385,7 +127,7 @@ frch.metab$date <- as.POSIXct(frch.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp <- ggplot(data=frch.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("French Creek, 2021")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(frch.metab$GPP_mean)) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+gpp2021 <- ggplot(data=frch.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 15) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))+ annotation_custom(grobTree(textGrob("2021", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 
@@ -395,14 +137,15 @@ frch.comb$solar.time <- as.POSIXct(frch.comb$solar.time, tz = "UTC")
 frch.comb$discharge  <- frch.comb$discharge 
 
 
-q.fig <-  frch.comb %>% filter(datetimeAK >= min(frch.metab$date)) %>% filter(datetimeAK <= max(frch.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(frch.comb$discharge))+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))
+q.fig2021 <-  frch.comb %>% filter(datetimeAK >= min(frch.metab$date)) %>% filter(datetimeAK <= max(frch.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 5000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))
+
 
 #L.fig <- frch.comb  %>% filter(datetimeAK >= min(frch.metab$date)) %>% filter(datetimeAK <= max(frch.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(frch.comb$light))
 
 
-panGPP <- ggplotGrob(gpp)
+panGPP <- ggplotGrob(gpp2021)
  
-panQ <- ggplotGrob(q.fig)
+panQ <- ggplotGrob(q.fig2021)
 grid::grid.newpage()
 grid.draw(rbind(panGPP,  panQ,size="max"))
 fig2021 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
@@ -417,8 +160,7 @@ frch.metab$date <- as.POSIXct(frch.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp <- ggplot(data=frch.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("French Creek, 2022")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(frch.metab$GPP_mean)) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
-
+gpp2022 <- ggplot(data=frch.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 15) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2022", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 frch.comb <- read.csv(here("outputs", "frch.comb.csv"))
@@ -427,14 +169,16 @@ frch.comb$solar.time <- as.POSIXct(frch.comb$solar.time, tz = "UTC")
 frch.comb$discharge  <- frch.comb$discharge 
 
 
-q.fig <-  frch.comb %>% filter(datetimeAK >= min(frch.metab$date)) %>% filter(datetimeAK <= max(frch.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(frch.comb$discharge))+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))
+q.fig2022 <-  frch.comb %>% filter(datetimeAK >= min(frch.metab$date)) %>% filter(datetimeAK <= max(frch.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 5000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00"))) + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )
+
+
 
 #L.fig <- frch.comb  %>% filter(datetimeAK >= min(frch.metab$date)) %>% filter(datetimeAK <= max(frch.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(frch.comb$light))
 
 
-panGPP <- ggplotGrob(gpp)
+panGPP <- ggplotGrob(gpp2022)
  
-panQ <- ggplotGrob(q.fig)
+panQ <- ggplotGrob(q.fig2022)
 grid::grid.newpage()
 grid.draw(rbind(panGPP,  panQ,size="max"))
 fig2022 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
@@ -442,6 +186,199 @@ ggsave(path = here("plots"), file = "frch2022.gpp.q.pdf", fig2022, width = 12,  
 
 
 ```
+
+```{r}
+
+library(grid)
+library(ggeffects)
+library(gridExtra)
+library(gtable)
+# If that doesnt do it, add grid
+
+#devtools::install_github("thomasp85/patchwork")
+library(patchwork)
+
+
+plottest <- gpp2019+ggtitle("French Creek")+theme(plot.title = element_text(size = 30, hjust = 0)) + gpp2020 + q.fig2019+q.fig2020 + gpp2021+gpp2022+q.fig2021+q.fig2022 + plot_layout(ncol = 2, widths = c(2, 2))
+
+ggsave(path = here("plots"), file = "frch.gpp.q.all.pdf", plottest, width = 11*1.3,  height = 8.5*1.3, units = "in", limitsize = FALSE)
+
+
+
+```
+
+
+
+
+
+
+```{r}
+
+moos.metab <- read.csv(here("outputs", "moose2019-Run_2023-Full.rerun.02.04.csv"))
+moos.metab$date <- as.POSIXct(moos.metab$date)
+
+
+# grob <- grobTree(textGrob("2019", x="2019-09-01", y=4, hjust=0,
+#   gp=gpar(col="black", fontsize=20, fontface="italic")))
+# Plo
+
+
+
+
+
+gpp2019 <- ggplot(data=moos.metab, aes(x=(date), y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 7)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+ annotate("text", x= as.POSIXct("2019-09-11"), y=max(moos.metab$GPP_mean),label="2019")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ annotation_custom(grobTree(textGrob("2019", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+
+
+
+
+
+
+
+
+
+moos.comb <- read.csv(here("outputs", "moos.comb.csv"))
+moos.comb$solar.time <- as.POSIXct(moos.comb$solar.time, tz = "UTC")
+
+moos.comb$discharge  <- moos.comb$discharge 
+
+
+q.fig2019 <-  moos.comb %>% filter(datetimeAK >= min(moos.metab$date)) %>% filter(datetimeAK <= max(moos.metab$date)) %>% ggplot(aes(x = as.POSIXct(solar.time))) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 9000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20)) +scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+
+#L.fig <- moos.comb  %>% filter(datetimeAK >= min(moos.metab$date)) %>% filter(datetimeAK <= max(moos.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(moos.comb$light))
+
+
+panGPP <- ggplotGrob(gpp2019)
+ 
+panQ <- ggplotGrob(q.fig2019)
+grid::grid.newpage()
+grid.draw(rbind(panGPP,  panQ,size="max"))
+fig2019 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
+ggsave(path = here("plots"), file = "moos2019.gpp.q.pdf", fig2019, width = 12,  height = 6, units = "in", limitsize = FALSE)
+
+
+```
+
+```{r}
+moos.metab <- read.csv(here("outputs", "moose2020-Run_2023-Full.rerun.02.04.csv"))
+moos.metab$date <- as.POSIXct(moos.metab$date)
+
+labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+
+gpp2020 <- ggplot(data=moos.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 7) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2020", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+
+
+moos.comb <- read.csv(here("outputs", "moos.comb.csv"))
+moos.comb$solar.time <- as.POSIXct(moos.comb$solar.time, tz = "UTC")
+
+moos.comb$discharge  <- moos.comb$discharge 
+
+
+
+q.fig2020 <-  moos.comb %>% filter(datetimeAK >= min(moos.metab$date)) %>% filter(datetimeAK <= max(moos.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 9000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )
+
+
+#L.fig <- moos.comb  %>% filter(datetimeAK >= min(moos.metab$date)) %>% filter(datetimeAK <= max(moos.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(moos.comb$light))
+
+
+panGPP <- ggplotGrob(gpp2020)
+ 
+panQ <- ggplotGrob(q.fig2020)
+grid::grid.newpage()
+grid.draw(rbind(panGPP,  panQ,size="max"))
+fig2020 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
+ggsave(path = here("plots"), file = "moos2020.gpp.q.pdf", fig2020, width = 12,  height = 6, units = "in", limitsize = FALSE)
+
+
+```
+
+
+```{r}
+moos.metab <- read.csv(here("outputs", "moose2021-Run_2023-Full.rerun.02.04.csv"))
+moos.metab$date <- as.POSIXct(moos.metab$date)
+
+labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+
+gpp2021 <- ggplot(data=moos.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 7) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))+ annotation_custom(grobTree(textGrob("2021", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+
+
+
+moos.comb <- read.csv(here("outputs", "moos.comb.csv"))
+moos.comb$solar.time <- as.POSIXct(moos.comb$solar.time, tz = "UTC")
+
+moos.comb$discharge  <- moos.comb$discharge 
+
+
+q.fig2021 <-  moos.comb %>% filter(datetimeAK >= min(moos.metab$date)) %>% filter(datetimeAK <= max(moos.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 9000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))
+
+
+#L.fig <- moos.comb  %>% filter(datetimeAK >= min(moos.metab$date)) %>% filter(datetimeAK <= max(moos.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(moos.comb$light))
+
+
+panGPP <- ggplotGrob(gpp2021)
+ 
+panQ <- ggplotGrob(q.fig2021)
+grid::grid.newpage()
+grid.draw(rbind(panGPP,  panQ,size="max"))
+fig2021 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
+ggsave(path = here("plots"), file = "moos2021.gpp.q.pdf", fig2021, width = 12,  height = 6, units = "in", limitsize = FALSE)
+
+
+```
+
+```{r}
+moos.metab <- read.csv(here("outputs", "moose2022-Run_2023-Full.rerun.02.04.csv"))
+moos.metab$date <- as.POSIXct(moos.metab$date)
+
+labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+
+gpp2022 <- ggplot(data=moos.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 7) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2022", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+
+
+moos.comb <- read.csv(here("outputs", "moos.comb.csv"))
+moos.comb$solar.time <- as.POSIXct(moos.comb$solar.time, tz = "UTC")
+
+moos.comb$discharge  <- moos.comb$discharge 
+
+
+q.fig2022 <-  moos.comb %>% filter(datetimeAK >= min(moos.metab$date)) %>% filter(datetimeAK <= max(moos.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 9000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00"))) + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )
+
+
+
+#L.fig <- moos.comb  %>% filter(datetimeAK >= min(moos.metab$date)) %>% filter(datetimeAK <= max(moos.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(moos.comb$light))
+
+
+panGPP <- ggplotGrob(gpp2022)
+ 
+panQ <- ggplotGrob(q.fig2022)
+grid::grid.newpage()
+grid.draw(rbind(panGPP,  panQ,size="max"))
+fig2022 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
+ggsave(path = here("plots"), file = "moos2022.gpp.q.pdf", fig2022, width = 12,  height = 6, units = "in", limitsize = FALSE)
+
+
+```
+
+```{r}
+
+library(grid)
+library(ggeffects)
+library(gridExtra)
+library(gtable)
+# If that doesnt do it, add grid
+
+#devtools::install_github("thomasp85/patchwork")
+library(patchwork)
+
+
+plottest <- gpp2019+ggtitle("Moose Creek")+theme(plot.title = element_text(size = 30, hjust = 0)) + gpp2020 + q.fig2019+q.fig2020 + gpp2021+gpp2022+q.fig2021+q.fig2022 + plot_layout(ncol = 2, widths = c(2, 2))
+
+ggsave(path = here("plots"), file = "moos.gpp.q.all.pdf", plottest, width = 11*1.3,  height = 8.5*1.3, units = "in", limitsize = FALSE)
+
+
+
+```
+
 
 
 
@@ -451,9 +388,22 @@ ggsave(path = here("plots"), file = "frch2022.gpp.q.pdf", fig2022, width = 12,  
 vaul.metab <- read.csv(here("outputs", "vault2019-Run_2023-Full.rerun.02.04.csv"))
 vaul.metab$date <- as.POSIXct(vaul.metab$date)
 
-labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp <- ggplot(data=vaul.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("Vault Creek, 2019")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(vaul.metab$GPP_mean)) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+# grob <- grobTree(textGrob("2019", x="2019-09-01", y=4, hjust=0,
+#   gp=gpar(col="black", fontsize=20, fontface="italic")))
+# Plo
+
+
+
+
+
+gpp2019 <- ggplot(data=vaul.metab, aes(x=(date), y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+ annotate("text", x= as.POSIXct("2019-09-11"), y=max(vaul.metab$GPP_mean),label="2019")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ annotation_custom(grobTree(textGrob("2019", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+
+
+
+
+
+
 
 
 
@@ -463,14 +413,15 @@ vaul.comb$solar.time <- as.POSIXct(vaul.comb$solar.time, tz = "UTC")
 vaul.comb$discharge  <- vaul.comb$discharge 
 
 
-q.fig <-  vaul.comb %>% filter(datetimeAK >= min(vaul.metab$date)) %>% filter(datetimeAK <= max(vaul.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(vaul.comb$discharge))+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))
+q.fig2019 <-  vaul.comb %>% filter(datetimeAK >= min(vaul.metab$date)) %>% filter(datetimeAK <= max(vaul.metab$date)) %>% ggplot(aes(x = as.POSIXct(solar.time))) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 3000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20)) +scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
 
 #L.fig <- vaul.comb  %>% filter(datetimeAK >= min(vaul.metab$date)) %>% filter(datetimeAK <= max(vaul.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(vaul.comb$light))
 
 
-panGPP <- ggplotGrob(gpp)
+panGPP <- ggplotGrob(gpp2019)
  
-panQ <- ggplotGrob(q.fig)
+panQ <- ggplotGrob(q.fig2019)
 grid::grid.newpage()
 grid.draw(rbind(panGPP,  panQ,size="max"))
 fig2019 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
@@ -485,8 +436,7 @@ vaul.metab$date <- as.POSIXct(vaul.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp <- ggplot(data=vaul.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("Vault Creek, 2020")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(vaul.metab$GPP_mean)) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
-
+gpp2020 <- ggplot(data=vaul.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2020", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 vaul.comb <- read.csv(here("outputs", "vaul.comb.csv"))
@@ -496,14 +446,15 @@ vaul.comb$discharge  <- vaul.comb$discharge
 
 
 
-q.fig <-  vaul.comb %>% filter(datetimeAK >= min(vaul.metab$date)) %>% filter(datetimeAK <= max(vaul.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(vaul.comb$discharge))+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))
+q.fig2020 <-  vaul.comb %>% filter(datetimeAK >= min(vaul.metab$date)) %>% filter(datetimeAK <= max(vaul.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 3000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )
+
 
 #L.fig <- vaul.comb  %>% filter(datetimeAK >= min(vaul.metab$date)) %>% filter(datetimeAK <= max(vaul.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(vaul.comb$light))
 
 
-panGPP <- ggplotGrob(gpp)
+panGPP <- ggplotGrob(gpp2020)
  
-panQ <- ggplotGrob(q.fig)
+panQ <- ggplotGrob(q.fig2020)
 grid::grid.newpage()
 grid.draw(rbind(panGPP,  panQ,size="max"))
 fig2020 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
@@ -514,12 +465,12 @@ ggsave(path = here("plots"), file = "vaul2020.gpp.q.pdf", fig2020, width = 12,  
 
 
 ```{r}
-vaul.metab <- read.csv(here("outputs", "vault2021-2022-Run_2023-Full.rerun.02.04.csv"))
+vaul.metab <- read.csv(here("outputs", "vault2021-2022-Run_2023-Full.rerun.02.04.csv")) %>% filter(date<"2022-01-01")
 vaul.metab$date <- as.POSIXct(vaul.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp <- ggplot(data=vaul.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("Vault Creek, 2021-2022")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(vaul.metab$GPP_mean)) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+gpp2021 <- ggplot(data=vaul.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))+ annotation_custom(grobTree(textGrob("2021", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 
@@ -529,29 +480,540 @@ vaul.comb$solar.time <- as.POSIXct(vaul.comb$solar.time, tz = "UTC")
 vaul.comb$discharge  <- vaul.comb$discharge 
 
 
-q.fig <-  vaul.comb %>% filter(datetimeAK >= min(vaul.metab$date)) %>% filter(datetimeAK <= max(vaul.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(vaul.comb$discharge))+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))
+q.fig2021 <-  vaul.comb %>% filter(datetimeAK >= min(vaul.metab$date)) %>% filter(datetimeAK <= max(vaul.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 3000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))
+
 
 #L.fig <- vaul.comb  %>% filter(datetimeAK >= min(vaul.metab$date)) %>% filter(datetimeAK <= max(vaul.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(vaul.comb$light))
 
 
-panGPP <- ggplotGrob(gpp)
+panGPP <- ggplotGrob(gpp2021)
  
-panQ <- ggplotGrob(q.fig)
+panQ <- ggplotGrob(q.fig2021)
 grid::grid.newpage()
 grid.draw(rbind(panGPP,  panQ,size="max"))
 fig2021 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
-ggsave(path = here("plots"), file = "vaul2021-2022.gpp.q.pdf", fig2021, width = 12,  height = 6, units = "in", limitsize = FALSE)
+ggsave(path = here("plots"), file = "vaul2021.gpp.q.pdf", fig2021, width = 12,  height = 6, units = "in", limitsize = FALSE)
 
 
 ```
 
+```{r}
+vaul.metab <- read.csv(here("outputs", "vault2021-2022-Run_2023-Full.rerun.02.04.csv")) %>% filter(date>"2022-01-01")
+vaul.metab$date <- as.POSIXct(vaul.metab$date)
+
+labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+
+gpp2022 <- ggplot(data=vaul.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2022", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+
+
+vaul.comb <- read.csv(here("outputs", "vaul.comb.csv"))
+vaul.comb$solar.time <- as.POSIXct(vaul.comb$solar.time, tz = "UTC")
+
+vaul.comb$discharge  <- vaul.comb$discharge 
+
+
+q.fig2022 <-  vaul.comb %>% filter(datetimeAK >= min(vaul.metab$date)) %>% filter(datetimeAK <= max(vaul.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 15000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00"))) + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )
+
+
+
+#L.fig <- vaul.comb  %>% filter(datetimeAK >= min(vaul.metab$date)) %>% filter(datetimeAK <= max(vaul.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(vaul.comb$light))
+
+
+panGPP <- ggplotGrob(gpp2022)
+ 
+panQ <- ggplotGrob(q.fig2022)
+grid::grid.newpage()
+grid.draw(rbind(panGPP,  panQ,size="max"))
+fig2022 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
+ggsave(path = here("plots"), file = "vaul2022.gpp.q.pdf", fig2022, width = 12,  height = 6, units = "in", limitsize = FALSE)
+
+
+```
+
+```{r}
+
+library(grid)
+library(ggeffects)
+library(gridExtra)
+library(gtable)
+# If that doesnt do it, add grid
+
+#devtools::install_github("thomasp85/patchwork")
+library(patchwork)
+
+
+plottest <- gpp2019+ggtitle("Vault Creek")+theme(plot.title = element_text(size = 30, hjust = 0)) + gpp2020 + q.fig2019+q.fig2020 + gpp2021+gpp2022+q.fig2021+q.fig2022 + plot_layout(ncol = 2, widths = c(2, 2))
+
+ggsave(path = here("plots"), file = "vaul.gpp.q.all.pdf", plottest, width = 11*1.3,  height = 8.5*1.3, units = "in", limitsize = FALSE)
+
+
+
+```
+
+```{r}
+
+poke.metab <- read.csv(here("outputs", "poker2019-Run_2023-Full.rerun.02.04.csv"))
+poke.metab$date <- as.POSIXct(poke.metab$date)
+
+
+# grob <- grobTree(textGrob("2019", x="2019-09-01", y=4, hjust=0,
+#   gp=gpar(col="black", fontsize=20, fontface="italic")))
+# Plo
+
+
+
+
+
+gpp2019 <- ggplot(data=poke.metab, aes(x=(date), y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+ annotate("text", x= as.POSIXct("2019-09-11"), y=max(poke.metab$GPP_mean),label="2019")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ annotation_custom(grobTree(textGrob("2019", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+
+
+
+
+
+
+
+
+
+poke.comb <- read.csv(here("outputs", "poke.comb.csv"))
+poke.comb$solar.time <- as.POSIXct(poke.comb$solar.time, tz = "UTC")
+
+poke.comb$discharge  <- poke.comb$discharge 
+
+
+q.fig2019 <-  poke.comb %>% filter(datetimeAK >= min(poke.metab$date)) %>% filter(datetimeAK <= max(poke.metab$date)) %>% ggplot(aes(x = as.POSIXct(solar.time))) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 3000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20)) +scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+
+#L.fig <- poke.comb  %>% filter(datetimeAK >= min(poke.metab$date)) %>% filter(datetimeAK <= max(poke.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(poke.comb$light))
+
+
+panGPP <- ggplotGrob(gpp2019)
+ 
+panQ <- ggplotGrob(q.fig2019)
+grid::grid.newpage()
+grid.draw(rbind(panGPP,  panQ,size="max"))
+fig2019 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
+ggsave(path = here("plots"), file = "poke2019.gpp.q.pdf", fig2019, width = 12,  height = 6, units = "in", limitsize = FALSE)
+
+
+```
+
+```{r}
+poke.metab <- read.csv(here("outputs", "poker2020-Run_2023-Full.rerun.02.04.csv"))
+poke.metab$date <- as.POSIXct(poke.metab$date)
+
+labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+
+gpp2020 <- ggplot(data=poke.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2020", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+
+
+poke.comb <- read.csv(here("outputs", "poke.comb.csv"))
+poke.comb$solar.time <- as.POSIXct(poke.comb$solar.time, tz = "UTC")
+
+poke.comb$discharge  <- poke.comb$discharge 
+
+
+
+q.fig2020 <-  poke.comb %>% filter(datetimeAK >= min(poke.metab$date)) %>% filter(datetimeAK <= max(poke.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 3000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )
+
+
+#L.fig <- poke.comb  %>% filter(datetimeAK >= min(poke.metab$date)) %>% filter(datetimeAK <= max(poke.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(poke.comb$light))
+
+
+panGPP <- ggplotGrob(gpp2020)
+ 
+panQ <- ggplotGrob(q.fig2020)
+grid::grid.newpage()
+grid.draw(rbind(panGPP,  panQ,size="max"))
+fig2020 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
+ggsave(path = here("plots"), file = "poke2020.gpp.q.pdf", fig2020, width = 12,  height = 6, units = "in", limitsize = FALSE)
+
+
+```
+
+
+```{r}
+poke.metab <- read.csv(here("outputs", "poker2021-Run_2023-Full.rerun.02.04.csv"))
+poke.metab$date <- as.POSIXct(poke.metab$date)
+
+labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+
+gpp2021 <- ggplot(data=poke.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))+ annotation_custom(grobTree(textGrob("2021", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+
+
+
+poke.comb <- read.csv(here("outputs", "poke.comb.csv"))
+poke.comb$solar.time <- as.POSIXct(poke.comb$solar.time, tz = "UTC")
+
+poke.comb$discharge  <- poke.comb$discharge 
+
+
+q.fig2021 <-  poke.comb %>% filter(datetimeAK >= min(poke.metab$date)) %>% filter(datetimeAK <= max(poke.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 3000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))
+
+
+#L.fig <- poke.comb  %>% filter(datetimeAK >= min(poke.metab$date)) %>% filter(datetimeAK <= max(poke.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(poke.comb$light))
+
+
+panGPP <- ggplotGrob(gpp2021)
+ 
+panQ <- ggplotGrob(q.fig2021)
+grid::grid.newpage()
+grid.draw(rbind(panGPP,  panQ,size="max"))
+fig2021 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
+ggsave(path = here("plots"), file = "poke2021.gpp.q.pdf", fig2021, width = 12,  height = 6, units = "in", limitsize = FALSE)
+
+
+```
+
+```{r}
+poke.metab <- read.csv(here("outputs", "poker2022-Run_2023-Full.rerun.02.04.csv")) %>% filter(date>"2040-01-01")
+poke.metab$date <- as.POSIXct(poke.metab$date)
+
+labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+
+gpp2022 <- ggplot(data=poke.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2022", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+
+
+poke.comb <- read.csv(here("outputs", "poke.comb.csv"))
+poke.comb$solar.time <- as.POSIXct(poke.comb$solar.time, tz = "UTC")
+
+poke.comb$discharge  <- poke.comb$discharge 
+
+
+q.fig2022 <-  poke.comb %>%  ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 3000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00"))) + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )
+
+
+
+#L.fig <- poke.comb  %>% filter(datetimeAK >= min(poke.metab$date)) %>% filter(datetimeAK <= max(poke.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(poke.comb$light))
+
+
+panGPP <- ggplotGrob(gpp2022)
+ 
+panQ <- ggplotGrob(q.fig2022)
+grid::grid.newpage()
+grid.draw(rbind(panGPP,  panQ,size="max"))
+fig2022 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
+ggsave(path = here("plots"), file = "poke2022.gpp.q.pdf", fig2022, width = 12,  height = 6, units = "in", limitsize = FALSE)
+
+
+```
+
+```{r}
+
+library(grid)
+library(ggeffects)
+library(gridExtra)
+library(gtable)
+# If that doesnt do it, add grid
+
+#devtools::install_github("thomasp85/patchwork")
+library(patchwork)
+
+
+plottest <- gpp2019+ggtitle("Poker Creek")+theme(plot.title = element_text(size = 30, hjust = 0)) + gpp2020 + q.fig2019+q.fig2020 + gpp2021+gpp2022+q.fig2021 +q.fig2022+ plot_layout(ncol = 2, widths = c(2, 2))
+
+ggsave(path = here("plots"), file = "poke.gpp.q.all.pdf", plottest, width = 11*1.3,  height = 8.5*1.3, units = "in", limitsize = FALSE)
+
+
+
+```
+
+
+```{r}
+
+strt.metab <- read.csv(here("outputs", "stuart2019-Run_2023-Full.rerun.02.04.csv"))
+strt.metab$date <- as.POSIXct(strt.metab$date)
+
+
+# grob <- grobTree(textGrob("2019", x="2019-09-01", y=4, hjust=0,
+#   gp=gpar(col="black", fontsize=20, fontface="italic")))
+# Plo
+
+
+
+
+
+gpp2019 <- ggplot(data=strt.metab, aes(x=(date), y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 5)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+ annotate("text", x= as.POSIXct("2019-09-11"), y=max(strt.metab$GPP_mean),label="2019")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ annotation_custom(grobTree(textGrob("2019", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+
+
+
+
+
+
+
+
+
+strt.comb <- read.csv(here("outputs", "strt.comb.csv"))
+strt.comb$solar.time <- as.POSIXct(strt.comb$solar.time, tz = "UTC")
+
+strt.comb$discharge  <- strt.comb$discharge 
+
+
+q.fig2019 <-  strt.comb %>% filter(datetimeAK >= min(strt.metab$date)) %>% filter(datetimeAK <= max(strt.metab$date)) %>% ggplot(aes(x = as.POSIXct(solar.time))) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 15000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20)) +scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+
+#L.fig <- strt.comb  %>% filter(datetimeAK >= min(strt.metab$date)) %>% filter(datetimeAK <= max(strt.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(strt.comb$light))
+
+
+panGPP <- ggplotGrob(gpp2019)
+ 
+panQ <- ggplotGrob(q.fig2019)
+grid::grid.newpage()
+grid.draw(rbind(panGPP,  panQ,size="max"))
+fig2019 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
+ggsave(path = here("plots"), file = "strt2019.gpp.q.pdf", fig2019, width = 12,  height = 6, units = "in", limitsize = FALSE)
+
+
+```
+
+```{r}
+strt.metab <- read.csv(here("outputs", "stuart2020-Run_2023-Full.rerun.02.04.csv"))
+strt.metab$date <- as.POSIXct(strt.metab$date)
+
+labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+
+gpp2020 <- ggplot(data=strt.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 5) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2020", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+
+
+strt.comb <- read.csv(here("outputs", "strt.comb.csv"))
+strt.comb$solar.time <- as.POSIXct(strt.comb$solar.time, tz = "UTC")
+
+strt.comb$discharge  <- strt.comb$discharge 
+
+
+
+q.fig2020 <-  strt.comb %>% filter(datetimeAK >= min(strt.metab$date)) %>% filter(datetimeAK <= max(strt.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 15000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )
+
+
+#L.fig <- strt.comb  %>% filter(datetimeAK >= min(strt.metab$date)) %>% filter(datetimeAK <= max(strt.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(strt.comb$light))
+
+
+panGPP <- ggplotGrob(gpp2020)
+ 
+panQ <- ggplotGrob(q.fig2020)
+grid::grid.newpage()
+grid.draw(rbind(panGPP,  panQ,size="max"))
+fig2020 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
+ggsave(path = here("plots"), file = "strt2020.gpp.q.pdf", fig2020, width = 12,  height = 6, units = "in", limitsize = FALSE)
+
+
+```
+
+
+```{r}
+strt.metab <- read.csv(here("outputs", "stuart2021-Run_2023-Full.rerun.02.04.csv"))
+strt.metab$date <- as.POSIXct(strt.metab$date)
+
+labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+
+gpp2021 <- ggplot(data=strt.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 5) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))+ annotation_custom(grobTree(textGrob("2021", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+
+
+
+strt.comb <- read.csv(here("outputs", "strt.comb.csv"))
+strt.comb$solar.time <- as.POSIXct(strt.comb$solar.time, tz = "UTC")
+
+strt.comb$discharge  <- strt.comb$discharge 
+
+
+q.fig2021 <-  strt.comb %>% filter(datetimeAK >= min(strt.metab$date)) %>% filter(datetimeAK <= max(strt.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 15000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))
+
+
+#L.fig <- strt.comb  %>% filter(datetimeAK >= min(strt.metab$date)) %>% filter(datetimeAK <= max(strt.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(strt.comb$light))
+
+
+panGPP <- ggplotGrob(gpp2021)
+ 
+panQ <- ggplotGrob(q.fig2021)
+grid::grid.newpage()
+grid.draw(rbind(panGPP,  panQ,size="max"))
+fig2021 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
+ggsave(path = here("plots"), file = "strt2021.gpp.q.pdf", fig2021, width = 12,  height = 6, units = "in", limitsize = FALSE)
+
+
+```
+
+```{r}
+strt.metab <- read.csv(here("outputs", "stuart2022-Run_2023-Full.rerun.02.04.csv"))
+strt.metab$date <- as.POSIXct(strt.metab$date)
+
+labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
+
+gpp2022 <- ggplot(data=strt.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 5) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2022", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+
+
+strt.comb <- read.csv(here("outputs", "strt.comb.csv"))
+strt.comb$solar.time <- as.POSIXct(strt.comb$solar.time, tz = "UTC")
+
+strt.comb$discharge  <- strt.comb$discharge 
+
+
+q.fig2022 <-  strt.comb %>% filter(datetimeAK >= min(strt.metab$date)) %>% filter(datetimeAK <= max(strt.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 15000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20))+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00"))) + theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )
+
+
+
+#L.fig <- strt.comb  %>% filter(datetimeAK >= min(strt.metab$date)) %>% filter(datetimeAK <= max(strt.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(strt.comb$light))
+
+
+panGPP <- ggplotGrob(gpp2022)
+ 
+panQ <- ggplotGrob(q.fig2022)
+grid::grid.newpage()
+grid.draw(rbind(panGPP,  panQ,size="max"))
+fig2022 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
+ggsave(path = here("plots"), file = "strt2022.gpp.q.pdf", fig2022, width = 12,  height = 6, units = "in", limitsize = FALSE)
+
+
+```
+
+```{r}
+
+library(grid)
+library(ggeffects)
+library(gridExtra)
+library(gtable)
+# If that doesnt do it, add grid
+
+#devtools::install_github("thomasp85/patchwork")
+library(patchwork)
+
+
+plottest <- gpp2019+ggtitle("Stuart Creek")+theme(plot.title = element_text(size = 30, hjust = 0)) + gpp2020 + q.fig2019+q.fig2020 + gpp2021+gpp2022+q.fig2021+q.fig2022 + plot_layout(ncol = 2, widths = c(2, 2))
+
+ggsave(path = here("plots"), file = "strt.gpp.q.all.pdf", plottest, width = 11*1.3,  height = 8.5*1.3, units = "in", limitsize = FALSE)
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+#Combine
+
+```{r}
+strt.gpp <- rbind( read.csv(here("outputs", "stuart2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "stuart2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "stuart2021-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "stuart2022-Run_2023-Full.rerun.02.04.csv")))
+strt.gpp$site = "STRT"
+strt.gpp$PF = "High"
+strt.gpp$burn = "Burned"
+strt.gpp$year <- format(as.Date(strt.gpp$date, format="%Y-%m-%d"),"%Y")
+
+
+
+
+vaul.gpp <- rbind( read.csv(here("outputs", "vault2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "vault2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "vault2021-2022-Run_2023-Full.rerun.02.04.csv")))
+vaul.gpp$site = "VAUL"
+vaul.gpp$PF = "High"
+vaul.gpp$burn = "Unburned"
+vaul.gpp$year <- format(as.Date(vaul.gpp$date, format="%Y-%m-%d"),"%Y")
+
+
+
+#Poker 2022 bad
+poke.gpp <- rbind( read.csv(here("outputs", "poker2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2021-Run_2023-Full.rerun.02.04.csv")))
+
+poke.gpp$site = "POKE"
+poke.gpp$PF = "Low"
+poke.gpp$burn = "Burned"
+poke.gpp$year <- format(as.Date(poke.gpp$date, format="%Y-%m-%d"),"%Y")
+
+
+
+frch.gpp <- rbind( read.csv(here("outputs", "french2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "french2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "french2021-Run_2023-Full.rerun.02.04.csv")),read.csv(here("outputs", "french2022-Run_2023-Full.rerun.02.04.csv")))
+frch.gpp$site = "FRCH"
+frch.gpp$PF = "Low"
+frch.gpp$burn = "Unburned"
+frch.gpp$year <- format(as.Date(frch.gpp$date, format="%Y-%m-%d"),"%Y")
+
+
+
+moos.gpp <- rbind(
+  read.csv(here("outputs", "moose2019-Run_2023-Full.rerun.02.04.csv")),
+  read.csv(here("outputs", "moose2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs","moose2021-Run_2023-Full.rerun.02.04.csv")),
+  read.csv(here("outputs", "moose2022-Run_2023-Full.rerun.02.04.csv"))
+  )
+moos.gpp$site = "MOOS"
+moos.gpp$PF = "Low"
+moos.gpp$burn = "Burned"
+moos.gpp$year <- format(as.Date(moos.gpp$date, format="%Y-%m-%d"),"%Y")
+
+
+
+#combine
+metab_all <- rbind(strt.gpp, vaul.gpp, poke.gpp, frch.gpp, moos.gpp) 
+
+
+metab_all.short <- metab_all %>% select(date, GPP_mean, GPP_daily_se_mean, GPP_daily_sd, GPP_Rhat, site)
+
+write.csv(metab_all.short, here("outputs", "DoD_metab_TS.csv"))
+
+
+
+
+library(ggpattern)
+
+plot2019 <- metab_all %>% filter(date<"2020-01-01"&date>"2019-01-01")%>%  ggplot(aes(x=site, y=GPP_mean)) + facet_wrap(~year, nrow = 2, dir = "v")+ geom_boxplot(aes(fill=as.factor(PF)),show.legend = FALSE) +
+  facet_grid(. ~ burn , space="free_x", scales="free_x", switch="x") +
+  theme_classic() + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+
+  theme(strip.placement = "outside",
+        strip.background = element_rect(fill=NA, colour="grey50"),
+        panel.spacing.x=unit(0,"cm"))+ theme( strip.background = element_blank(),strip.text.x = element_blank() )+ylim(0,12)+ggtitle("2019")+theme(plot.title = element_text(hjust = 1))+ scale_fill_brewer(palette = "Dark2")
+
+plot2020 <- metab_all %>% filter(date<"2021-01-01"&date>"2020-01-01")%>%  ggplot(aes(x=site, y=GPP_mean)) + facet_wrap(~year, nrow = 2, dir = "v") + geom_boxplot(aes(fill=as.factor(PF)))+
+  facet_grid(. ~ burn , space="free_x", scales="free_x", switch="x") +
+  theme_classic() +
+  theme(strip.placement = "outside",
+        strip.background = element_rect(fill=NA, colour="grey50"),
+        panel.spacing.x=unit(0,"cm"))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ theme( strip.background = element_blank(),strip.text.x = element_blank() )+ylim(0,12)+ggtitle("2020")+theme(plot.title = element_text(hjust = 1))+ scale_fill_brewer(palette = "Dark2")
+
+plot2021 <- metab_all %>% filter(date<"2022-01-01"&date>"2021-01-01")%>%  ggplot(aes(x=site, y=GPP_mean)) + facet_wrap(~year, nrow = 2, dir = "v") + geom_boxplot(aes(fill=as.factor(PF)), show.legend = FALSE)+
+  facet_grid(. ~ burn , space="free_x", scales="free_x", switch="x") +
+  theme_classic() +
+  theme(strip.placement = "outside",
+        strip.background = element_rect(fill=NA, colour="grey50"),
+        panel.spacing.x=unit(0,"cm"))+ylim(0,12)+ggtitle("2021")+theme(plot.title = element_text(hjust = 1))+ scale_fill_brewer(palette = "Dark2")
+
+
+poke.gpp <- rbind( read.csv(here("outputs", "poker2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2021-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2022-Run_2023-Full.rerun.02.04.csv")))
+
+poke.gpp$site = "POKE"
+poke.gpp$PF = "Low"
+poke.gpp$burn = "Burned"
+poke.gpp$year <- format(as.Date(poke.gpp$date, format="%Y-%m-%d"),"%Y")
+
+poke.gpp$GPP_mean <- NA
+
+metab_all <- rbind(strt.gpp, vaul.gpp, poke.gpp, frch.gpp, moos.gpp)
+
+plot2022 <- metab_all %>% filter(date<"2023-01-01"&date>"2022-01-01")%>%  ggplot(aes(x=site, y=GPP_mean)) + facet_wrap(~year, nrow = 2, dir = "v") + geom_boxplot(aes(fill=as.factor(PF)))+
+  facet_grid(. ~ burn , space="free_x", scales="free_x", switch="x") +
+  theme_classic() +
+  theme(strip.placement = "outside",
+        strip.background = element_rect(fill=NA, colour="grey50"),
+        panel.spacing.x=unit(0,"cm"))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ylim(0,12)+ggtitle("2022")+theme(plot.title = element_text(hjust = 1))+ scale_fill_brewer(palette = "Dark2")
+
+
+wrap_plots()
+library("RColorBrewer") 
+library(patchwork)
+plot_layout(plot2019+plot2020+plot2021+plot2022, nrow=2, ncol = 2)
+
+
+```
 <!-- ```{r} -->
 <!-- vaul.metab <- read.csv(here("outputs", "vault2022-Run_2023-Full.rerun.02.04.csv")) -->
 <!-- vaul.metab$date <- as.POSIXct(vaul.metab$date) -->
 
 <!-- labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec') -->
 
-<!-- gpp <- ggplot(data=vaul.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("Vault Creek, 2022")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(vaul.metab$GPP_mean)) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) -->
+<!-- gpp <- ggplot(data=vaul.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("Vault Creek, 2022")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, max(vaul.metab$GPP_mean)) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) -->
 
 
 
@@ -721,11 +1183,11 @@ CRREL_MOOS.2022.fill %>% ggplot(aes(x=datetimeAK, y=light))+geom_point()
 
 
 
-moos.light.2022$datetimeAK <- as.character(moos.light.2022$datetimeAK)
 
 moos.light.2022 <- CRREL_MOOS.2022.fill %>% select(light,datetimeAK)
 moos.light.2022$site = "MOOS"
 
+moos.light.2022$datetimeAK <- as.character(moos.light.2022$datetimeAK)
 
 
 moos.data <- read.csv(here("outputs", "moos.comb.csv"))
@@ -1077,8 +1539,11 @@ Combine
 
 ```{r}
 
-light.data.full <- rbind(vaul.light,poke.light,strt.light,moos.light,frch.light)
+strt.light$datetimeAK <- as.character(strt.light$datetimeAK)
+moos.light$datetimeAK <- as.character(moos.light$datetimeAK)
 
-write.csv(here("outputs","light.data.all.years.csv"))
+light.data.full <- rbind(vaul.light, poke.light, strt.light, moos.light, frch.light)
+
+write.csv(light.data.full, here("outputs","light.data.all.years.csv"))
 
 ```

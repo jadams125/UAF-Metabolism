@@ -50,7 +50,7 @@ bayes_specs <- specs(bayes_name,
 
 ######### STRT
 
-data.strt.mm.all <- read.csv(here("outputs", "stuart.comb.readyforMetab.new.clean.csv"))
+data.strt.mm.all <- read.csv(here("outputs", "clean.strt.full"))
 
 data.strt.mm.all <- data.strt.mm.all %>% filter(solar.time < "2019-12-30 04:13:57")
 

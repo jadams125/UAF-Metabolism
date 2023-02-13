@@ -84,7 +84,9 @@ metab_all$year <- format(metab_all$year,format="%y")
 
 test_means_GPP <- aggregate( GPP_mean ~ year + site + PF + burn, metab_all , mean )
 
+test_means_ER <- aggregate( ER_mean ~ year + site + PF + burn, metab_all , mean )
 
+test_means_NEP <- aggregate( (ER_mean+GPP_mean) ~ year + site + PF + burn, metab_all , mean )
 
 
 
@@ -117,14 +119,39 @@ summary(burn_model)
 
 
 
-test_means_GPP %>% ggplot(aes(x= burn, y= GPP_mean, color = site))+geom_boxplot()
+test_means_GPP %>% ggplot(aes(x= burn, y= GPP_mean, color = site))+geom_boxplot()+theme(axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("Mean GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme( axis.title.y = element_text(size = 20))+scale_color_hue(labels = c("French", "Moose", "Poker", "Stuart", "Vault"))
 
-test_means_GPP %>% ggplot(aes(x= burn, y= GPP_mean))+geom_boxplot()
+test_means_GPP %>% ggplot(aes(x= burn, y= GPP_mean))+geom_boxplot()+theme(axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("Mean GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme( axis.title.y = element_text(size = 20))
 
 
 test_means_GPP %>% ggplot(aes(x= PF, y= GPP_mean, color = site))+geom_boxplot()
 
 test_means_GPP %>% ggplot(aes(x= PF, y= GPP_mean))+geom_boxplot()
+
+
+
+
+DT <- data.table(test_means_GPP) %>% select(GPP_mean, burn)
+
+wide <- setnames(DT[, sapply(.SD, function(x) list(mean=(mean(x)), sd=(sd(x)))), by=burn], c("burn", sapply(names(DT)[-1], paste0, c(".GPP", ".GPP.SD"))))
+
+wide %>% ggplot(aes(x= burn, y= burn.GPP))+geom_point()+ geom_errorbar(aes(ymin=burn.GPP-burn.GPP.SD, ymax=burn.GPP+burn.GPP.SD))
+
+
+
+
+
+
+DT <- data.table(test_means_GPP) %>% select(GPP_mean, PF)
+
+wide <- setnames(DT[, sapply(.SD, function(x) list(mean=(mean(x)), sd=(sd(x)))), by=PF], c("PF", sapply(names(DT)[-1], paste0, c(".GPP", ".GPP.SD"))))
+
+wide %>% ggplot(aes(x= PF, y= PF.GPP))+geom_point()+ geom_errorbar(aes(ymin=PF.GPP-PF.GPP.SD, ymax=PF.GPP+PF.GPP.SD))
+
+
+
+
+
 
 
 
@@ -139,11 +166,69 @@ metab_all %>% ggplot(aes(x= doy, y= GPP_mean, color = burn))+geom_point()
 
 
 
-metab_all %>% ggplot(aes(x= burn, y= ER_mean, color = site))+geom_boxplot()
 
-metab_all %>% ggplot(aes(x= burn, y= ER_mean))+geom_boxplot()
+test_means_ER %>% ggplot(aes(x= burn, y= ER_mean, color = site))+geom_boxplot()
+
+test_means_ER %>% ggplot(aes(x= burn, y= ER_mean))+geom_boxplot()
 
 
-metab_all %>% ggplot(aes(x= PF, y= ER_mean, color = site))+geom_boxplot()
+test_means_ER %>% ggplot(aes(x= PF, y= ER_mean, color = site))+geom_boxplot()
 
-metab_all %>% ggplot(aes(x= PF, y= ER_mean))+geom_boxplot()
+
+test_means_ER %>% ggplot(aes(x= PF, y= ER_mean))+geom_boxplot()
+
+
+
+DT <- data.table(test_means_ER) %>% select(ER_mean, burn)
+
+wide <- setnames(DT[, sapply(.SD, function(x) list(mean=(mean(x)), sd=(sd(x)))), by=burn], c("burn", sapply(names(DT)[-1], paste0, c(".ER", ".ER.SD"))))
+
+wide %>% ggplot(aes(x= burn, y= burn.ER))+geom_point()+ geom_errorbar(aes(ymin=burn.ER-burn.ER.SD, ymax=burn.ER+burn.ER.SD))
+
+
+
+
+
+
+DT <- data.table(test_means_ER) %>% select(ER_mean, PF)
+
+wide <- setnames(DT[, sapply(.SD, function(x) list(mean=(mean(x)), sd=(sd(x)))), by=PF], c("PF", sapply(names(DT)[-1], paste0, c(".ER", ".ER.SD"))))
+
+wide %>% ggplot(aes(x= PF, y= PF.ER))+geom_point()+ geom_errorbar(aes(ymin=PF.ER-PF.ER.SD, ymax=PF.ER+PF.ER.SD))
+
+
+
+
+
+
+test_means_NEP <- test_means_NEP %>% rename(NEP_mean = "(ER_mean + GPP_mean)")
+
+
+test_means_NEP%>% ggplot(aes(x= burn, y= NEP_mean, color = site))+geom_boxplot()
+
+test_means_NEP%>% ggplot(aes(x= burn, y= NEP_mean))+geom_boxplot()
+
+
+test_means_NEP%>% ggplot(aes(x= PF, y= NEP_mean, color = site))+geom_boxplot()
+
+
+test_means_NEP%>% ggplot(aes(x= PF, y= NEP_mean))+geom_boxplot()
+
+
+
+DT <- data.table(test_means_NEP) %>% select(NEP_mean, burn)
+
+wide <- setnames(DT[, sapply(.SD, function(x) list(mean=(mean(x)), sd=(sd(x)))), by=burn], c("burn", sapply(names(DT)[-1], paste0, c(".NEP", ".NEP.SD"))))
+
+wide %>% ggplot(aes(x= burn, y= burn.NEP))+geom_point()+ geom_errorbar(aes(ymin=burn.NEP-burn.NEP.SD, ymax=burn.NEP+burn.NEP.SD))
+
+
+
+
+
+
+DT <- data.table(test_means_NEP) %>% select(NEP_mean, PF)
+
+wide <- setnames(DT[, sapply(.SD, function(x) list(mean=(mean(x)), sd=(sd(x)))), by=PF], c("PF", sapply(names(DT)[-1], paste0, c(".NEP", ".NEP.SD"))))
+
+wide %>% ggplot(aes(x= PF, y= PF.NEP))+geom_point()+ geom_errorbar(aes(ymin=PF.NEP-PF.NEP.SD, ymax=PF.NEP+PF.NEP.SD))

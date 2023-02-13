@@ -5,6 +5,7 @@ library(purrr)
 library(tidyverse)
 library(ggplot2)
 library(lubridate)
+library(here)
 
 
 
@@ -23,7 +24,7 @@ craw_US_Folder <- drive_get(as_id(Craw_us_url))
 craw_US_txt_files <- drive_ls(craw_US_Folder, type = "txt")
 
 ## download them
-setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/CRAW/Upstream")
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/CRAW/Upstream")
 walk(craw_US_txt_files$id, ~ drive_download(as_id(.x), overwrite = TRUE))
 
 filelist = list.files(pattern = ".txt")
@@ -33,12 +34,12 @@ for (i in 1:length(filelist)){
   print(paste("Processing the file:", input))
   data = read.delim(input, header = TRUE, skip = 2, sep = ",")  
   output <- paste0(gsub("\\.txt$", "", input), ".csv")
-  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/CRAW/Upstream")
+  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/CRAW/Upstream")
   write.table(data, file=output, sep=",", col.names=TRUE, row.names=FALSE)
-  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/CRAW/Upstream")
+  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/CRAW/Upstream")
 }
 
-setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/CRAW")
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/CRAW")
 ### Stitch together manually downloaded MINI DOT data ###
 craw_US_file_list <- list.files(path = "./upstream/", 
                             recursive=F, 
@@ -58,7 +59,7 @@ craw_us_data$datetimeAK <- with_tz(craw_us_data$datetimeAK, tz = "America/Anchor
 craw_us_data <- craw_us_data %>% rename(temp.water.CUS = T..deg.C., DO.obs.CUS = DO..mg.l.)
 
 
-setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF")
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism")
 craw.US.DO.plot <- ggplot(data=craw_us_data, aes(y=DO.obs.CUS, x= as.POSIXct(as.character(datetimeAK)))) +
   geom_point() + 
   labs(x = "Date and Time", y = "Dissolved Oxygen (mg/L)")+
@@ -91,7 +92,7 @@ craw_DS_Folder <- drive_get(as_id(Craw_ds_url))
 craw_DS_txt_files <- drive_ls(craw_DS_Folder, type = "txt")
 
 ## download them
-setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/CRAW/Downstream")
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/CRAW/Downstream")
 walk(craw_DS_txt_files$id, ~ drive_download(as_id(.x), overwrite = TRUE))
 
 filelistCrawDS = list.files(pattern = ".txt")
@@ -101,12 +102,12 @@ for (i in 1:length(filelistCrawDS)){
   print(paste("Processing the file:", input))
   data = read.delim(input, header = TRUE, skip = 2, sep = ",")  
   output <- paste0(gsub("\\.txt$", "", input), ".csv")
-  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/CRAW/Downstream")
+  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/CRAW/Downstream")
   write.table(data, file=output, sep=",", col.names=TRUE, row.names=FALSE)
-  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/CRAW/Downstream")
+  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/CRAW/Downstream")
 }
 
-setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/CRAW")
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/CRAW")
 
 
 
@@ -132,7 +133,7 @@ craw_DS_data$datetimeAK <- force_tz(as_datetime(craw_DS_data$Time..sec.), "UTC")
 
 craw_DS_data$datetimeAK <- with_tz(craw_DS_data$datetimeAK, tz = "America/Anchorage")
 
-setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF")
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism")
 craw.DS.DO.plot <- ggplot(data=craw_DS_data, aes(y=DO.obs.CDS, x=datetimeAK)) +
   geom_point() + 
   labs(x = "Date and Time", y = "Dissolved Oxygen (mg/L)")+
@@ -209,7 +210,7 @@ mast_US_Folder <- drive_get(as_id(Mast_us_url))
 mast_US_txt_files <- drive_ls(mast_US_Folder, type = "txt")
 
 ## download them
-setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/MAST/Upstream")
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/MAST/Upstream")
 walk(mast_US_txt_files$id, ~ drive_download(as_id(.x), overwrite = TRUE))
 
 filelist = list.files(pattern = ".txt")
@@ -219,12 +220,12 @@ for (i in 1:length(filelist)){
   print(paste("Processing the file:", input))
   data = read.delim(input, header = TRUE, skip = 2, sep = ",")  
   output <- paste0(gsub("\\.txt$", "", input), ".csv")
-  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/MAST/Upstream")
+  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/MAST/Upstream")
   write.table(data, file=output, sep=",", col.names=TRUE, row.names=FALSE)
-  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/MAST/Upstream")
+  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/MAST/Upstream")
 }
 
-setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/MAST")
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/MAST")
 ### Stitch together manually downloaded MINI DOT data ###
 mast_US_file_list <- list.files(path = "./upstream/", 
                                 recursive=F, 
@@ -247,7 +248,7 @@ mast_us_data <- mast_us_data %>% rename(temp.water.MUS = T..deg.C., DO.obs.MUS =
 
 
 
-setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF")
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism")
 mast.US.DO.plot <- ggplot(data=mast_us_data, aes(y=DO..mg.l., x=datetimeAK)) +
   geom_point() + 
   labs(x = "Date and Time", y = "Dissolved Oxygen (mg/L)")+
@@ -281,7 +282,7 @@ mast_DS_Folder <- drive_get(as_id(Mast_ds_url))
 mast_DS_txt_files <- drive_ls(mast_DS_Folder, type = "txt")
 
 ## download them
-setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/MAST/Downstream")
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/MAST/Downstream")
 walk(mast_DS_txt_files$id, ~ drive_download(as_id(.x), overwrite = TRUE))
 
 filelistMastDS = list.files(pattern = ".txt")
@@ -291,12 +292,12 @@ for (i in 1:length(filelistMastDS)){
   print(paste("Processing the file:", input))
   data = read.delim(input, header = TRUE, skip = 2, sep = ",")  
   output <- paste0(gsub("\\.txt$", "", input), ".csv")
-  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/MAST/Downstream")
+  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/MAST/Downstream")
   write.table(data, file=output, sep=",", col.names=TRUE, row.names=FALSE)
-  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/MAST/Downstream")
+  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/MAST/Downstream")
 }
 
-setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/MAST")
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/MAST")
 ### Stitch together manually downloaded MINI DOT data ###
 mast_DS_file_list <- list.files(path = "./Downstream/", 
                                 recursive=F, 
@@ -318,7 +319,7 @@ mast_DS_data$datetimeAK <- with_tz(mast_DS_data$datetimeAK, tz = "America/Anchor
 mast_DS_data <- mast_DS_data %>% rename(temp.water.MDS = T..deg.C., DO.obs.MDS = DO..mg.l.)
 
 
-setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF")
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism")
 mast.DS.DO.plot <- ggplot(data=mast_DS_data, aes(y=DO..mg.l., x=datetimeAK)) +
   geom_point() + 
   labs(x = "Date and Time", y = "Dissolved Oxygen (mg/L)")+
@@ -380,7 +381,7 @@ shov_US_Folder <- drive_get(as_id(Shov_us_url))
 shov_US_txt_files <- drive_ls(shov_US_Folder, type = "txt")
 
 ## download them
-setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/SHOV/Upstream")
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/SHOV/Upstream")
 walk(shov_US_txt_files$id, ~ drive_download(as_id(.x), overwrite = TRUE))
 
 filelist = list.files(pattern = ".txt")
@@ -390,12 +391,12 @@ for (i in 1:length(filelist)){
   print(paste("Processing the file:", input))
   data = read.delim(input, header = TRUE, skip = 2, sep = ",")  
   output <- paste0(gsub("\\.txt$", "", input), ".csv")
-  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/SHOV/Upstream")
+  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/SHOV/Upstream")
   write.table(data, file=output, sep=",", col.names=TRUE, row.names=FALSE)
-  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/SHOV/Upstream")
+  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/SHOV/Upstream")
 }
 
-setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/SHOV")
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/SHOV")
 ### Stitch together manually downloaded MINI DOT data ###
 shov_US_file_list <- list.files(path = "./upstream/", 
                                 recursive=F, 
@@ -417,7 +418,7 @@ shov_us_data$datetimeAK <- with_tz(shov_us_data$datetimeAK, tz = "America/Anchor
 shov_us_data <- shov_us_data %>% rename(temp.water.SUS = T..deg.C., DO.obs.SUS = DO..mg.l.)
 
 
-setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF")
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism")
 shov.US.DO.plot <- ggplot(data=shov_us_data, aes(y=DO..mg.l., x=datetimeAK)) +
   geom_point() + 
   labs(x = "Date and Time", y = "Dissolved Oxygen (mg/L)")+
@@ -450,7 +451,7 @@ shov_DS_Folder <- drive_get(as_id(Shov_ds_url))
 shov_DS_txt_files <- drive_ls(shov_DS_Folder, type = "txt")
 
 ## download them
-setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/SHOV/Downstream")
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/SHOV/Downstream")
 walk(shov_DS_txt_files$id, ~ drive_download(as_id(.x), overwrite = TRUE))
 
 filelistShovDS = list.files(pattern = ".txt")
@@ -460,12 +461,12 @@ for (i in 1:length(filelistShovDS)){
   print(paste("Processing the file:", input))
   data = read.delim(input, header = TRUE, skip = 2, sep = ",")  
   output <- paste0(gsub("\\.txt$", "", input), ".csv")
-  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/SHOV/Downstream")
+  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/SHOV/Downstream")
   write.table(data, file=output, sep=",", col.names=TRUE, row.names=FALSE)
-  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/SHOV/Downstream")
+  setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/SHOV/Downstream")
 }
 
-setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF/SHOV")
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism/SHOV")
 ### Stitch together manually downloaded MINI DOT data ###
 shov_DS_file_list <- list.files(path = "./Downstream/", 
                                 recursive=F, 
@@ -488,7 +489,7 @@ shov_DS_data$datetimeAK <- with_tz(shov_DS_data$datetimeAK, tz = "America/Anchor
 shov_DS_data <- shov_DS_data %>% rename(temp.water.SDS = T..deg.C., DO.obs.SDS = DO..mg.l.)
 
 
-setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/Metabolism-UAF")
+setwd("C:/Users/jacob/OneDrive - University of Alaska/GitHub/UAF-Metabolism")
 shov.DS.DO.plot <- ggplot(data=shov_DS_data, aes(y=DO..mg.l., x=datetimeAK)) +
   geom_point() + 
   labs(x = "Date and Time", y = "Dissolved Oxygen (mg/L)")+

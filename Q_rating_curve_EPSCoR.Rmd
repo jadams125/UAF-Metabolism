@@ -26,12 +26,16 @@ library(cowplot)
 library(zoo)
 library(readr)
 library(dplyr)
+library(dataRetrieval)
 library(RColorBrewer)
 library(gridExtra)
 library(ggpmisc)
 library(birk)
 library(imputeTS)
 library(neonUtilities)
+library(ggpubr)
+library(neonUtilities)
+
 ```
 
 
@@ -71,6 +75,112 @@ DoD_Q <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Dis
 
 DoD_Q$DateTimeAK <- as.POSIXct(DoD_Q$DateTimeAK, tz = "America/Anchorage")
 
+DoD_Epscor_Q <- full_join(DoD_Q,Q_test, tz= "DateTimeAK")
+
+
+
+
+# GoldstramQ
+
+goldstream <- readNWISdata(
+  site = c("15457790"), 
+  tz = "America/Anchorage", 
+  parameterCd = "00060",
+  startDate = "2022-01-01",
+  endDate = "2022-12-30",
+  service = c("uv"))
+
+
+
+
+ 
+
+
+goldstream$DateTimeAK <- as.POSIXct(goldstream$dateTime, tz = "America/Anchorage")
+
+goldstream <- goldstream %>% select(DateTimeAK, X_00060_00000) %>% rename(goldstream = X_00060_00000)
+
+
+
+DoD_Epscor_Q <- full_join(DoD_Epscor_Q,goldstream, tz= "DateTimeAK")
+
+DoD_Epscor_Q <- DoD_Epscor_Q %>% fill(goldstream, .direction = "down")
+
+chena <- readNWISdata(
+  site = c("15493000"), 
+  tz = "America/Anchorage", 
+  parameterCd = "00060",
+  startDate = "2022-01-01",
+  endDate = "2022-12-30",
+  service = c("uv"))
+
+chena$DateTimeAK <- as.POSIXct(chena$dateTime, tz = "America/Anchorage")
+
+chena <- chena %>% select(DateTimeAK, X_00060_00000) %>% rename(chena = X_00060_00000)
+
+
+
+DoD_Epscor_Q <- full_join(DoD_Epscor_Q,chena, tz= "DateTimeAK")
+
+# DoD_Epscor_Q <- DoD_Epscor_Q %>% fill(chena, .direction = "down")
+
+
+
+
+
+
+
+readTableNEON()
+
+
+CariQ <- loadByProduct(dpID="DP4.00130.001", 
+                           site=c("CARI"),
+                           startdate="2021-05", 
+                           enddate="2022-11")
+
+
+CariQ <- loadByProduct(dpID = "DP4.00130.001",
+                        startdate = "2022-01",
+                        enddate = "2022-11",
+                        site = c("CARI"),
+                        package = "basic")
+
+list2env(CariQ, .GlobalEnv)
+
+CariQ.dat <- CariQ$csd_continuousDischarge
+
+
+
+## Q 
+CariQ.dat2 <- CariQ.dat %>% select(c("endDate", "maxpostDischarge", "dischargeFinalQF", "dischargeFinalQFSciRvw"))
+
+# 
+# 
+# setDT(DoD_Epscor_Q)
+# setDT(goldstream)
+# 
+# DoD_Epscor_Q$DateTimeAK1 <- DoD_Epscor_Q$DateTimeAK
+# 
+# setkey( DoD_Epscor_Q, DateTimeAK )
+# setkey( DoD_Epscor_Q, DateTimeAK )
+# 
+# shov <- DoD_Epscor_Q %>% select(DateTimeAK, SHOV)
+# 
+# goldstreamfill <-goldstream %>%  fill(goldstream, .direction = "down")
+# 
+# 
+# setkey( goldstreamfill, DateTimeAK )
+# setkey( shov, DateTimeAK )
+# 
+# 
+# #WR was taken when EXO out of water. round depth point to nearest in data record
+# testtable <- goldstreamfill[shov, roll = "nearest" ]
+# testtable2 <- goldstream[shov, roll = "nearest" ]
+
+
+
+
+
 
 ```
 
@@ -80,7 +190,6 @@ DoD_Q$DateTimeAK <- as.POSIXct(DoD_Q$DateTimeAK, tz = "America/Anchorage")
 
 
 
-DoD_Epscor_Q <- full_join(DoD_Q,Q_test, tz= "DateTimeAK")
 
 
 
@@ -93,12 +202,24 @@ DoD_Epscor_Q_test <- DoD_Epscor_Q %>% select(datetimeAK, DO.obs.CDS, DO.obs.CUS)
 
 
 #CRAW
-p1 <- DoD_Epscor_Q %>% ggplot(aes(x=CRAW, y= POKE.Q.int)) + geom_point()+ stat_poly_line() + stat_poly_eq()+ggtitle("Craw")
-p2 <- DoD_Epscor_Q %>% ggplot(aes(x=CRAW, y= STRT.Q.int)) + geom_point()+ stat_poly_line() + stat_poly_eq()
-p3 <- DoD_Epscor_Q %>% ggplot(aes(x=CRAW, y= MOOS.Q.int)) + geom_point()+ stat_poly_line() + stat_poly_eq()
-p4 <- DoD_Epscor_Q %>% ggplot(aes(x=CRAW, y= FRCH)) + geom_point()+ stat_poly_line() + stat_poly_eq()
 
-ggarrange(p1,p2,p3,p4, ncol = 2, nrow = 2)
+
+DoD_Epscor_Q_remove_craw <- DoD_Epscor_Q %>%
+  mutate(across(c(CRAW),
+                ~ifelse(as.character(X) == "3429", NA, .)))
+
+p1 <- DoD_Epscor_Q_remove_craw %>% ggplot(aes(x=CRAW,y= POKE)) + geom_point()+ stat_poly_line() + stat_poly_eq()+ggtitle("Craw, One WR removed")
+p2 <- DoD_Epscor_Q_remove_craw %>% ggplot(aes(x=CRAW,y= STRT)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p3 <- DoD_Epscor_Q_remove_craw %>% ggplot(aes(x=CRAW,y= MOOS)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p4 <- DoD_Epscor_Q_remove_craw %>% ggplot(aes(x=CRAW,y= FRCH )) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p5 <- DoD_Epscor_Q_remove_craw %>% ggplot(aes(x=CRAW,y= goldstream)) + geom_point()+ stat_poly_line() + stat_poly_eq()+scale_y_continuous(limit = c(-10, 50))
+p6 <- DoD_Epscor_Q_remove_craw %>% ggplot(aes(x=CRAW,y= chena)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+
+
+dev.next()
+
+ggarrange(p1,p2,p3,p4,p5,p6, ncol = 3, nrow = 2)
+
 
 
 library(grid)
@@ -122,10 +243,10 @@ fig2019 <- arrangeGrob(rbind(panA, panB, panC, panD, size="max"))
 ggsave(path = here("outputs"), file = "CrawQ_RC.pdf", fig2019, width = 12, height = 16, units = "in")
 
 #SHOV
-p1 <- DoD_Epscor_Q %>% ggplot(aes(x=SHOV, y= POKE.Q.int)) + geom_point()+ stat_poly_line() + stat_poly_eq()+ggtitle("Shov, No YSI points removed")
-p2 <- DoD_Epscor_Q %>% ggplot(aes(x=SHOV, y= STRT.Q.int)) + geom_point()+ stat_poly_line() + stat_poly_eq()
-p3 <- DoD_Epscor_Q %>% ggplot(aes(x=SHOV, y= MOOS.Q.int)) + geom_point()+ stat_poly_line() + stat_poly_eq()
-p4 <- DoD_Epscor_Q %>% ggplot(aes(x=SHOV, y= FRCH)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p1 <- DoD_Epscor_Q %>% ggplot(aes(x=SHOV,y= POKE, color = Method, color = Method)) + geom_point()+ stat_poly_line() + stat_poly_eq()+ggtitle("Shov, No YSI points removed")
+p2 <- DoD_Epscor_Q %>% ggplot(aes(x=SHOV,y= STRT, color = Method)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p3 <- DoD_Epscor_Q %>% ggplot(aes(x=SHOV,y= MOOS, color = Method)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p4 <- DoD_Epscor_Q %>% ggplot(aes(x=SHOV,y= FRCH , color = Method)) + geom_point()+ stat_poly_line() + stat_poly_eq()
 
 
 dev.next()
@@ -155,10 +276,10 @@ ggsave(path = here("outputs"), file = "SHOVQ_RC.pdf", SHOVQ_RC, width = 12, heig
 
 
 #MAST
-p1 <- DoD_Epscor_Q %>% ggplot(aes(x=MAST, y= POKE.Q.int)) + geom_point()+ stat_poly_line() + stat_poly_eq() +ggtitle("Mast, No YSI points removed")
-p2 <- DoD_Epscor_Q %>% ggplot(aes(x=MAST, y= STRT.Q.int)) + geom_point()+ stat_poly_line() + stat_poly_eq()
-p3 <- DoD_Epscor_Q %>% ggplot(aes(x=MAST, y= MOOS.Q.int)) + geom_point()+ stat_poly_line() + stat_poly_eq()
-p4 <- DoD_Epscor_Q %>% ggplot(aes(x=MAST, y= FRCH)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p1 <- DoD_Epscor_Q %>% ggplot(aes(x=MAST,y= POKE, color = Method)) + geom_point()+ stat_poly_line() + stat_poly_eq() +ggtitle("Mast, No YSI points removed")
+p2 <- DoD_Epscor_Q %>% ggplot(aes(x=MAST,y= STRT, color = Method)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p3 <- DoD_Epscor_Q %>% ggplot(aes(x=MAST,y= MOOS, color = Method)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p4 <- DoD_Epscor_Q %>% ggplot(aes(x=MAST,y= FRCH , color = Method)) + geom_point()+ stat_poly_line() + stat_poly_eq()
 
 dev.next()
 
@@ -189,12 +310,78 @@ asd
 
  
 
-DoD_Epscor_Q_remove <- DoD_Epscor_Q %>%
-  mutate(across(c(MAST, depth),
-                ~ifelse(as.character(datetimeAK) == "2019-07-08 13:00:00", NA, .)))
+
+
+#MAST Remove
+
+DoD_Epscor_Q_remove_mast <- DoD_Epscor_Q %>%
+  mutate(across(c(MAST),
+                ~ifelse(as.character(X) == "6205", NA, .)))
+
+p1 <- DoD_Epscor_Q_remove_mast %>% ggplot(aes(x=MAST,y= POKE)) + geom_point()+ stat_poly_line() + stat_poly_eq() +ggtitle("Mast, One YSI point removed")
+p2 <- DoD_Epscor_Q_remove_mast %>% ggplot(aes(x=MAST,y= STRT)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p3 <- DoD_Epscor_Q_remove_mast %>% ggplot(aes(x=MAST,y= MOOS)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p4 <- DoD_Epscor_Q_remove_mast %>% ggplot(aes(x=MAST,y= FRCH)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p5 <- DoD_Epscor_Q_remove_mast %>% ggplot(aes(x=MAST,y= goldstream)) + geom_point()+ stat_poly_line() + stat_poly_eq() + stat_poly_eq()+scale_y_continuous(limit = c(-10, 50))
+p6 <- DoD_Epscor_Q_remove_mast %>% ggplot(aes(x=MAST,y= chena)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+
+
+dev.next()
+
+ggarrange(p1,p2,p3,p4,p5,p6, ncol = 2, nrow = 3)
 
 
 
+#Shov Remove
+
+# DoD_Epscor_Q_remove_shov <- DoD_Epscor_Q %>%
+# mutate(across(c(SHOV),
+#               ~ifelse(as.character(X) == "6481", NA, .)))
+
+
+
+DoD_Epscor_Q_remove_shov <- DoD_Epscor_Q %>%
+  mutate(across(c(SHOV),
+                ~ifelse(as.character(X) == "3517", NA, .)))
+
+p1 <- DoD_Epscor_Q_remove_shov %>% ggplot(aes(x=SHOV,y= POKE)) + geom_point()+ stat_poly_line() + stat_poly_eq() +ggtitle("SHOV, one YSI point removed")
+p2 <- DoD_Epscor_Q_remove_shov %>% ggplot(aes(x=SHOV,y= STRT)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p3 <- DoD_Epscor_Q_remove_shov %>% ggplot(aes(x=SHOV,y= MOOS)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p4 <- DoD_Epscor_Q_remove_shov %>% ggplot(aes(x=SHOV,y= FRCH )) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p5 <- DoD_Epscor_Q_remove_shov %>% ggplot(aes(x=SHOV,y= goldstream)) + geom_point()+ stat_poly_line() + stat_poly_eq() + stat_poly_eq()+scale_y_continuous(limit = c(-20, 100))
+p6 <- DoD_Epscor_Q_remove_shov %>% ggplot(aes(x=SHOV,y= chena)) + geom_point()+ stat_poly_line() + stat_poly_eq()+scale_y_continuous(limit = c(-10, 2000))
+
+
+dev.next()
+
+ggarrange(p1,p2,p3,p4,p5,p6, ncol = 3, nrow = 2)
+
+
+
+p1 <- DoD_Epscor_Q_remove_shov %>% ggplot(aes(x=SHOV,y= POKE, color = Method, color = Method)) + geom_point()+ stat_poly_line() + stat_poly_eq()+ggtitle("Shov, No YSI points removed")
+p2 <- DoD_Epscor_Q_remove_shov %>% ggplot(aes(x=SHOV,y= STRT, color = Method)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p3 <- DoD_Epscor_Q_remove_shov %>% ggplot(aes(x=SHOV,y= MOOS, color = Method)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p4 <- DoD_Epscor_Q_remove_shov %>% ggplot(aes(x=SHOV,y= FRCH , color = Method)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+
+dev.next()
+
+ggarrange(p1,p2,p3,p4,p5, ncol = 3, nrow = 2)
+
+
+# #CRAW Remove
+# 
+# DoD_Epscor_Q_remove_CRAW <- DoD_Epscor_Q %>%
+#   mutate(across(c(CRAW),
+#                 ~ifelse(as.character(X) == "3429", NA, .)))
+# 
+# p1 <- DoD_Epscor_Q_remove_CRAW %>% ggplot(aes(x=CRAW,y= POKE, color = Method)) + geom_point()+ stat_poly_line() + stat_poly_eq() +ggtitle("CRAW, One Wading Rod point removed")
+# p2 <- DoD_Epscor_Q_remove_CRAW %>% ggplot(aes(x=CRAW,y= STRT, color = Method)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+# p3 <- DoD_Epscor_Q_remove_CRAW %>% ggplot(aes(x=CRAW,y= MOOS, color = Method)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+# p4 <- DoD_Epscor_Q_remove_CRAW %>% ggplot(aes(x=CRAW,y= FRCH , color = Method)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+# 
+# dev.next()
+# 
+# ggarrange(p1,p2,p3,p4, ncol = 2, nrow = 2)
 
 
 ```

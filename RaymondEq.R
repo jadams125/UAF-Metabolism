@@ -92,9 +92,9 @@ moos_WR_19.Data$datetimeAK <- as.POSIXct(paste(moos_WR_19.Data$Date, moos_WR_19.
 moos_WR_19.Data <- moos_WR_19.Data %>%
   select(Depth..cm., datetimeAK)
 
-Moos_depth_19_WR <- ddply(na.omit(moos_WR_19.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+Moos_depth_19_WR <- ddply(na.omit(moos_WR_19.Data), .(datetimeAK), summarize, medianDepth = median(as.numeric(Depth..cm.)))
 
-# moos_wr.lm <- lm(meanDepth~datetimeAK, Moos_depth_19)
+# moos_wr.lm <- lm(medianDepth~datetimeAK, Moos_depth_19)
 
 
 Moos_depth_19_WR <- setDT(Moos_depth_19_WR)
@@ -130,13 +130,13 @@ setkey( Moos_depth_19_WR, datetimeAK )
 #WR was taken when EXO out of water. round depth point to nearest in data record
 rounded.dates_moos19 <- moos.2019.q.dt[ Moos_depth_19_WR, roll = "nearest" ]
 
-rounded.dates_moos19_WR_Q <- rounded.dates_moos19 %>% rename(discharge = Q) %>% 
-  select(datetimeAK, discharge, meanDepth)
+rounded.dates_moos19_WR_Q <- rounded.dates_moos19 %>% rename(discharge = Q) %>%  select(datetimeAK, discharge, medianDepth) 
+  
 
 #convert to meters
-rounded.dates_moos19_WR_Q$meanDepth <- rounded.dates_moos19_WR_Q$meanDepth /100
+rounded.dates_moos19_WR_Q$medianDepth <- rounded.dates_moos19_WR_Q$medianDepth /100
 
-moos_pt_wr_graph <- ggplot(rounded.dates_moos19_WR_Q, aes(discharge, meanDepth)) +
+moos_pt_wr_graph <- ggplot(rounded.dates_moos19_WR_Q, aes(discharge, medianDepth)) +
   geom_point()
 # Add regression line
 moos_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
@@ -144,11 +144,11 @@ moos_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (W
 ggsave("plots/moos_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
 
 
-moos19_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_moos19_WR_Q)
+moos19_depth_mod <- lm(medianDepth~discharge, data = rounded.dates_moos19_WR_Q)
 
 summary(moos19_depth_mod)
 
-plot(meanDepth~discharge, data = rounded.dates_moos19_WR_Q)
+plot(medianDepth~discharge, data = rounded.dates_moos19_WR_Q)
 # abline(moos19_depth_mod)
 
 #extract slope of model and develop rating curve
@@ -159,7 +159,7 @@ moos.2019.q.dt$RatingCurveDepth <- moos19_depth_mod$coefficients[1]+(moos19_dept
 
 moos.2019.q.dt$date <- as.Date(moos.2019.q.dt$datetimeAK)
 
-daily.mean.depth.moos <- moos.2019.q.dt %>%
+daily.median.depth.moos <- moos.2019.q.dt %>%
   group_by(date) %>%
   summarise_at(vars(RatingCurveDepth), list(name = mean))
 
@@ -197,7 +197,7 @@ moos_WR_19.Data <- moos_WR_19.Data %>%
 
 Moos_V_19_WR <- ddply(na.omit(moos_WR_19.Data), .(datetimeAK), summarize, meanVelocity = mean(as.numeric(Mean.Vel..m.s.)))
 
-# moos_wr.lm <- lm(meanDepth~datetimeAK, Moos_depth_19)
+# moos_wr.lm <- lm(medianDepth~datetimeAK, Moos_depth_19)
 
 
 Moos_V_19_WR <- setDT(Moos_V_19_WR)
@@ -281,13 +281,12 @@ moos.discharge <- na.omit(MOOS.2019.Q) %>%
 
 
 daily.mean.velocity.moos <- daily.mean.velocity.moos %>% rename(velocity = name)
-daily.mean.depth.moos <- daily.mean.depth.moos %>% rename(depth = name)
+daily.median.depth.moos <- daily.median.depth.moos %>% rename(depth = name)
 
 
 
-data <- merge(daily.mean.velocity.moos,daily.mean.depth.moos, by = "date")
+data <- merge(daily.mean.velocity.moos,daily.median.depth.moos, by = "date")
 data <- merge(data, moos.discharge, by = "date")
-view(data)
 
 
 
@@ -305,9 +304,19 @@ data$k600.6 <- 929*((data$velocity*moos.slope)^(0.75)) * data$discharge^(0.011)
 
 data$k600.7 <- 4725*((data$velocity*moos.slope)^(0.86)) * (data$discharge^(-0.14)) *(data$depth^(0.66))
 
-view(data)
+ 
 
 metab.moose <- read.csv(here("outputs","moose2019-Run_2023-01-09.csv"))
+data.moose <- read.csv(here("outputs", "clean.moos.2019.full.csv"))
+
+data.moose <- data.moose %>%
+  mutate(date = as.Date(as.POSIXct(solar.time, tz = "UTC"))) %>%
+  group_by(date) %>%
+  summarize(median_depth = median(depth))
+data.moose$date <- as.character(data.moose$date)
+
+metab.moose <- merge(data.moose, metab.moose, by = "date")
+metab.moose$K600_daily_mean <- metab.moose$K600_daily_mean* (metab.moose$median_depth)
 
 SM.K <- metab.moose %>% select(date, K600_daily_mean)
 SM.K <- SM.K %>% rename(k600.SM = K600_daily_mean)
@@ -321,7 +330,7 @@ data2 <- merge(data,SM.K, by = "date")
 K.plot1_moose_2019 <- data2 %>% 
   select(date, starts_with('k600')) %>%
   gather(type, k600.value, starts_with('k600')) %>%  ggplot(aes(x=date, y=k600.value, color=type)) + geom_line() + theme_bw() +
-  scale_color_discrete('variable') + labs(title = "K600, Moose 2019. From Raymond Equations ", y = expression(paste("K600 (", d^-1, ")")))
+  scale_color_discrete('variable') + labs(title = "K600, Moose 2019. From Raymond Equations ", y = expression(paste(" K600 (m", d^-1, ")")))
 K.plot1_moose_2019
 
 
@@ -383,9 +392,9 @@ moos_WR_20.Data$datetimeAK <- as.POSIXct(paste(as.character(moos_WR_20.Data$Date
 moos_WR_20.Data <- moos_WR_20.Data %>%
   select(Depth..cm., datetimeAK)
 
-Moos_depth_20_WR <- ddply(na.omit(moos_WR_20.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+Moos_depth_20_WR <- ddply(na.omit(moos_WR_20.Data), .(datetimeAK), summarize, medianDepth = median(as.numeric(Depth..cm.)))
 
-# moos_wr.lm <- lm(meanDepth~datetimeAK, Moos_depth_20)
+# moos_wr.lm <- lm(medianDepth~datetimeAK, Moos_depth_20)
 
 
 Moos_depth_20_WR <- setDT(Moos_depth_20_WR)
@@ -421,13 +430,11 @@ setkey( Moos_depth_20_WR, datetimeAK )
 #WR was taken when EXO out of water. round depth point to nearest in data record
 rounded.dates_moos20 <- moos.2020.q.dt[ Moos_depth_20_WR, roll = "nearest" ]
 
-rounded.dates_moos20_WR_Q <- rounded.dates_moos20 %>% rename(discharge = Q) %>% 
-  select(datetimeAK, discharge, meanDepth)
-
+rounded.dates_moos20_WR_Q <- rounded.dates_moos20 %>% rename(discharge = Q)  %>%  select(datetimeAK, discharge, medianDepth)
 #convert to meters
-rounded.dates_moos20_WR_Q$meanDepth <- rounded.dates_moos20_WR_Q$meanDepth /100
+rounded.dates_moos20_WR_Q$medianDepth <- rounded.dates_moos20_WR_Q$medianDepth /100
 
-moos_pt_wr_graph <- ggplot(rounded.dates_moos20_WR_Q, aes(discharge, meanDepth)) +
+moos_pt_wr_graph <- ggplot(rounded.dates_moos20_WR_Q, aes(discharge, medianDepth)) +
   geom_point()
 # Add regression line
 moos_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
@@ -435,11 +442,11 @@ moos_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (W
 ggsave("plots/moos_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
 
 
-moos20_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_moos20_WR_Q)
+moos20_depth_mod <- lm(medianDepth~discharge, data = rounded.dates_moos20_WR_Q)
 
 summary(moos20_depth_mod)
 
-plot(meanDepth~discharge, data = rounded.dates_moos20_WR_Q)
+plot(medianDepth~discharge, data = rounded.dates_moos20_WR_Q)
 # abline(moos20_depth_mod)
 
 #extract slope of model and develop rating curve
@@ -450,7 +457,7 @@ moos.2020.q.dt$RatingCurveDepth <- moos20_depth_mod$coefficients[1]+(moos20_dept
 
 moos.2020.q.dt$date <- as.Date(moos.2020.q.dt$datetimeAK)
 
-daily.mean.depth.moos <- moos.2020.q.dt %>%
+daily.median.depth.moos <- moos.2020.q.dt %>%
   group_by(date) %>%
   summarise_at(vars(RatingCurveDepth), list(name = mean))
 
@@ -491,7 +498,7 @@ moos_WR_20.Data <- moos_WR_20.Data %>%
 
 Moos_V_20_WR <- ddply(na.omit(moos_WR_20.Data), .(datetimeAK), summarize, meanVelocity = mean(as.numeric(Mean.Vel..m.s.)))
 
-# moos_wr.lm <- lm(meanDepth~datetimeAK, Moos_depth_20)
+# moos_wr.lm <- lm(medianDepth~datetimeAK, Moos_depth_20)
 
 
 Moos_V_20_WR <- setDT(Moos_V_20_WR)
@@ -575,11 +582,11 @@ moos.discharge <- na.omit(MOOS.2020.Q) %>%
 
 
 daily.mean.velocity.moos <- daily.mean.velocity.moos %>% rename(velocity = name)
-daily.mean.depth.moos <- daily.mean.depth.moos %>% rename(depth = name)
+daily.median.depth.moos <- daily.median.depth.moos %>% rename(depth = name)
 
 
 
-data <- merge(daily.mean.velocity.moos,daily.mean.depth.moos, by = "date")
+data <- merge(daily.mean.velocity.moos,daily.median.depth.moos, by = "date")
 data <- merge(data, moos.discharge, by = "date")
 
 #slope
@@ -601,6 +608,16 @@ data$k600.7 <- 4725*((data$velocity*moos.slope)^(0.86)) * (data$discharge^(-0.14
 
 
 metab.moose <- read.csv(here("outputs","moose2020-Run_2023-01-09.csv"))
+data.moose <- read.csv(here("outputs", "clean.moos.2020.full.csv"))
+
+data.moose <- data.moose %>%
+  mutate(date = as.Date(as.POSIXct(solar.time, tz = "UTC"))) %>%
+  group_by(date) %>%
+  summarize(median_depth = median(depth))
+data.moose$date <- as.character(data.moose$date)
+
+metab.moose <- merge(data.moose, metab.moose, by = "date")
+metab.moose$K600_daily_mean <- metab.moose$K600_daily_mean* (metab.moose$median_depth)
 
 SM.K <- metab.moose %>% select(date, K600_daily_mean)
 SM.K <- SM.K %>% rename(k600.SM = K600_daily_mean)
@@ -614,7 +631,7 @@ data2 <- merge(data,SM.K, by = "date")
 K.plot1_moose_2020 <- data2 %>% 
   select(date, starts_with('k600')) %>%
   gather(type, k600.value, starts_with('k600')) %>%  ggplot(aes(x=date, y=k600.value, color=type)) + geom_line() + theme_bw() +
-  scale_color_discrete('variable') + labs(title = "K600, Moose 2020. From Raymond Equations ", y = expression(paste("K600 (", d^-1, ")")))
+  scale_color_discrete('variable') + labs(title = "K600, Moose 2020. From Raymond Equations ", y = expression(paste(" K600 (m", d^-1, ")")))
 K.plot1_moose_2020
 
 
@@ -680,9 +697,9 @@ moos_WR_21.Data$datetimeAK <- as.POSIXct(paste(as.character(moos_WR_21.Data$Date
 moos_WR_21.Data <- moos_WR_21.Data %>%
   select(Depth..cm., datetimeAK)
 
-Moos_depth_21_WR <- ddply(na.omit(moos_WR_21.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+Moos_depth_21_WR <- ddply(na.omit(moos_WR_21.Data), .(datetimeAK), summarize, medianDepth = median(as.numeric(Depth..cm.)))
 
-# moos_wr.lm <- lm(meanDepth~datetimeAK, Moos_depth_21)
+# moos_wr.lm <- lm(medianDepth~datetimeAK, Moos_depth_21)
 
 
 Moos_depth_21_WR <- setDT(Moos_depth_21_WR)
@@ -718,13 +735,12 @@ setkey( Moos_depth_21_WR, datetimeAK )
 #WR was taken when EXO out of water. round depth point to nearest in data record
 rounded.dates_moos21 <- moos.2021.q.dt[ Moos_depth_21_WR, roll = "nearest" ]
 
-rounded.dates_moos21_WR_Q <- rounded.dates_moos21 %>% rename(discharge = Q) %>% 
-  select(datetimeAK, discharge, meanDepth)
+rounded.dates_moos21_WR_Q <- rounded.dates_moos21 %>% rename(discharge = Q)  %>%  select(datetimeAK, discharge, medianDepth)
 
 #convert to meters
-rounded.dates_moos21_WR_Q$meanDepth <- rounded.dates_moos21_WR_Q$meanDepth /100
+rounded.dates_moos21_WR_Q$medianDepth <- rounded.dates_moos21_WR_Q$medianDepth /100
 
-moos_pt_wr_graph <- ggplot(rounded.dates_moos21_WR_Q, aes(discharge, meanDepth)) +
+moos_pt_wr_graph <- ggplot(rounded.dates_moos21_WR_Q, aes(discharge, medianDepth)) +
   geom_point()
 # Add regression line
 moos_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
@@ -732,11 +748,11 @@ moos_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (W
 ggsave("plots/moos_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
 
 
-moos21_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_moos21_WR_Q)
+moos21_depth_mod <- lm(medianDepth~discharge, data = rounded.dates_moos21_WR_Q)
 
 summary(moos21_depth_mod)
 
-plot(meanDepth~discharge, data = rounded.dates_moos21_WR_Q)
+plot(medianDepth~discharge, data = rounded.dates_moos21_WR_Q)
 # abline(moos21_depth_mod)
 
 #extract slope of model and develop rating curve
@@ -747,7 +763,7 @@ moos.2021.q.dt$RatingCurveDepth <- moos21_depth_mod$coefficients[1]+(moos21_dept
 
 moos.2021.q.dt$date <- as.Date(moos.2021.q.dt$datetimeAK)
 
-daily.mean.depth.moos <- moos.2021.q.dt %>%
+daily.median.depth.moos <- moos.2021.q.dt %>%
   group_by(date) %>%
   summarise_at(vars(RatingCurveDepth), list(name = mean))
 
@@ -787,7 +803,7 @@ moos_WR_21.Data <- moos_WR_21.Data %>%
 
 Moos_V_21_WR <- ddply(na.omit(moos_WR_21.Data), .(datetimeAK), summarize, meanVelocity = mean(as.numeric(Mean.Vel..m.s.)))
 
-# moos_wr.lm <- lm(meanDepth~datetimeAK, Moos_depth_21)
+# moos_wr.lm <- lm(medianDepth~datetimeAK, Moos_depth_21)
 
 
 Moos_V_21_WR <- setDT(Moos_V_21_WR)
@@ -871,11 +887,11 @@ moos.discharge <- na.omit(MOOS.2021.Q) %>%
 
 
 daily.mean.velocity.moos <- daily.mean.velocity.moos %>% rename(velocity = name)
-daily.mean.depth.moos <- daily.mean.depth.moos %>% rename(depth = name)
+daily.median.depth.moos <- daily.median.depth.moos %>% rename(depth = name)
 
 
 
-data <- merge(daily.mean.velocity.moos,daily.mean.depth.moos, by = "date")
+data <- merge(daily.mean.velocity.moos,daily.median.depth.moos, by = "date")
 data <- merge(data, moos.discharge, by = "date")
 
 #slope
@@ -897,6 +913,16 @@ data$k600.7 <- 4725*((data$velocity*moos.slope)^(0.86)) * (data$discharge^(-0.14
 
 
 metab.moose <- read.csv(here("outputs","moose2021-Run_2023-01-09.csv"))
+data.moose <- read.csv(here("outputs", "clean.moos.2021.full.csv"))
+
+data.moose <- data.moose %>%
+  mutate(date = as.Date(as.POSIXct(solar.time, tz = "UTC"))) %>%
+  group_by(date) %>%
+  summarize(median_depth = median(depth))
+data.moose$date <- as.character(data.moose$date)
+
+metab.moose <- merge(data.moose, metab.moose, by = "date")
+metab.moose$K600_daily_mean <- metab.moose$K600_daily_mean* (metab.moose$median_depth)
 
 SM.K <- metab.moose %>% select(date, K600_daily_mean)
 SM.K <- SM.K %>% rename(k600.SM = K600_daily_mean)
@@ -905,12 +931,11 @@ SM.K$date <- as.Date(SM.K$date)
 
 data2 <- merge(data,SM.K, by = "date")
 
-
 # ALL YEARS
 K.plot1_moose_2021 <- data2 %>% 
   select(date, starts_with('k600')) %>%
   gather(type, k600.value, starts_with('k600')) %>%  ggplot(aes(x=date, y=k600.value, color=type)) + geom_line() + theme_bw() +
-  scale_color_discrete('variable') + labs(title = "K600, Moose 2021. From Raymond Equations ", y = expression(paste("K600 (", d^-1, ")")))
+  scale_color_discrete('variable') + labs(title = "K600, Moose 2021. From Raymond Equations ", y = expression(paste(" K600 (m", d^-1, ")")))
 K.plot1_moose_2021
 
 
@@ -971,9 +996,9 @@ frch_WR_19.Data$datetimeAK <- as.POSIXct(paste(frch_WR_19.Data$Date, frch_WR_19.
 frch_WR_19.Data <- frch_WR_19.Data %>%
   select(Depth..cm., datetimeAK)
 
-frch_depth_19_WR <- ddply(na.omit(frch_WR_19.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+frch_depth_19_WR <- ddply(na.omit(frch_WR_19.Data), .(datetimeAK), summarize, medianDepth = median(as.numeric(Depth..cm.)))
 
-# frch_wr.lm <- lm(meanDepth~datetimeAK, frch_depth_19)
+# frch_wr.lm <- lm(medianDepth~datetimeAK, frch_depth_19)
 
 
 frch_depth_19_WR <- setDT(frch_depth_19_WR)
@@ -1009,13 +1034,12 @@ setkey( frch_depth_19_WR, datetimeAK )
 #WR was taken when EXO out of water. round depth point to nearest in data record
 rounded.dates_frch19 <- frch.2019.q.dt[ frch_depth_19_WR, roll = "nearest" ]
 
-rounded.dates_frch19_WR_Q <- rounded.dates_frch19 %>% rename(discharge = Q) %>% 
-  select(datetimeAK, discharge, meanDepth)
+rounded.dates_frch19_WR_Q <- rounded.dates_frch19 %>% rename(discharge = Q)  %>%  select(datetimeAK, discharge, medianDepth)
 
 #convert to meters
-rounded.dates_frch19_WR_Q$meanDepth <- rounded.dates_frch19_WR_Q$meanDepth /100
+rounded.dates_frch19_WR_Q$medianDepth <- rounded.dates_frch19_WR_Q$medianDepth /100
 
-frch_pt_wr_graph <- ggplot(rounded.dates_frch19_WR_Q, aes(discharge, meanDepth)) +
+frch_pt_wr_graph <- ggplot(rounded.dates_frch19_WR_Q, aes(discharge, medianDepth)) +
   geom_point()
 # Add regression line
 frch_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
@@ -1023,11 +1047,11 @@ frch_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (W
 ggsave("plots/frch_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
 
 
-frch19_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_frch19_WR_Q)
+frch19_depth_mod <- lm(medianDepth~discharge, data = rounded.dates_frch19_WR_Q)
 
 summary(frch19_depth_mod)
 
-plot(meanDepth~discharge, data = rounded.dates_frch19_WR_Q)
+plot(medianDepth~discharge, data = rounded.dates_frch19_WR_Q)
 # abline(frch19_depth_mod)
 
 #extract slope of model and develop rating curve
@@ -1038,7 +1062,7 @@ frch.2019.q.dt$RatingCurveDepth <- frch19_depth_mod$coefficients[1]+(frch19_dept
 
 frch.2019.q.dt$date <- as.Date(frch.2019.q.dt$datetimeAK)
 
-daily.mean.depth.frch <- frch.2019.q.dt %>%
+daily.median.depth.frch <- frch.2019.q.dt %>%
   group_by(date) %>%
   summarise_at(vars(RatingCurveDepth), list(name = mean))
 
@@ -1078,7 +1102,7 @@ frch_WR_19.Data <- frch_WR_19.Data %>%
 
 frch_V_19_WR <- ddply(na.omit(frch_WR_19.Data), .(datetimeAK), summarize, meanVelocity = mean(as.numeric(Mean.Vel..m.s.)))
 
-# frch_wr.lm <- lm(meanDepth~datetimeAK, frch_depth_19)
+# frch_wr.lm <- lm(medianDepth~datetimeAK, frch_depth_19)
 
 
 frch_V_19_WR <- setDT(frch_V_19_WR)
@@ -1162,13 +1186,13 @@ frch.discharge <- na.omit(frch.2019.Q) %>%
 
 
 daily.mean.velocity.frch <- daily.mean.velocity.frch %>% rename(velocity = name)
-daily.mean.depth.frch <- daily.mean.depth.frch %>% rename(depth = name)
+daily.median.depth.frch <- daily.median.depth.frch %>% rename(depth = name)
 
 
 
-data <- merge(daily.mean.velocity.frch,daily.mean.depth.frch, by = "date")
+data <- merge(daily.mean.velocity.frch,daily.median.depth.frch, by = "date")
 data <- merge(data, frch.discharge, by = "date")
-view(data)
+ 
 
 
 
@@ -1186,9 +1210,19 @@ data$k600.6 <- 929*((data$velocity*frch.slope)^(0.75)) * data$discharge^(0.011)
 
 data$k600.7 <- 4725*((data$velocity*frch.slope)^(0.86)) * (data$discharge^(-0.14)) *(data$depth^(0.66))
 
-view(data)
+ 
 
 metab.french <- read.csv(here("outputs","french2019-Run_2023-01-09.csv"))
+data.french <- read.csv(here("outputs", "clean.frch.2019.full.csv"))
+
+data.french <- data.french %>%
+  mutate(date = as.Date(as.POSIXct(solar.time, tz = "UTC"))) %>%
+  group_by(date) %>%
+  summarize(median_depth = median(depth))
+data.french$date <- as.character(data.french$date)
+
+metab.french <- merge(data.french, metab.french, by = "date")
+metab.french$K600_daily_mean <- metab.french$K600_daily_mean* (metab.french$median_depth)
 
 SM.K <- metab.french %>% select(date, K600_daily_mean)
 SM.K <- SM.K %>% rename(k600.SM = K600_daily_mean)
@@ -1202,7 +1236,7 @@ data2 <- merge(data,SM.K, by = "date")
 K.plot1_french_2019 <- data2 %>% 
   select(date, starts_with('k600')) %>%
   gather(type, k600.value, starts_with('k600')) %>%  ggplot(aes(x=date, y=k600.value, color=type)) + geom_line() + theme_bw() +
-  scale_color_discrete('variable') + labs(title = "K600, french 2019. From Raymond Equations ", y = expression(paste("K600 (", d^-1, ")")))
+  scale_color_discrete('variable') + labs(title = "K600, french 2019. From Raymond Equations ", y = expression(paste(" K600 (m", d^-1, ")")))
 K.plot1_french_2019
 
 
@@ -1263,9 +1297,9 @@ frch_WR_20.Data$datetimeAK <- as.POSIXct(paste(as.character(frch_WR_20.Data$Date
 frch_WR_20.Data <- frch_WR_20.Data %>%
   select(Depth..cm., datetimeAK)
 
-frch_depth_20_WR <- ddply(na.omit(frch_WR_20.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+frch_depth_20_WR <- ddply(na.omit(frch_WR_20.Data), .(datetimeAK), summarize, medianDepth = median(as.numeric(Depth..cm.)))
 
-# frch_wr.lm <- lm(meanDepth~datetimeAK, frch_depth_20)
+# frch_wr.lm <- lm(medianDepth~datetimeAK, frch_depth_20)
 
 
 frch_depth_20_WR <- setDT(frch_depth_20_WR)
@@ -1301,13 +1335,12 @@ setkey( frch_depth_20_WR, datetimeAK )
 #WR was taken when EXO out of water. round depth point to nearest in data record
 rounded.dates_frch20 <- frch.2020.q.dt[ frch_depth_20_WR, roll = "nearest" ]
 
-rounded.dates_frch20_WR_Q <- rounded.dates_frch20 %>% rename(discharge = Q) %>% 
-  select(datetimeAK, discharge, meanDepth)
+rounded.dates_frch20_WR_Q <- rounded.dates_frch20 %>% rename(discharge = Q)  %>%  select(datetimeAK, discharge, medianDepth)
 
 #convert to meters
-rounded.dates_frch20_WR_Q$meanDepth <- rounded.dates_frch20_WR_Q$meanDepth /100
+rounded.dates_frch20_WR_Q$medianDepth <- rounded.dates_frch20_WR_Q$medianDepth /100
 
-frch_pt_wr_graph <- ggplot(rounded.dates_frch20_WR_Q, aes(discharge, meanDepth)) +
+frch_pt_wr_graph <- ggplot(rounded.dates_frch20_WR_Q, aes(discharge, medianDepth)) +
   geom_point()
 # Add regression line
 frch_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
@@ -1315,11 +1348,11 @@ frch_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (W
 ggsave("plots/frch_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
 
 
-frch20_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_frch20_WR_Q)
+frch20_depth_mod <- lm(medianDepth~discharge, data = rounded.dates_frch20_WR_Q)
 
 summary(frch20_depth_mod)
 
-plot(meanDepth~discharge, data = rounded.dates_frch20_WR_Q)
+plot(medianDepth~discharge, data = rounded.dates_frch20_WR_Q)
 # abline(frch20_depth_mod)
 
 #extract slope of model and develop rating curve
@@ -1330,7 +1363,7 @@ frch.2020.q.dt$RatingCurveDepth <- frch20_depth_mod$coefficients[1]+(frch20_dept
 
 frch.2020.q.dt$date <- as.Date(frch.2020.q.dt$datetimeAK)
 
-daily.mean.depth.frch <- frch.2020.q.dt %>%
+daily.median.depth.frch <- frch.2020.q.dt %>%
   group_by(date) %>%
   summarise_at(vars(RatingCurveDepth), list(name = mean))
 
@@ -1367,7 +1400,7 @@ frch_WR_20.Data <- frch_WR_20.Data %>%
 
 frch_V_20_WR <- ddply(na.omit(frch_WR_20.Data), .(datetimeAK), summarize, meanVelocity = mean(as.numeric(Mean.Vel..m.s.)))
 
-# frch_wr.lm <- lm(meanDepth~datetimeAK, frch_depth_20)
+# frch_wr.lm <- lm(medianDepth~datetimeAK, frch_depth_20)
 
 
 frch_V_20_WR <- setDT(frch_V_20_WR)
@@ -1451,11 +1484,11 @@ frch.discharge <- na.omit(frch.2020.Q) %>%
 
 
 daily.mean.velocity.frch <- daily.mean.velocity.frch %>% rename(velocity = name)
-daily.mean.depth.frch <- daily.mean.depth.frch %>% rename(depth = name)
+daily.median.depth.frch <- daily.median.depth.frch %>% rename(depth = name)
 
 
 
-data <- merge(daily.mean.velocity.frch,daily.mean.depth.frch, by = "date")
+data <- merge(daily.mean.velocity.frch,daily.median.depth.frch, by = "date")
 data <- merge(data, frch.discharge, by = "date")
 
 #slope
@@ -1477,6 +1510,16 @@ data$k600.7 <- 4725*((data$velocity*frch.slope)^(0.86)) * (data$discharge^(-0.14
 
 
 metab.french <- read.csv(here("outputs","french2020-Run_2023-01-09.csv"))
+data.french <- read.csv(here("outputs", "clean.frch.2020.full.csv"))
+
+data.french <- data.french %>%
+  mutate(date = as.Date(as.POSIXct(solar.time, tz = "UTC"))) %>%
+  group_by(date) %>%
+  summarize(median_depth = median(depth))
+data.french$date <- as.character(data.french$date)
+
+metab.french <- merge(data.french, metab.french, by = "date")
+metab.french$K600_daily_mean <- metab.french$K600_daily_mean* (metab.french$median_depth)
 
 SM.K <- metab.french %>% select(date, K600_daily_mean)
 SM.K <- SM.K %>% rename(k600.SM = K600_daily_mean)
@@ -1490,7 +1533,7 @@ data2 <- merge(data,SM.K, by = "date")
 K.plot1_french_2020 <- data2 %>% 
   select(date, starts_with('k600')) %>%
   gather(type, k600.value, starts_with('k600')) %>%  ggplot(aes(x=date, y=k600.value, color=type)) + geom_line() + theme_bw() +
-  scale_color_discrete('variable') + labs(title = "K600, french 2020. From Raymond Equations ", y = expression(paste("K600 (", d^-1, ")")))
+  scale_color_discrete('variable') + labs(title = "K600, french 2020. From Raymond Equations ", y = expression(paste(" K600 (m", d^-1, ")")))
 K.plot1_french_2020
 
 
@@ -1555,9 +1598,9 @@ frch_WR_21.Data$datetimeAK <- as.POSIXct(paste(as.character(frch_WR_21.Data$Date
 frch_WR_21.Data <- frch_WR_21.Data %>%
   select(Depth..cm., datetimeAK)
 
-frch_depth_21_WR <- ddply(na.omit(frch_WR_21.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+frch_depth_21_WR <- ddply(na.omit(frch_WR_21.Data), .(datetimeAK), summarize, medianDepth = median(as.numeric(Depth..cm.)))
 
-# frch_wr.lm <- lm(meanDepth~datetimeAK, frch_depth_21)
+# frch_wr.lm <- lm(medianDepth~datetimeAK, frch_depth_21)
 
 
 frch_depth_21_WR <- setDT(frch_depth_21_WR)
@@ -1593,13 +1636,12 @@ setkey( frch_depth_21_WR, datetimeAK )
 #WR was taken when EXO out of water. round depth point to nearest in data record
 rounded.dates_frch21 <- frch.2021.q.dt[ frch_depth_21_WR, roll = "nearest" ]
 
-rounded.dates_frch21_WR_Q <- rounded.dates_frch21 %>% rename(discharge = Q) %>% 
-  select(datetimeAK, discharge, meanDepth)
+rounded.dates_frch21_WR_Q <- rounded.dates_frch21 %>% rename(discharge = Q)  %>%  select(datetimeAK, discharge, medianDepth)
 
 #convert to meters
-rounded.dates_frch21_WR_Q$meanDepth <- rounded.dates_frch21_WR_Q$meanDepth /100
+rounded.dates_frch21_WR_Q$medianDepth <- rounded.dates_frch21_WR_Q$medianDepth /100
 
-frch_pt_wr_graph <- ggplot(rounded.dates_frch21_WR_Q, aes(discharge, meanDepth)) +
+frch_pt_wr_graph <- ggplot(rounded.dates_frch21_WR_Q, aes(discharge, medianDepth)) +
   geom_point()
 # Add regression line
 frch_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
@@ -1607,11 +1649,11 @@ frch_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (W
 ggsave("plots/frch_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
 
 
-frch21_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_frch21_WR_Q)
+frch21_depth_mod <- lm(medianDepth~discharge, data = rounded.dates_frch21_WR_Q)
 
 summary(frch21_depth_mod)
 
-plot(meanDepth~discharge, data = rounded.dates_frch21_WR_Q)
+plot(medianDepth~discharge, data = rounded.dates_frch21_WR_Q)
 # abline(frch21_depth_mod)
 
 #extract slope of model and develop rating curve
@@ -1622,7 +1664,7 @@ frch.2021.q.dt$RatingCurveDepth <- frch21_depth_mod$coefficients[1]+(frch21_dept
 
 frch.2021.q.dt$date <- as.Date(frch.2021.q.dt$datetimeAK)
 
-daily.mean.depth.frch <- frch.2021.q.dt %>%
+daily.median.depth.frch <- frch.2021.q.dt %>%
   group_by(date) %>%
   summarise_at(vars(RatingCurveDepth), list(name = mean))
 
@@ -1659,7 +1701,7 @@ frch_WR_21.Data <- frch_WR_21.Data %>%
 
 frch_V_21_WR <- ddply(na.omit(frch_WR_21.Data), .(datetimeAK), summarize, meanVelocity = mean(as.numeric(Mean.Vel..m.s.)))
 
-# frch_wr.lm <- lm(meanDepth~datetimeAK, frch_depth_21)
+# frch_wr.lm <- lm(medianDepth~datetimeAK, frch_depth_21)
 
 
 frch_V_21_WR <- setDT(frch_V_21_WR)
@@ -1743,11 +1785,11 @@ frch.discharge <- na.omit(frch.2021.Q) %>%
 
 
 daily.mean.velocity.frch <- daily.mean.velocity.frch %>% rename(velocity = name)
-daily.mean.depth.frch <- daily.mean.depth.frch %>% rename(depth = name)
+daily.median.depth.frch <- daily.median.depth.frch %>% rename(depth = name)
 
 
 
-data <- merge(daily.mean.velocity.frch,daily.mean.depth.frch, by = "date")
+data <- merge(daily.mean.velocity.frch,daily.median.depth.frch, by = "date")
 data <- merge(data, frch.discharge, by = "date")
 
 #slope
@@ -1769,6 +1811,16 @@ data$k600.7 <- 4725*((data$velocity*frch.slope)^(0.86)) * (data$discharge^(-0.14
 
 
 metab.french <- read.csv(here("outputs","french2021-Run_2023-01-09.csv"))
+data.french <- read.csv(here("outputs", "clean.frch.2021.full.csv"))
+
+data.french <- data.french %>%
+  mutate(date = as.Date(as.POSIXct(solar.time, tz = "UTC"))) %>%
+  group_by(date) %>%
+  summarize(median_depth = median(depth))
+data.french$date <- as.character(data.french$date)
+
+metab.french <- merge(data.french, metab.french, by = "date")
+metab.french$K600_daily_mean <- metab.french$K600_daily_mean* (metab.french$median_depth)
 
 SM.K <- metab.french %>% select(date, K600_daily_mean)
 SM.K <- SM.K %>% rename(k600.SM = K600_daily_mean)
@@ -1782,7 +1834,7 @@ data2 <- merge(data,SM.K, by = "date")
 K.plot1_french_2021 <- data2 %>% 
   select(date, starts_with('k600')) %>%
   gather(type, k600.value, starts_with('k600')) %>%  ggplot(aes(x=date, y=k600.value, color=type)) + geom_line() + theme_bw() +
-  scale_color_discrete('variable') + labs(title = "K600, french 2021. From Raymond Equations ", y = expression(paste("K600 (", d^-1, ")")))
+  scale_color_discrete('variable') + labs(title = "K600, french 2021. From Raymond Equations ", y = expression(paste(" K600 (m", d^-1, ")")))
 K.plot1_french_2021
 
 
@@ -1851,9 +1903,9 @@ vaul_WR_19.Data$datetimeAK <- as.POSIXct(paste(vaul_WR_19.Data$Date, vaul_WR_19.
 vaul_WR_19.Data <- vaul_WR_19.Data %>%
   select(Depth..cm., datetimeAK)
 
-vaul_depth_19_WR <- ddply(na.omit(vaul_WR_19.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+vaul_depth_19_WR <- ddply(na.omit(vaul_WR_19.Data), .(datetimeAK), summarize, medianDepth = median(as.numeric(Depth..cm.)))
 
-# vaul_wr.lm <- lm(meanDepth~datetimeAK, vaul_depth_19)
+# vaul_wr.lm <- lm(medianDepth~datetimeAK, vaul_depth_19)
 
 
 vaul_depth_19_WR <- setDT(vaul_depth_19_WR)
@@ -1889,13 +1941,12 @@ setkey( vaul_depth_19_WR, datetimeAK )
 #WR was taken when EXO out of water. round depth point to nearest in data record
 rounded.dates_vaul19 <- vaul.2019.q.dt[ vaul_depth_19_WR, roll = "nearest" ]
 
-rounded.dates_vaul19_WR_Q <- rounded.dates_vaul19 %>% rename(discharge = Q) %>% 
-  select(datetimeAK, discharge, meanDepth)
+rounded.dates_vaul19_WR_Q <- rounded.dates_vaul19 %>% rename(discharge = Q) %>%  select(datetimeAK, discharge, medianDepth)
 
 #convert to meters
-rounded.dates_vaul19_WR_Q$meanDepth <- rounded.dates_vaul19_WR_Q$meanDepth /100
+rounded.dates_vaul19_WR_Q$medianDepth <- rounded.dates_vaul19_WR_Q$medianDepth /100
 
-vaul_pt_wr_graph <- ggplot(rounded.dates_vaul19_WR_Q, aes(discharge, meanDepth)) +
+vaul_pt_wr_graph <- ggplot(rounded.dates_vaul19_WR_Q, aes(discharge, medianDepth)) +
   geom_point()
 # Add regression line
 vaul_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
@@ -1903,11 +1954,11 @@ vaul_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (W
 ggsave("plots/vaul_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
 
 
-vaul19_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_vaul19_WR_Q)
+vaul19_depth_mod <- lm(medianDepth~discharge, data = rounded.dates_vaul19_WR_Q)
 
 summary(vaul19_depth_mod)
 
-plot(meanDepth~discharge, data = rounded.dates_vaul19_WR_Q)
+plot(medianDepth~discharge, data = rounded.dates_vaul19_WR_Q)
 # abline(vaul19_depth_mod)
 
 #extract slope of model and develop rating curve
@@ -1918,7 +1969,7 @@ vaul.2019.q.dt$RatingCurveDepth <- vaul19_depth_mod$coefficients[1]+(vaul19_dept
 
 vaul.2019.q.dt$date <- as.Date(vaul.2019.q.dt$datetimeAK)
 
-daily.mean.depth.vaul <- vaul.2019.q.dt %>%
+daily.median.depth.vaul <- vaul.2019.q.dt %>%
   group_by(date) %>%
   summarise_at(vars(RatingCurveDepth), list(name = mean))
 
@@ -1958,7 +2009,7 @@ vaul_WR_19.Data <- vaul_WR_19.Data %>%
 
 vaul_V_19_WR <- ddply(na.omit(vaul_WR_19.Data), .(datetimeAK), summarize, meanVelocity = mean(as.numeric(Mean.Vel..m.s.)))
 
-# vaul_wr.lm <- lm(meanDepth~datetimeAK, vaul_depth_19)
+# vaul_wr.lm <- lm(medianDepth~datetimeAK, vaul_depth_19)
 
 
 vaul_V_19_WR <- setDT(vaul_V_19_WR)
@@ -2042,13 +2093,13 @@ vaul.discharge <- na.omit(vaul.2019.Q) %>%
 
 
 daily.mean.velocity.vaul <- daily.mean.velocity.vaul %>% rename(velocity = name)
-daily.mean.depth.vaul <- daily.mean.depth.vaul %>% rename(depth = name)
+daily.median.depth.vaul <- daily.median.depth.vaul %>% rename(depth = name)
 
 
 
-data <- merge(daily.mean.velocity.vaul,daily.mean.depth.vaul, by = "date")
+data <- merge(daily.mean.velocity.vaul,daily.median.depth.vaul, by = "date")
 data <- merge(data, vaul.discharge, by = "date")
-view(data)
+ 
 
 
 
@@ -2066,9 +2117,19 @@ data$k600.6 <- 929*((data$velocity*vaul.slope)^(0.75)) * data$discharge^(0.011)
 
 data$k600.7 <- 4725*((data$velocity*vaul.slope)^(0.86)) * (data$discharge^(-0.14)) *(data$depth^(0.66))
 
-view(data)
+ 
 
 metab.vault <- read.csv(here("outputs","vault2019-Run_2023-01-09.csv"))
+data.vault <- read.csv(here("outputs", "clean.vaul.2019.full.csv"))
+
+data.vault <- data.vault %>%
+  mutate(date = as.Date(as.POSIXct(solar.time, tz = "UTC"))) %>%
+  group_by(date) %>%
+  summarize(median_depth = median(depth))
+data.vault$date <- as.character(data.vault$date)
+
+metab.vault <- merge(data.vault, metab.vault, by = "date")
+metab.vault$K600_daily_mean <- metab.vault$K600_daily_mean* (metab.vault$median_depth)
 
 SM.K <- metab.vault %>% select(date, K600_daily_mean)
 SM.K <- SM.K %>% rename(k600.SM = K600_daily_mean)
@@ -2082,7 +2143,7 @@ data2 <- merge(data,SM.K, by = "date")
 K.plot1_vault_2019 <- data2 %>% 
   select(date, starts_with('k600')) %>%
   gather(type, k600.value, starts_with('k600')) %>%  ggplot(aes(x=date, y=k600.value, color=type)) + geom_line() + theme_bw() +
-  scale_color_discrete('variable') + labs(title = "K600, vault 2019. From Raymond Equations ", y = expression(paste("K600 (", d^-1, ")")))
+  scale_color_discrete('variable') + labs(title = "K600, vault 2019. From Raymond Equations ", y = expression(paste(" K600 (m", d^-1, ")")))
 K.plot1_vault_2019
 
 
@@ -2145,9 +2206,9 @@ vaul_WR_20.Data$datetimeAK <- as.POSIXct(paste(as.character(vaul_WR_20.Data$Date
 vaul_WR_20.Data <- vaul_WR_20.Data %>%
   select(Depth..cm., datetimeAK)
 
-vaul_depth_20_WR <- ddply(na.omit(vaul_WR_20.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+vaul_depth_20_WR <- ddply(na.omit(vaul_WR_20.Data), .(datetimeAK), summarize, medianDepth = median(as.numeric(Depth..cm.)))
 
-# vaul_wr.lm <- lm(meanDepth~datetimeAK, vaul_depth_20)
+# vaul_wr.lm <- lm(medianDepth~datetimeAK, vaul_depth_20)
 
 
 vaul_depth_20_WR <- setDT(vaul_depth_20_WR)
@@ -2183,13 +2244,12 @@ setkey( vaul_depth_20_WR, datetimeAK )
 #WR was taken when EXO out of water. round depth point to nearest in data record
 rounded.dates_vaul20 <- vaul.2020.q.dt[ vaul_depth_20_WR, roll = "nearest" ]
 
-rounded.dates_vaul20_WR_Q <- rounded.dates_vaul20 %>% rename(discharge = Q) %>% 
-  select(datetimeAK, discharge, meanDepth)
+rounded.dates_vaul20_WR_Q <- rounded.dates_vaul20 %>% rename(discharge = Q)  %>%  select(datetimeAK, discharge, medianDepth)
 
 #convert to meters
-rounded.dates_vaul20_WR_Q$meanDepth <- rounded.dates_vaul20_WR_Q$meanDepth /100
+rounded.dates_vaul20_WR_Q$medianDepth <- rounded.dates_vaul20_WR_Q$medianDepth /100
 
-vaul_pt_wr_graph <- ggplot(rounded.dates_vaul20_WR_Q, aes(discharge, meanDepth)) +
+vaul_pt_wr_graph <- ggplot(rounded.dates_vaul20_WR_Q, aes(discharge, medianDepth)) +
   geom_point()
 # Add regression line
 vaul_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
@@ -2197,11 +2257,11 @@ vaul_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (W
 ggsave("plots/vaul_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
 
 
-vaul20_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_vaul20_WR_Q)
+vaul20_depth_mod <- lm(medianDepth~discharge, data = rounded.dates_vaul20_WR_Q)
 
 summary(vaul20_depth_mod)
 
-plot(meanDepth~discharge, data = rounded.dates_vaul20_WR_Q)
+plot(medianDepth~discharge, data = rounded.dates_vaul20_WR_Q)
 # abline(vaul20_depth_mod)
 
 #extract slope of model and develop rating curve
@@ -2212,7 +2272,7 @@ vaul.2020.q.dt$RatingCurveDepth <- vaul20_depth_mod$coefficients[1]+(vaul20_dept
 
 vaul.2020.q.dt$date <- as.Date(vaul.2020.q.dt$datetimeAK)
 
-daily.mean.depth.vaul <- vaul.2020.q.dt %>%
+daily.median.depth.vaul <- vaul.2020.q.dt %>%
   group_by(date) %>%
   summarise_at(vars(RatingCurveDepth), list(name = mean))
 
@@ -2251,7 +2311,7 @@ vaul_WR_20.Data <- vaul_WR_20.Data %>%
 
 vaul_V_20_WR <- ddply(na.omit(vaul_WR_20.Data), .(datetimeAK), summarize, meanVelocity = mean(as.numeric(Mean.Vel..m.s.)))
 
-# vaul_wr.lm <- lm(meanDepth~datetimeAK, vaul_depth_20)
+# vaul_wr.lm <- lm(medianDepth~datetimeAK, vaul_depth_20)
 
 
 vaul_V_20_WR <- setDT(vaul_V_20_WR)
@@ -2335,11 +2395,11 @@ vaul.discharge <- na.omit(vaul.2020.Q) %>%
 
 
 daily.mean.velocity.vaul <- daily.mean.velocity.vaul %>% rename(velocity = name)
-daily.mean.depth.vaul <- daily.mean.depth.vaul %>% rename(depth = name)
+daily.median.depth.vaul <- daily.median.depth.vaul %>% rename(depth = name)
 
 
 
-data <- merge(daily.mean.velocity.vaul,daily.mean.depth.vaul, by = "date")
+data <- merge(daily.mean.velocity.vaul,daily.median.depth.vaul, by = "date")
 data <- merge(data, vaul.discharge, by = "date")
 
 #slope
@@ -2360,7 +2420,19 @@ data$k600.6 <- 929*((data$velocity*vaul.slope)^(0.75)) * data$discharge^(0.011)
 data$k600.7 <- 4725*((data$velocity*vaul.slope)^(0.86)) * (data$discharge^(-0.14)) *(data$depth^(0.66))
 
 
+
+
 metab.vault <- read.csv(here("outputs","vault2020-Run_2023-01-09.csv"))
+data.vault <- read.csv(here("outputs", "clean.vaul.2020.full.csv"))
+
+data.vault <- data.vault %>%
+  mutate(date = as.Date(as.POSIXct(solar.time, tz = "UTC"))) %>%
+  group_by(date) %>%
+  summarize(median_depth = median(depth))
+data.vault$date <- as.character(data.vault$date)
+
+metab.vault <- merge(data.vault, metab.vault, by = "date")
+metab.vault$K600_daily_mean <- metab.vault$K600_daily_mean* (metab.vault$median_depth)
 
 SM.K <- metab.vault %>% select(date, K600_daily_mean)
 SM.K <- SM.K %>% rename(k600.SM = K600_daily_mean)
@@ -2370,11 +2442,12 @@ SM.K$date <- as.Date(SM.K$date)
 data2 <- merge(data,SM.K, by = "date")
 
 
+
 # ALL YEARS
 K.plot1_vault_2020 <- data2 %>% 
   select(date, starts_with('k600')) %>%
   gather(type, k600.value, starts_with('k600')) %>%  ggplot(aes(x=date, y=k600.value, color=type)) + geom_line() + theme_bw() +
-  scale_color_discrete('variable') + labs(title = "K600, vault 2020. From Raymond Equations ", y = expression(paste("K600 (", d^-1, ")")))
+  scale_color_discrete('variable') + labs(title = "K600, vault 2020. From Raymond Equations ", y = expression(paste(" K600 (m", d^-1, ")")))
 K.plot1_vault_2020
 
 
@@ -2440,9 +2513,9 @@ vaul_WR_21.Data$datetimeAK <- as.POSIXct(paste(as.character(vaul_WR_21.Data$Date
 vaul_WR_21.Data <- vaul_WR_21.Data %>%
   select(Depth..cm., datetimeAK)
 
-vaul_depth_21_WR <- ddply(na.omit(vaul_WR_21.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+vaul_depth_21_WR <- ddply(na.omit(vaul_WR_21.Data), .(datetimeAK), summarize, medianDepth = median(as.numeric(Depth..cm.)))
 
-# vaul_wr.lm <- lm(meanDepth~datetimeAK, vaul_depth_21)
+# vaul_wr.lm <- lm(medianDepth~datetimeAK, vaul_depth_21)
 
 
 vaul_depth_21_WR <- setDT(vaul_depth_21_WR)
@@ -2478,13 +2551,12 @@ setkey( vaul_depth_21_WR, datetimeAK )
 #WR was taken when EXO out of water. round depth point to nearest in data record
 rounded.dates_vaul21 <- vaul.2021.q.dt[ vaul_depth_21_WR, roll = "nearest" ]
 
-rounded.dates_vaul21_WR_Q <- rounded.dates_vaul21 %>% rename(discharge = Q) %>% 
-  select(datetimeAK, discharge, meanDepth)
+rounded.dates_vaul21_WR_Q <- rounded.dates_vaul21 %>% rename(discharge = Q)  %>%  select(datetimeAK, discharge, medianDepth)
 
 #convert to meters
-rounded.dates_vaul21_WR_Q$meanDepth <- rounded.dates_vaul21_WR_Q$meanDepth /100
+rounded.dates_vaul21_WR_Q$medianDepth <- rounded.dates_vaul21_WR_Q$medianDepth /100
 
-vaul_pt_wr_graph <- ggplot(rounded.dates_vaul21_WR_Q, aes(discharge, meanDepth)) +
+vaul_pt_wr_graph <- ggplot(rounded.dates_vaul21_WR_Q, aes(discharge, medianDepth)) +
   geom_point()
 # Add regression line
 vaul_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
@@ -2492,11 +2564,11 @@ vaul_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (W
 ggsave("plots/vaul_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
 
 
-vaul21_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_vaul21_WR_Q)
+vaul21_depth_mod <- lm(medianDepth~discharge, data = rounded.dates_vaul21_WR_Q)
 
 summary(vaul21_depth_mod)
 
-plot(meanDepth~discharge, data = rounded.dates_vaul21_WR_Q)
+plot(medianDepth~discharge, data = rounded.dates_vaul21_WR_Q)
 # abline(vaul21_depth_mod)
 
 #extract slope of model and develop rating curve
@@ -2507,7 +2579,7 @@ vaul.2021.q.dt$RatingCurveDepth <- vaul21_depth_mod$coefficients[1]+(vaul21_dept
 
 vaul.2021.q.dt$date <- as.Date(vaul.2021.q.dt$datetimeAK)
 
-daily.mean.depth.vaul <- vaul.2021.q.dt %>%
+daily.median.depth.vaul <- vaul.2021.q.dt %>%
   group_by(date) %>%
   summarise_at(vars(RatingCurveDepth), list(name = mean))
 
@@ -2545,7 +2617,7 @@ vaul_WR_21.Data <- vaul_WR_21.Data %>%
 
 vaul_V_21_WR <- ddply(na.omit(vaul_WR_21.Data), .(datetimeAK), summarize, meanVelocity = mean(as.numeric(Mean.Vel..m.s.)))
 
-# vaul_wr.lm <- lm(meanDepth~datetimeAK, vaul_depth_21)
+# vaul_wr.lm <- lm(medianDepth~datetimeAK, vaul_depth_21)
 
 
 vaul_V_21_WR <- setDT(vaul_V_21_WR)
@@ -2629,11 +2701,11 @@ vaul.discharge <- na.omit(vaul.2021.Q) %>%
 
 
 daily.mean.velocity.vaul <- daily.mean.velocity.vaul %>% rename(velocity = name)
-daily.mean.depth.vaul <- daily.mean.depth.vaul %>% rename(depth = name)
+daily.median.depth.vaul <- daily.median.depth.vaul %>% rename(depth = name)
 
 
 
-data <- merge(daily.mean.velocity.vaul,daily.mean.depth.vaul, by = "date")
+data <- merge(daily.mean.velocity.vaul,daily.median.depth.vaul, by = "date")
 data <- merge(data, vaul.discharge, by = "date")
 
 #slope
@@ -2654,7 +2726,19 @@ data$k600.6 <- 929*((data$velocity*vaul.slope)^(0.75)) * data$discharge^(0.011)
 data$k600.7 <- 4725*((data$velocity*vaul.slope)^(0.86)) * (data$discharge^(-0.14)) *(data$depth^(0.66))
 
 
+
+
 metab.vault <- read.csv(here("outputs","vault2021-Run_2023-01-09.csv"))
+data.vault <- read.csv(here("outputs", "clean.vaul.2021.full.csv"))
+
+data.vault <- data.vault %>%
+  mutate(date = as.Date(as.POSIXct(solar.time, tz = "UTC"))) %>%
+  group_by(date) %>%
+  summarize(median_depth = median(depth))
+data.vault$date <- as.character(data.vault$date)
+
+metab.vault <- merge(data.vault, metab.vault, by = "date")
+metab.vault$K600_daily_mean <- metab.vault$K600_daily_mean* (metab.vault$median_depth)
 
 SM.K <- metab.vault %>% select(date, K600_daily_mean)
 SM.K <- SM.K %>% rename(k600.SM = K600_daily_mean)
@@ -2664,11 +2748,12 @@ SM.K$date <- as.Date(SM.K$date)
 data2 <- merge(data,SM.K, by = "date")
 
 
+
 # ALL YEARS
 K.plot1_vault_2021 <- data2 %>% 
   select(date, starts_with('k600')) %>%
   gather(type, k600.value, starts_with('k600')) %>%  ggplot(aes(x=date, y=k600.value, color=type)) + geom_line() + theme_bw() +
-  scale_color_discrete('variable') + labs(title = "K600, vault 2021. From Raymond Equations ", y = expression(paste("K600 (", d^-1, ")")))
+  scale_color_discrete('variable') + labs(title = "K600, vault 2021. From Raymond Equations ", y = expression(paste(" K600 (m", d^-1, ")")))
 K.plot1_vault_2021
 
 
@@ -2731,9 +2816,9 @@ poke_WR_19.Data$datetimeAK <- as.POSIXct(paste(poke_WR_19.Data$Date, poke_WR_19.
 poke_WR_19.Data <- poke_WR_19.Data %>%
   select(Depth..cm., datetimeAK)
 
-poke_depth_19_WR <- ddply(na.omit(poke_WR_19.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+poke_depth_19_WR <- ddply(na.omit(poke_WR_19.Data), .(datetimeAK), summarize, medianDepth = median(as.numeric(Depth..cm.)))
 
-# poke_wr.lm <- lm(meanDepth~datetimeAK, poke_depth_19)
+# poke_wr.lm <- lm(medianDepth~datetimeAK, poke_depth_19)
 
 
 poke_depth_19_WR <- setDT(poke_depth_19_WR)
@@ -2769,13 +2854,12 @@ setkey( poke_depth_19_WR, datetimeAK )
 #WR was taken when EXO out of water. round depth point to nearest in data record
 rounded.dates_poke19 <- poke.2019.q.dt[ poke_depth_19_WR, roll = "nearest" ]
 
-rounded.dates_poke19_WR_Q <- rounded.dates_poke19 %>% rename(discharge = Q) %>% 
-  select(datetimeAK, discharge, meanDepth)
+rounded.dates_poke19_WR_Q <- rounded.dates_poke19 %>% rename(discharge = Q)  %>%  select(datetimeAK, discharge, medianDepth)
 
 #convert to meters
-rounded.dates_poke19_WR_Q$meanDepth <- rounded.dates_poke19_WR_Q$meanDepth /100
+rounded.dates_poke19_WR_Q$medianDepth <- rounded.dates_poke19_WR_Q$medianDepth /100
 
-poke_pt_wr_graph <- ggplot(rounded.dates_poke19_WR_Q, aes(discharge, meanDepth)) +
+poke_pt_wr_graph <- ggplot(rounded.dates_poke19_WR_Q, aes(discharge, medianDepth)) +
   geom_point()
 # Add regression line
 poke_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
@@ -2783,11 +2867,11 @@ poke_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (W
 ggsave("plots/poke_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
 
 
-poke19_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_poke19_WR_Q)
+poke19_depth_mod <- lm(medianDepth~discharge, data = rounded.dates_poke19_WR_Q)
 
 summary(poke19_depth_mod)
 
-plot(meanDepth~discharge, data = rounded.dates_poke19_WR_Q)
+plot(medianDepth~discharge, data = rounded.dates_poke19_WR_Q)
 # abline(poke19_depth_mod)
 
 #extract slope of model and develop rating curve
@@ -2798,7 +2882,7 @@ poke.2019.q.dt$RatingCurveDepth <- poke19_depth_mod$coefficients[1]+(poke19_dept
 
 poke.2019.q.dt$date <- as.Date(poke.2019.q.dt$datetimeAK)
 
-daily.mean.depth.poke <- poke.2019.q.dt %>%
+daily.median.depth.poke <- poke.2019.q.dt %>%
   group_by(date) %>%
   summarise_at(vars(RatingCurveDepth), list(name = mean))
 
@@ -2839,7 +2923,7 @@ poke_WR_19.Data <- poke_WR_19.Data %>%
 
 poke_V_19_WR <- ddply(na.omit(poke_WR_19.Data), .(datetimeAK), summarize, meanVelocity = mean(as.numeric(Mean.Vel..m.s.)))
 
-# poke_wr.lm <- lm(meanDepth~datetimeAK, poke_depth_19)
+# poke_wr.lm <- lm(medianDepth~datetimeAK, poke_depth_19)
 
 
 poke_V_19_WR <- setDT(poke_V_19_WR)
@@ -2923,13 +3007,13 @@ poke.discharge <- na.omit(poke.2019.Q) %>%
 
 
 daily.mean.velocity.poke <- daily.mean.velocity.poke %>% rename(velocity = name)
-daily.mean.depth.poke <- daily.mean.depth.poke %>% rename(depth = name)
+daily.median.depth.poke <- daily.median.depth.poke %>% rename(depth = name)
 
 
 
-data <- merge(daily.mean.velocity.poke,daily.mean.depth.poke, by = "date")
+data <- merge(daily.mean.velocity.poke,daily.median.depth.poke, by = "date")
 data <- merge(data, poke.discharge, by = "date")
-view(data)
+ 
 
 
 
@@ -2947,9 +3031,21 @@ data$k600.6 <- 929*((data$velocity*poke.slope)^(0.75)) * data$discharge^(0.011)
 
 data$k600.7 <- 4725*((data$velocity*poke.slope)^(0.86)) * (data$discharge^(-0.14)) *(data$depth^(0.66))
 
-view(data)
+ 
+
+
 
 metab.poker <- read.csv(here("outputs","poker2019-Run_2023-01-09.csv"))
+data.poker <- read.csv(here("outputs", "clean.poke.2019.full.csv"))
+
+data.poker <- data.poker %>%
+  mutate(date = as.Date(as.POSIXct(solar.time, tz = "UTC"))) %>%
+  group_by(date) %>%
+  summarize(median_depth = median(depth))
+data.poker$date <- as.character(data.poker$date)
+
+metab.poker <- merge(data.poker, metab.poker, by = "date")
+metab.poker$K600_daily_mean <- metab.poker$K600_daily_mean* (metab.poker$median_depth)
 
 SM.K <- metab.poker %>% select(date, K600_daily_mean)
 SM.K <- SM.K %>% rename(k600.SM = K600_daily_mean)
@@ -2959,11 +3055,12 @@ SM.K$date <- as.Date(SM.K$date)
 data2 <- merge(data,SM.K, by = "date")
 
 
+
 # ALL YEARS
 K.plot1_poker_2019 <- data2 %>% 
   select(date, starts_with('k600')) %>%
   gather(type, k600.value, starts_with('k600')) %>%  ggplot(aes(x=date, y=k600.value, color=type)) + geom_line() + theme_bw() +
-  scale_color_discrete('variable') + labs(title = "K600, poker 2019. From Raymond Equations ", y = expression(paste("K600 (", d^-1, ")")))
+  scale_color_discrete('variable') + labs(title = "K600, poker 2019. From Raymond Equations ", y = expression(paste(" K600 (m", d^-1, ")")))
 K.plot1_poker_2019
 
 
@@ -3027,9 +3124,9 @@ poke_WR_20.Data$datetimeAK <- as.POSIXct(paste(as.character(poke_WR_20.Data$Date
 poke_WR_20.Data <- poke_WR_20.Data %>%
   select(Depth, datetimeAK)
 
-poke_depth_20_WR <- ddply(na.omit(poke_WR_20.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth)))
+poke_depth_20_WR <- ddply(na.omit(poke_WR_20.Data), .(datetimeAK), summarize, medianDepth = mean(as.numeric(Depth)))
 
-# poke_wr.lm <- lm(meanDepth~datetimeAK, poke_depth_20)
+# poke_wr.lm <- lm(medianDepth~datetimeAK, poke_depth_20)
 
 
 poke_depth_20_WR <- setDT(poke_depth_20_WR)
@@ -3065,13 +3162,12 @@ setkey( poke_depth_20_WR, datetimeAK )
 #WR was taken when EXO out of water. round depth point to nearest in data record
 rounded.dates_poke20 <- poke.2020.q.dt[ poke_depth_20_WR, roll = "nearest" ]
 
-rounded.dates_poke20_WR_Q <- rounded.dates_poke20 %>% rename(discharge = Q) %>% 
-  select(datetimeAK, discharge, meanDepth)
+rounded.dates_poke20_WR_Q <- rounded.dates_poke20 %>% rename(discharge = Q)  %>%  select(datetimeAK, discharge, medianDepth)
 
 #convert to meters
-rounded.dates_poke20_WR_Q$meanDepth <- rounded.dates_poke20_WR_Q$meanDepth /100
+rounded.dates_poke20_WR_Q$medianDepth <- rounded.dates_poke20_WR_Q$medianDepth /100
 
-poke_pt_wr_graph <- ggplot(rounded.dates_poke20_WR_Q, aes(discharge, meanDepth)) +
+poke_pt_wr_graph <- ggplot(rounded.dates_poke20_WR_Q, aes(discharge, medianDepth)) +
   geom_point()
 # Add regression line
 poke_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
@@ -3079,11 +3175,11 @@ poke_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (W
 ggsave("plots/poke_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
 
 
-poke20_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_poke20_WR_Q)
+poke20_depth_mod <- lm(medianDepth~discharge, data = rounded.dates_poke20_WR_Q)
 
 summary(poke20_depth_mod)
 
-plot(meanDepth~discharge, data = rounded.dates_poke20_WR_Q)
+plot(medianDepth~discharge, data = rounded.dates_poke20_WR_Q)
 # abline(poke20_depth_mod)
 
 #extract slope of model and develop rating curve
@@ -3094,7 +3190,7 @@ poke.2020.q.dt$RatingCurveDepth <- poke20_depth_mod$coefficients[1]+(poke20_dept
 
 poke.2020.q.dt$date <- as.Date(poke.2020.q.dt$datetimeAK)
 
-daily.mean.depth.poke <- poke.2020.q.dt %>%
+daily.median.depth.poke <- poke.2020.q.dt %>%
   group_by(date) %>%
   summarise_at(vars(RatingCurveDepth), list(name = mean))
 
@@ -3135,7 +3231,7 @@ poke_WR_20.Data <- poke_WR_20.Data %>%
 
 poke_V_20_WR <- ddply(na.omit(poke_WR_20.Data), .(datetimeAK), summarize, meanVelocity = mean(as.numeric(Mean.Vel)))
 
-# poke_wr.lm <- lm(meanDepth~datetimeAK, poke_depth_20)
+# poke_wr.lm <- lm(medianDepth~datetimeAK, poke_depth_20)
 
 
 poke_V_20_WR <- setDT(poke_V_20_WR)
@@ -3219,11 +3315,11 @@ poke.discharge <- na.omit(poke.2020.Q) %>%
 
 
 daily.mean.velocity.poke <- daily.mean.velocity.poke %>% rename(velocity = name)
-daily.mean.depth.poke <- daily.mean.depth.poke %>% rename(depth = name)
+daily.median.depth.poke <- daily.median.depth.poke %>% rename(depth = name)
 
 
 
-data <- merge(daily.mean.velocity.poke,daily.mean.depth.poke, by = "date")
+data <- merge(daily.mean.velocity.poke,daily.median.depth.poke, by = "date")
 data <- merge(data, poke.discharge, by = "date")
 
 #slope
@@ -3244,7 +3340,18 @@ data$k600.6 <- 929*((data$velocity*poke.slope)^(0.75)) * data$discharge^(0.011)
 data$k600.7 <- 4725*((data$velocity*poke.slope)^(0.86)) * (data$discharge^(-0.14)) *(data$depth^(0.66))
 
 
+
 metab.poker <- read.csv(here("outputs","poker2020-Run_2023-01-09.csv"))
+data.poker <- read.csv(here("outputs", "clean.poke.2020.full.csv"))
+
+data.poker <- data.poker %>%
+  mutate(date = as.Date(as.POSIXct(solar.time, tz = "UTC"))) %>%
+  group_by(date) %>%
+  summarize(median_depth = median(depth))
+data.poker$date <- as.character(data.poker$date)
+
+metab.poker <- merge(data.poker, metab.poker, by = "date")
+metab.poker$K600_daily_mean <- metab.poker$K600_daily_mean* (metab.poker$median_depth)
 
 SM.K <- metab.poker %>% select(date, K600_daily_mean)
 SM.K <- SM.K %>% rename(k600.SM = K600_daily_mean)
@@ -3254,11 +3361,12 @@ SM.K$date <- as.Date(SM.K$date)
 data2 <- merge(data,SM.K, by = "date")
 
 
+
 # ALL YEARS
 K.plot1_poker_2020 <- data2 %>% 
   select(date, starts_with('k600')) %>%
   gather(type, k600.value, starts_with('k600')) %>%  ggplot(aes(x=date, y=k600.value, color=type)) + geom_line() + theme_bw() +
-  scale_color_discrete('variable') + labs(title = "K600, poker 2020. From Raymond Equations ", y = expression(paste("K600 (", d^-1, ")")))
+  scale_color_discrete('variable') + labs(title = "K600, poker 2020. From Raymond Equations ", y = expression(paste(" K600 (m", d^-1, ")")))
 K.plot1_poker_2020
 
 
@@ -3326,9 +3434,9 @@ poke_WR_21.Data$datetimeAK <- as.POSIXct(paste(as.character(poke_WR_21.Data$Date
 poke_WR_21.Data <- poke_WR_21.Data %>%
   select(Depth..cm., datetimeAK)
 
-poke_depth_21_WR <- ddply(na.omit(poke_WR_21.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+poke_depth_21_WR <- ddply(na.omit(poke_WR_21.Data), .(datetimeAK), summarize, medianDepth = median(as.numeric(Depth..cm.)))
 
-# poke_wr.lm <- lm(meanDepth~datetimeAK, poke_depth_21)
+# poke_wr.lm <- lm(medianDepth~datetimeAK, poke_depth_21)
 
 
 poke_depth_21_WR <- setDT(poke_depth_21_WR)
@@ -3364,13 +3472,12 @@ setkey( poke_depth_21_WR, datetimeAK )
 #WR was taken when EXO out of water. round depth point to nearest in data record
 rounded.dates_poke21 <- poke.2021.q.dt[ poke_depth_21_WR, roll = "nearest" ]
 
-rounded.dates_poke21_WR_Q <- rounded.dates_poke21 %>% rename(discharge = Q) %>% 
-  select(datetimeAK, discharge, meanDepth)
+rounded.dates_poke21_WR_Q <- rounded.dates_poke21 %>% rename(discharge = Q)  %>%  select(datetimeAK, discharge, medianDepth)
 
 #convert to meters
-rounded.dates_poke21_WR_Q$meanDepth <- rounded.dates_poke21_WR_Q$meanDepth /100
+rounded.dates_poke21_WR_Q$medianDepth <- rounded.dates_poke21_WR_Q$medianDepth /100
 
-poke_pt_wr_graph <- ggplot(rounded.dates_poke21_WR_Q, aes(discharge, meanDepth)) +
+poke_pt_wr_graph <- ggplot(rounded.dates_poke21_WR_Q, aes(discharge, medianDepth)) +
   geom_point()
 # Add regression line
 poke_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
@@ -3378,11 +3485,11 @@ poke_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (W
 ggsave("plots/poke_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
 
 
-poke21_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_poke21_WR_Q)
+poke21_depth_mod <- lm(medianDepth~discharge, data = rounded.dates_poke21_WR_Q)
 
 summary(poke21_depth_mod)
 
-plot(meanDepth~discharge, data = rounded.dates_poke21_WR_Q)
+plot(medianDepth~discharge, data = rounded.dates_poke21_WR_Q)
 # abline(poke21_depth_mod)
 
 #extract slope of model and develop rating curve
@@ -3393,7 +3500,7 @@ poke.2021.q.dt$RatingCurveDepth <- poke21_depth_mod$coefficients[1]+(poke21_dept
 
 poke.2021.q.dt$date <- as.Date(poke.2021.q.dt$datetimeAK)
 
-daily.mean.depth.poke <- poke.2021.q.dt %>%
+daily.median.depth.poke <- poke.2021.q.dt %>%
   group_by(date) %>%
   summarise_at(vars(RatingCurveDepth), list(name = mean))
 
@@ -3432,7 +3539,7 @@ poke_WR_21.Data <- poke_WR_21.Data %>%
 
 poke_V_21_WR <- ddply(na.omit(poke_WR_21.Data), .(datetimeAK), summarize, meanVelocity = mean(as.numeric(Mean.Vel..m.s.)))
 
-# poke_wr.lm <- lm(meanDepth~datetimeAK, poke_depth_21)
+# poke_wr.lm <- lm(medianDepth~datetimeAK, poke_depth_21)
 
 
 poke_V_21_WR <- setDT(poke_V_21_WR)
@@ -3516,11 +3623,11 @@ poke.discharge <- na.omit(poke.2021.Q) %>%
 
 
 daily.mean.velocity.poke <- daily.mean.velocity.poke %>% rename(velocity = name)
-daily.mean.depth.poke <- daily.mean.depth.poke %>% rename(depth = name)
+daily.median.depth.poke <- daily.median.depth.poke %>% rename(depth = name)
 
 
 
-data <- merge(daily.mean.velocity.poke,daily.mean.depth.poke, by = "date")
+data <- merge(daily.mean.velocity.poke,daily.median.depth.poke, by = "date")
 data <- merge(data, poke.discharge, by = "date")
 
 #slope
@@ -3542,6 +3649,16 @@ data$k600.7 <- 4725*((data$velocity*poke.slope)^(0.86)) * (data$discharge^(-0.14
 
 
 metab.poker <- read.csv(here("outputs","poker2021-Run_2023-01-09.csv"))
+data.poker <- read.csv(here("outputs", "clean.poke.2021.full.csv"))
+
+data.poker <- data.poker %>%
+  mutate(date = as.Date(as.POSIXct(solar.time, tz = "UTC"))) %>%
+  group_by(date) %>%
+  summarize(median_depth = median(depth))
+data.poker$date <- as.character(data.poker$date)
+
+metab.poker <- merge(data.poker, metab.poker, by = "date")
+metab.poker$K600_daily_mean <- metab.poker$K600_daily_mean* (metab.poker$median_depth)
 
 SM.K <- metab.poker %>% select(date, K600_daily_mean)
 SM.K <- SM.K %>% rename(k600.SM = K600_daily_mean)
@@ -3555,7 +3672,7 @@ data2 <- merge(data,SM.K, by = "date")
 K.plot1_poker_2021 <- data2 %>% 
   select(date, starts_with('k600')) %>%
   gather(type, k600.value, starts_with('k600')) %>%  ggplot(aes(x=date, y=k600.value, color=type)) + geom_line() + theme_bw() +
-  scale_color_discrete('variable') + labs(title = "K600, poker 2021. From Raymond Equations ", y = expression(paste("K600 (", d^-1, ")")))
+  scale_color_discrete('variable') + labs(title = "K600, poker 2021. From Raymond Equations ", y = expression(paste(" K600 (m", d^-1, ")")))
 K.plot1_poker_2021
 
 
@@ -3633,9 +3750,9 @@ strt_WR_19.Data$datetimeAK <- as.POSIXct(paste(strt_WR_19.Data$Date, strt_WR_19.
 strt_WR_19.Data <- strt_WR_19.Data %>%
   select(Depth..cm., datetimeAK)
 
-strt_depth_19_WR <- ddply(na.omit(strt_WR_19.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+strt_depth_19_WR <- ddply(na.omit(strt_WR_19.Data), .(datetimeAK), summarize, medianDepth = median(as.numeric(Depth..cm.)))
 
-# strt_wr.lm <- lm(meanDepth~datetimeAK, strt_depth_19)
+# strt_wr.lm <- lm(medianDepth~datetimeAK, strt_depth_19)
 
 
 strt_depth_19_WR <- setDT(strt_depth_19_WR)
@@ -3671,13 +3788,12 @@ setkey( strt_depth_19_WR, datetimeAK )
 #WR was taken when EXO out of water. round depth point to nearest in data record
 rounded.dates_strt19 <- strt.2019.q.dt[ strt_depth_19_WR, roll = "nearest" ]
 
-rounded.dates_strt19_WR_Q <- rounded.dates_strt19 %>% rename(discharge = Q) %>% 
-  select(datetimeAK, discharge, meanDepth)
+rounded.dates_strt19_WR_Q <- rounded.dates_strt19 %>% rename(discharge = Q)  %>%  select(datetimeAK, discharge, medianDepth)
 
 #convert to meters
-rounded.dates_strt19_WR_Q$meanDepth <- rounded.dates_strt19_WR_Q$meanDepth /100
+rounded.dates_strt19_WR_Q$medianDepth <- rounded.dates_strt19_WR_Q$medianDepth /100
 
-strt_pt_wr_graph <- ggplot(rounded.dates_strt19_WR_Q, aes(discharge, meanDepth)) +
+strt_pt_wr_graph <- ggplot(rounded.dates_strt19_WR_Q, aes(discharge, medianDepth)) +
   geom_point()
 # Add regression line
 strt_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
@@ -3685,11 +3801,11 @@ strt_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (W
 ggsave("plots/strt_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
 
 
-strt19_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_strt19_WR_Q)
+strt19_depth_mod <- lm(medianDepth~discharge, data = rounded.dates_strt19_WR_Q)
 
 summary(strt19_depth_mod)
 
-plot(meanDepth~discharge, data = rounded.dates_strt19_WR_Q)
+plot(medianDepth~discharge, data = rounded.dates_strt19_WR_Q)
 # abline(strt19_depth_mod)
 
 #extract slope of model and develop rating curve
@@ -3700,7 +3816,7 @@ strt.2019.q.dt$RatingCurveDepth <- strt19_depth_mod$coefficients[1]+(strt19_dept
 
 strt.2019.q.dt$date <- as.Date(strt.2019.q.dt$datetimeAK)
 
-daily.mean.depth.strt <- strt.2019.q.dt %>%
+daily.median.depth.strt <- strt.2019.q.dt %>%
   group_by(date) %>%
   summarise_at(vars(RatingCurveDepth), list(name = mean))
 
@@ -3739,7 +3855,7 @@ strt_WR_19.Data <- strt_WR_19.Data %>%
 
 strt_V_19_WR <- ddply(na.omit(strt_WR_19.Data), .(datetimeAK), summarize, meanVelocity = mean(as.numeric(Mean.Vel..m.s.)))
 
-# strt_wr.lm <- lm(meanDepth~datetimeAK, strt_depth_19)
+# strt_wr.lm <- lm(medianDepth~datetimeAK, strt_depth_19)
 
 
 strt_V_19_WR <- setDT(strt_V_19_WR)
@@ -3823,13 +3939,13 @@ strt.discharge <- na.omit(strt.2019.Q) %>%
 
 
 daily.mean.velocity.strt <- daily.mean.velocity.strt %>% rename(velocity = name)
-daily.mean.depth.strt <- daily.mean.depth.strt %>% rename(depth = name)
+daily.median.depth.strt <- daily.median.depth.strt %>% rename(depth = name)
 
 
 
-data <- merge(daily.mean.velocity.strt,daily.mean.depth.strt, by = "date")
+data <- merge(daily.mean.velocity.strt,daily.median.depth.strt, by = "date")
 data <- merge(data, strt.discharge, by = "date")
-view(data)
+ 
 
 
 
@@ -3847,9 +3963,19 @@ data$k600.6 <- 929*((data$velocity*strt.slope)^(0.75)) * data$discharge^(0.011)
 
 data$k600.7 <- 4725*((data$velocity*strt.slope)^(0.86)) * (data$discharge^(-0.14)) *(data$depth^(0.66))
 
-view(data)
+ 
 
 metab.stuart <- read.csv(here("outputs","stuart2019-Run_2023-01-09.csv"))
+data.stuart <- read.csv(here("outputs", "clean.strt.2019.full.csv"))
+
+data.stuart <- data.stuart %>%
+  mutate(date = as.Date(as.POSIXct(solar.time, tz = "UTC"))) %>%
+  group_by(date) %>%
+  summarize(median_depth = median(depth))
+data.stuart$date <- as.character(data.stuart$date)
+
+metab.stuart <- merge(data.stuart, metab.stuart, by = "date")
+metab.stuart$K600_daily_mean <- metab.stuart$K600_daily_mean* (metab.stuart$median_depth)
 
 SM.K <- metab.stuart %>% select(date, K600_daily_mean)
 SM.K <- SM.K %>% rename(k600.SM = K600_daily_mean)
@@ -3863,7 +3989,7 @@ data2 <- merge(data,SM.K, by = "date")
 K.plot1_stuart_2019 <- data2 %>% 
   select(date, starts_with('k600')) %>%
   gather(type, k600.value, starts_with('k600')) %>%  ggplot(aes(x=date, y=k600.value, color=type)) + geom_line() + theme_bw() +
-  scale_color_discrete('variable') + labs(title = "K600, stuart 2019. From Raymond Equations ", y = expression(paste("K600 (", d^-1, ")")))
+  scale_color_discrete('variable') + labs(title = "K600, stuart 2019. From Raymond Equations ", y = expression(paste(" K600 (m", d^-1, ")")))
 K.plot1_stuart_2019
 
 
@@ -3926,9 +4052,9 @@ strt_WR_20.Data$datetimeAK <- as.POSIXct(paste(as.character(strt_WR_20.Data$Date
 strt_WR_20.Data <- strt_WR_20.Data %>%
   select(Depth..cm., datetimeAK)
 
-strt_depth_20_WR <- ddply(na.omit(strt_WR_20.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+strt_depth_20_WR <- ddply(na.omit(strt_WR_20.Data), .(datetimeAK), summarize, medianDepth = median(as.numeric(Depth..cm.)))
 
-# strt_wr.lm <- lm(meanDepth~datetimeAK, strt_depth_20)
+# strt_wr.lm <- lm(medianDepth~datetimeAK, strt_depth_20)
 
 
 strt_depth_20_WR <- setDT(strt_depth_20_WR)
@@ -3964,13 +4090,12 @@ setkey( strt_depth_20_WR, datetimeAK )
 #WR was taken when EXO out of water. round depth point to nearest in data record
 rounded.dates_strt20 <- strt.2020.q.dt[ strt_depth_20_WR, roll = "nearest" ]
 
-rounded.dates_strt20_WR_Q <- rounded.dates_strt20 %>% rename(discharge = Q) %>% 
-  select(datetimeAK, discharge, meanDepth)
+rounded.dates_strt20_WR_Q <- rounded.dates_strt20 %>% rename(discharge = Q)  %>%  select(datetimeAK, discharge, medianDepth)
 
 #convert to meters
-rounded.dates_strt20_WR_Q$meanDepth <- rounded.dates_strt20_WR_Q$meanDepth /100
+rounded.dates_strt20_WR_Q$medianDepth <- rounded.dates_strt20_WR_Q$medianDepth /100
 
-strt_pt_wr_graph <- ggplot(rounded.dates_strt20_WR_Q, aes(discharge, meanDepth)) +
+strt_pt_wr_graph <- ggplot(rounded.dates_strt20_WR_Q, aes(discharge, medianDepth)) +
   geom_point()
 # Add regression line
 strt_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
@@ -3978,11 +4103,11 @@ strt_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (W
 ggsave("plots/strt_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
 
 
-strt20_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_strt20_WR_Q)
+strt20_depth_mod <- lm(medianDepth~discharge, data = rounded.dates_strt20_WR_Q)
 
 summary(strt20_depth_mod)
 
-plot(meanDepth~discharge, data = rounded.dates_strt20_WR_Q)
+plot(medianDepth~discharge, data = rounded.dates_strt20_WR_Q)
 # abline(strt20_depth_mod)
 
 #extract slope of model and develop rating curve
@@ -3993,7 +4118,7 @@ strt.2020.q.dt$RatingCurveDepth <- strt20_depth_mod$coefficients[1]+(strt20_dept
 
 strt.2020.q.dt$date <- as.Date(strt.2020.q.dt$datetimeAK)
 
-daily.mean.depth.strt <- strt.2020.q.dt %>%
+daily.median.depth.strt <- strt.2020.q.dt %>%
   group_by(date) %>%
   summarise_at(vars(RatingCurveDepth), list(name = mean))
 
@@ -4032,7 +4157,7 @@ strt_WR_20.Data <- strt_WR_20.Data %>%
 
 strt_V_20_WR <- ddply(na.omit(strt_WR_20.Data), .(datetimeAK), summarize, meanVelocity = mean(as.numeric(Mean.Vel..m.s.)))
 
-# strt_wr.lm <- lm(meanDepth~datetimeAK, strt_depth_20)
+# strt_wr.lm <- lm(medianDepth~datetimeAK, strt_depth_20)
 
 
 strt_V_20_WR <- setDT(strt_V_20_WR)
@@ -4116,11 +4241,11 @@ strt.discharge <- na.omit(strt.2020.Q) %>%
 
 
 daily.mean.velocity.strt <- daily.mean.velocity.strt %>% rename(velocity = name)
-daily.mean.depth.strt <- daily.mean.depth.strt %>% rename(depth = name)
+daily.median.depth.strt <- daily.median.depth.strt %>% rename(depth = name)
 
 
 
-data <- merge(daily.mean.velocity.strt,daily.mean.depth.strt, by = "date")
+data <- merge(daily.mean.velocity.strt,daily.median.depth.strt, by = "date")
 data <- merge(data, strt.discharge, by = "date")
 
 #slope
@@ -4141,7 +4266,19 @@ data$k600.6 <- 929*((data$velocity*strt.slope)^(0.75)) * data$discharge^(0.011)
 data$k600.7 <- 4725*((data$velocity*strt.slope)^(0.86)) * (data$discharge^(-0.14)) *(data$depth^(0.66))
 
 
+
+
 metab.stuart <- read.csv(here("outputs","stuart2020-Run_2023-01-09.csv"))
+data.stuart <- read.csv(here("outputs", "clean.strt.2020.full.csv"))
+
+data.stuart <- data.stuart %>%
+  mutate(date = as.Date(as.POSIXct(solar.time, tz = "UTC"))) %>%
+  group_by(date) %>%
+  summarize(median_depth = median(depth))
+data.stuart$date <- as.character(data.stuart$date)
+
+metab.stuart <- merge(data.stuart, metab.stuart, by = "date")
+metab.stuart$K600_daily_mean <- metab.stuart$K600_daily_mean* (metab.stuart$median_depth)
 
 SM.K <- metab.stuart %>% select(date, K600_daily_mean)
 SM.K <- SM.K %>% rename(k600.SM = K600_daily_mean)
@@ -4155,7 +4292,7 @@ data2 <- merge(data,SM.K, by = "date")
 K.plot1_stuart_2020 <- data2 %>% 
   select(date, starts_with('k600')) %>%
   gather(type, k600.value, starts_with('k600')) %>%  ggplot(aes(x=date, y=k600.value, color=type)) + geom_line() + theme_bw() +
-  scale_color_discrete('variable') + labs(title = "K600, stuart 2020. From Raymond Equations ", y = expression(paste("K600 (", d^-1, ")")))
+  scale_color_discrete('variable') + labs(title = "K600, stuart 2020. From Raymond Equations ", y = expression(paste(" K600 (m", d^-1, ")")))
 K.plot1_stuart_2020
 
 
@@ -4223,9 +4360,9 @@ strt_WR_21.Data$datetimeAK <- as.POSIXct(paste(as.character(strt_WR_21.Data$Date
 strt_WR_21.Data <- strt_WR_21.Data %>%
   select(Depth..cm., datetimeAK)
 
-strt_depth_21_WR <- ddply(na.omit(strt_WR_21.Data), .(datetimeAK), summarize, meanDepth = mean(as.numeric(Depth..cm.)))
+strt_depth_21_WR <- ddply(na.omit(strt_WR_21.Data), .(datetimeAK), summarize, medianDepth = median(as.numeric(Depth..cm.)))
 
-# strt_wr.lm <- lm(meanDepth~datetimeAK, strt_depth_21)
+# strt_wr.lm <- lm(medianDepth~datetimeAK, strt_depth_21)
 
 
 strt_depth_21_WR <- setDT(strt_depth_21_WR)
@@ -4261,13 +4398,12 @@ setkey( strt_depth_21_WR, datetimeAK )
 #WR was taken when EXO out of water. round depth point to nearest in data record
 rounded.dates_strt21 <- strt.2021.q.dt[ strt_depth_21_WR, roll = "nearest" ]
 
-rounded.dates_strt21_WR_Q <- rounded.dates_strt21 %>% rename(discharge = Q) %>% 
-  select(datetimeAK, discharge, meanDepth)
+rounded.dates_strt21_WR_Q <- rounded.dates_strt21 %>% rename(discharge = Q) %>%  select(datetimeAK, discharge, medianDepth)
 
 #convert to meters
-rounded.dates_strt21_WR_Q$meanDepth <- rounded.dates_strt21_WR_Q$meanDepth /100
+rounded.dates_strt21_WR_Q$medianDepth <- rounded.dates_strt21_WR_Q$medianDepth /100
 
-strt_pt_wr_graph <- ggplot(rounded.dates_strt21_WR_Q, aes(discharge, meanDepth)) +
+strt_pt_wr_graph <- ggplot(rounded.dates_strt21_WR_Q, aes(discharge, medianDepth)) +
   geom_point()
 # Add regression line
 strt_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
@@ -4275,11 +4411,11 @@ strt_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (W
 ggsave("plots/strt_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
 
 
-strt21_depth_mod <- lm(meanDepth~discharge, data = rounded.dates_strt21_WR_Q)
+strt21_depth_mod <- lm(medianDepth~discharge, data = rounded.dates_strt21_WR_Q)
 
 summary(strt21_depth_mod)
 
-plot(meanDepth~discharge, data = rounded.dates_strt21_WR_Q)
+plot(medianDepth~discharge, data = rounded.dates_strt21_WR_Q)
 # abline(strt21_depth_mod)
 
 #extract slope of model and develop rating curve
@@ -4290,7 +4426,7 @@ strt.2021.q.dt$RatingCurveDepth <- strt21_depth_mod$coefficients[1]+(strt21_dept
 
 strt.2021.q.dt$date <- as.Date(strt.2021.q.dt$datetimeAK)
 
-daily.mean.depth.strt <- strt.2021.q.dt %>%
+daily.median.depth.strt <- strt.2021.q.dt %>%
   group_by(date) %>%
   summarise_at(vars(RatingCurveDepth), list(name = mean))
 
@@ -4329,7 +4465,7 @@ strt_WR_21.Data <- strt_WR_21.Data %>%
 
 strt_V_21_WR <- ddply(na.omit(strt_WR_21.Data), .(datetimeAK), summarize, meanVelocity = mean(as.numeric(Mean.Vel..m.s.)))
 
-# strt_wr.lm <- lm(meanDepth~datetimeAK, strt_depth_21)
+# strt_wr.lm <- lm(medianDepth~datetimeAK, strt_depth_21)
 
 
 strt_V_21_WR <- setDT(strt_V_21_WR)
@@ -4413,11 +4549,11 @@ strt.discharge <- na.omit(strt.2021.Q) %>%
 
 
 daily.mean.velocity.strt <- daily.mean.velocity.strt %>% rename(velocity = name)
-daily.mean.depth.strt <- daily.mean.depth.strt %>% rename(depth = name)
+daily.median.depth.strt <- daily.median.depth.strt %>% rename(depth = name)
 
 
 
-data <- merge(daily.mean.velocity.strt,daily.mean.depth.strt, by = "date")
+data <- merge(daily.mean.velocity.strt,daily.median.depth.strt, by = "date")
 data <- merge(data, strt.discharge, by = "date")
 
 #slope
@@ -4438,7 +4574,19 @@ data$k600.6 <- 929*((data$velocity*strt.slope)^(0.75)) * data$discharge^(0.011)
 data$k600.7 <- 4725*((data$velocity*strt.slope)^(0.86)) * (data$discharge^(-0.14)) *(data$depth^(0.66))
 
 
+
+
 metab.stuart <- read.csv(here("outputs","stuart2021-Run_2023-01-09.csv"))
+data.stuart <- read.csv(here("outputs", "clean.strt.2021.full.csv"))
+
+data.stuart <- data.stuart %>%
+  mutate(date = as.Date(as.POSIXct(solar.time, tz = "UTC"))) %>%
+  group_by(date) %>%
+  summarize(median_depth = median(depth))
+data.stuart$date <- as.character(data.stuart$date)
+
+metab.stuart <- merge(data.stuart, metab.stuart, by = "date")
+metab.stuart$K600_daily_mean <- metab.stuart$K600_daily_mean* (metab.stuart$median_depth)
 
 SM.K <- metab.stuart %>% select(date, K600_daily_mean)
 SM.K <- SM.K %>% rename(k600.SM = K600_daily_mean)
@@ -4452,9 +4600,10 @@ data2 <- merge(data,SM.K, by = "date")
 K.plot1_stuart_2021 <- data2 %>% 
   select(date, starts_with('k600')) %>%
   gather(type, k600.value, starts_with('k600')) %>%  ggplot(aes(x=date, y=k600.value, color=type)) + geom_line() + theme_bw() +
-  scale_color_discrete('variable') + labs(title = "K600, stuart 2021. From Raymond Equations ", y = expression(paste("K600 (", d^-1, ")")))
+  scale_color_discrete('variable') + labs(title = "K600, stuart 2021. From Raymond Equations ", y = expression(paste(" K600 (m", d^-1, ")")))
 K.plot1_stuart_2021
 
+library(gridExtra)
 
 
 grid.arrange(K.plot1_stuart_2019,K.plot1_stuart_2020,K.plot1_stuart_2021,K.plot1_poker_2019,K.plot1_poker_2020,K.plot1_poker_2021,K.plot1_vault_2019,K.plot1_vault_2020,K.plot1_vault_2021,K.plot1_french_2019,K.plot1_french_2020,K.plot1_french_2021,K.plot1_moose_2019,K.plot1_moose_2020,K.plot1_moose_2021, ncol = 3)

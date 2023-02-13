@@ -39,7 +39,7 @@ data.strt.mm.all$discharge <- data.strt.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -167,7 +167,7 @@ data.strt.mm.all$discharge <- data.strt.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=4000, saved_steps=1500, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -287,7 +287,7 @@ data.strt.mm.all$discharge <- data.strt.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=4000, saved_steps=1500, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -399,7 +399,7 @@ data.strt.mm.all$discharge <- data.strt.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -500,7 +500,7 @@ data.vaul.mm.all$discharge <- data.vaul.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -627,7 +627,7 @@ data.vaul.mm.all$discharge <- data.vaul.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -746,7 +746,7 @@ data.vaul.mm.all$discharge <- data.vaul.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -857,7 +857,7 @@ data.vaul.mm.all$discharge <- data.vaul.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -959,7 +959,7 @@ data.poke.mm.all$discharge <- data.poke.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -1086,7 +1086,7 @@ data.poke.mm.all$discharge <- data.poke.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -1205,7 +1205,7 @@ data.poke.mm.all$discharge <- data.poke.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -1316,7 +1316,7 @@ data.poke.mm.all$discharge <- data.poke.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -1429,7 +1429,7 @@ data.frch.mm.all$discharge <- data.frch.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -1537,7 +1537,7 @@ data.frch.mm.all$discharge <- data.frch.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -1645,7 +1645,7 @@ data.frch.mm.all$discharge <- data.frch.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -1754,7 +1754,7 @@ data.frch.mm.all$discharge <- data.frch.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -1862,7 +1862,7 @@ data.moos.mm.all$discharge <- data.moos.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -1973,7 +1973,7 @@ data.moos.mm.all$discharge <- data.moos.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -2083,7 +2083,7 @@ data.moos.mm.all$discharge <- data.moos.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -2195,7 +2195,7 @@ data.moos.mm.all$discharge <- data.moos.mm.all$discharge / 1000
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=8000, saved_steps=1500, n_cores=4,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
