@@ -106,7 +106,7 @@ DateTimeFill <- data.frame(DateTimeAK = seq(ymd_hm("
 2022-05-01 00:00", tz = "America/Anchorage"),ymd_hm("2022-10-15 00:00", tz = "America/Anchorage"), by = '15 mins'))
 NEON_bp <- full_join(NEON_bp, DateTimeFill)
 NEON_bp <- NEON_bp[order(NEON_bp$DateTimeAK),]
-NEON_bp$bp_sea <- na_kalman(NEON_bp$bp_sea, maxgap = 10)
+NEON_bp$bp_sea <- na_kalman(NEON_bp$bp_sea, maxgap = 10, type ="level")
 
 NEON_bp %>% #filter(DateTimeAK > "2022-06-01" & DateTimeAK < "2022-07-01") %>% 
   ggplot(aes(DateTimeAK, bp_sea)) + geom_point()
@@ -266,7 +266,7 @@ Q_test <- QSummary.2022 %>%
   pivot_wider(names_from = Site, values_from = MeasuredQ_Ls)
 
 
-DoD_Q <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2022/Predicted_Q_2022_gapfill.csv")
+DoD_Q <- read.csv("/Users/jadams125/Documents/Github/DoD_Discharge/Predicted_Discharge/2022/Predicted_Q_2022_gapfill.csv")
 
 DoD_Q$DateTimeAK <- as.POSIXct(DoD_Q$DateTimeAK, tz = "America/Anchorage")
 
@@ -660,31 +660,27 @@ setwd(here())
 ## Read in data from Google Drive
 SHOVurl <- "https://docs.google.com/spreadsheets/d/e/2PACX-1vSVSc2AC_Qpe6indix73QBOWWcEowSuke2Dscl3uI8PZXgCoaHZA6niK7dLXWqPkW03c4KOYosGKvSV/pub?output=csv"
 MASTurl <- "https://docs.google.com/spreadsheets/d/e/2PACX-1vTR0uJBkWWaGbxoGT7hvaJ5H4AOAmQXyLt_stT7q_PQLbKaowYN3usdzk_3nR6vxRequLitLJpnxKMh/pub?output=csv"
-SHOVurl <- "https://docs.google.com/spreadsheets/d/e/2PACX-1vR5kn4MDVx-EWtv4znCUqkTbhQzup4931gaqWla2W5W4XPw16xg965kaipudFwP9mSDw91YNUU4u9rt/pub?output=csv"
+
 
 
 #read in shov discharge sheet
 shov_WR <- read.csv(url(SHOVurl), stringsAsFactors = FALSE)
 mast_WR <- read.csv(url(MASTurl), stringsAsFactors = FALSE) 
-shov_WR <- read.csv(url(SHOVurl), stringsAsFactors = FALSE)
 
 # Rename columns
 names(shov_WR) <- c("Date_cat", "width_cm", "Time", "Distance_cm", "depth_cm", "Vel_m_s", "Vel_halfdepth_m_s", "Vel_twicedepth_m_s", "Velocity_mn_m_s")
 names(mast_WR) <- c("Date_cat", "width_cm", "Time", "Distance_cm", "depth_cm", "Vel_m_s", "Vel_halfdepth_m_s", "Vel_twicedepth_m_s", "Velocity_mn_m_s")
-names(shov_WR) <- c("Date_cat", "width_cm", "Time", "Distance_cm", "depth_cm", "Vel_m_s", "Vel_halfdepth_m_s", "Vel_twicedepth_m_s", "Velocity_mn_m_s")
+
 
 # Input NA for missing time
 shov_WR$Time[shov_WR$Time == ""] <- NA
 mast_WR$Time[mast_WR$Time == ""] <- NA
-shov_WR$Time[shov_WR$Time == ""] <- NA
 
 
 # Using fill function from tidyverse
 shov_WR <- shov_WR %>% fill(width_cm) %>%
   fill(Time) %>% fill(Date_cat)
 mast_WR <- mast_WR %>% fill(width_cm) %>%
-  fill(Time) %>% fill(Date_cat)
-shov_WR <- shov_WR %>% fill(width_cm) %>%
   fill(Time) %>% fill(Date_cat)
 
 
@@ -693,19 +689,16 @@ shov_WR <- shov_WR %>% fill(width_cm) %>%
 # Convert integer date to Date
 shov_WR$Date <- as.Date(as.character(shov_WR$Date_cat), format = "%y%m%d", tz = "America/Anchorage")
 mast_WR$Date <- as.Date(as.character(mast_WR$Date_cat), format = "%y%m%d", tz = "America/Anchorage")
-shov_WR$Date <- as.Date(as.character(shov_WR$Date_cat), format = "%y%m%d", tz = "America/Anchorage")
 
 
 # Concatenate date & time
 shov_WR$datetime <- as.POSIXct(paste(shov_WR$Date, shov_WR$Time), format = "%Y-%m-%d %H:%M", tz = "America/Anchorage")
 mast_WR$datetime <- as.POSIXct(paste(mast_WR$Date, mast_WR$Time), format = "%Y-%m-%d %H:%M", tz = "America/Anchorage")
-shov_WR$datetime <- as.POSIXct(paste(shov_WR$Date, shov_WR$Time), format = "%Y-%m-%d %H:%M", tz = "America/Anchorage")
 
 
 ## Calculate mean velocity = meanVel_m_s
 shov_WR <- shov_WR %>% mutate(meanVel_m_s = ifelse(is.na(Vel_m_s), mean(c(.$Vel_halfdepth_m_s, .$Vel_twicedepth_m_s)), .$Vel_m_s))
 mast_WR <- mast_WR %>% mutate(meanVel_m_s = ifelse(is.na(Vel_m_s), mean(c(.$Vel_halfdepth_m_s, .$Vel_twicedepth_m_s)), .$Vel_m_s))
-shov_WR <- shov_WR %>% mutate(meanVel_m_s = ifelse(is.na(Vel_m_s), mean(c(.$Vel_halfdepth_m_s, .$Vel_twicedepth_m_s)), .$Vel_m_s))
 
 
 ########################
@@ -913,7 +906,7 @@ data.shov.mm.all$depth <- data.shov.mm.all$depth / 100
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=4000, saved_steps=1500, n_cores=8,
+                     burnin_steps=2000, saved_steps=1000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )
@@ -1002,6 +995,292 @@ ggsave(path = here("outputs"), file = "shov2022.pdf", fig2019, width = 30, heigh
 
 
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+#mast
+```{r}
+
+DoD_Epscor_Q_remove_mast <- DoD_Epscor_Q %>%
+  mutate(across(c(MAST),
+                ~ifelse(as.character(X) == "6205", NA, .)))
+
+p1 <- DoD_Epscor_Q_remove_mast %>% ggplot(aes(x=MAST,y= POKE)) + geom_point()+ stat_poly_line() + stat_poly_eq()+ggtitle("mast, One WR removed")
+p2 <- DoD_Epscor_Q_remove_mast %>% ggplot(aes(x=MAST,y= STRT)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p3 <- DoD_Epscor_Q_remove_mast %>% ggplot(aes(x=MAST,y= MOOS.Q.int)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p4 <- DoD_Epscor_Q_remove_mast %>% ggplot(aes(x=MAST,y= FRCH )) + geom_point()+ stat_poly_line() + stat_poly_eq()
+p5 <- DoD_Epscor_Q_remove_mast %>% ggplot(aes(x=MAST,y= goldstream)) + geom_point()+ stat_poly_line() + stat_poly_eq()+scale_y_continuous(limit = c(-10, 50))
+p6 <- DoD_Epscor_Q_remove_mast %>% ggplot(aes(x=MAST,y= chena)) + geom_point()+ stat_poly_line() + stat_poly_eq()
+
+
+dev.next()
+
+ggarrange(p1,p2,p3,p4,p5,p6, ncol = 3, nrow = 2)
+
+
+#TKH said in meeting use poker for mast
+
+mast_Q_mod <- lm( MAST~POKE.Q.int, data = DoD_Epscor_Q_remove_mast)
+
+
+#extract slope of model and develop rating curve
+DoD_Epscor_Q_remove_mast$RatingCurveQ <- mast_Q_mod$coefficients[1]+(mast_Q_mod$coefficients[2]*DoD_Epscor_Q_remove_mast$POKE.Q.int)
+
+
+
+
+################## Depth ##################
+
+### This is my attempt at doing our discharge from mast ###
+setwd(here())
+
+## Read in data from Google Drive
+SHOVurl <- "https://docs.google.com/spreadsheets/d/e/2PACX-1vSVSc2AC_Qpe6indix73QBOWWcEowSuke2Dscl3uI8PZXgCoaHZA6niK7dLXWqPkW03c4KOYosGKvSV/pub?output=csv"
+MASTurl <- "https://docs.google.com/spreadsheets/d/e/2PACX-1vTR0uJBkWWaGbxoGT7hvaJ5H4AOAmQXyLt_stT7q_PQLbKaowYN3usdzk_3nR6vxRequLitLJpnxKMh/pub?output=csv"
+
+
+
+#read in shov discharge sheet
+shov_WR <- read.csv(url(SHOVurl), stringsAsFactors = FALSE)
+mast_WR <- read.csv(url(MASTurl), stringsAsFactors = FALSE) 
+
+# Rename columns
+names(shov_WR) <- c("Date_cat", "width_cm", "Time", "Distance_cm", "depth_cm", "Vel_m_s", "Vel_halfdepth_m_s", "Vel_twicedepth_m_s", "Velocity_mn_m_s")
+names(mast_WR) <- c("Date_cat", "width_cm", "Time", "Distance_cm", "depth_cm", "Vel_m_s", "Vel_halfdepth_m_s", "Vel_twicedepth_m_s", "Velocity_mn_m_s")
+
+# Input NA for missing time
+shov_WR$Time[shov_WR$Time == ""] <- NA
+mast_WR$Time[mast_WR$Time == ""] <- NA
+
+
+# Using fill function from tidyverse
+shov_WR <- shov_WR %>% fill(width_cm) %>%
+  fill(Time) %>% fill(Date_cat)
+mast_WR <- mast_WR %>% fill(width_cm) %>%
+  fill(Time) %>% fill(Date_cat)
+
+
+
+## Create datetime column
+# Convert integer date to Date
+shov_WR$Date <- as.Date(as.character(shov_WR$Date_cat), format = "%y%m%d", tz = "America/Anchorage")
+mast_WR$Date <- as.Date(as.character(mast_WR$Date_cat), format = "%y%m%d", tz = "America/Anchorage")
+
+
+# Concatenate date & time
+shov_WR$datetime <- as.POSIXct(paste(shov_WR$Date, shov_WR$Time), format = "%Y-%m-%d %H:%M", tz = "America/Anchorage")
+mast_WR$datetime <- as.POSIXct(paste(mast_WR$Date, mast_WR$Time), format = "%Y-%m-%d %H:%M", tz = "America/Anchorage")
+
+
+## Calculate mean velocity = meanVel_m_s
+shov_WR <- shov_WR %>% mutate(meanVel_m_s = ifelse(is.na(Vel_m_s), mean(c(.$Vel_halfdepth_m_s, .$Vel_twicedepth_m_s)), .$Vel_m_s))
+mast_WR <- mast_WR %>% mutate(meanVel_m_s = ifelse(is.na(Vel_m_s), mean(c(.$Vel_halfdepth_m_s, .$Vel_twicedepth_m_s)), .$Vel_m_s))
+
+
+########################
+
+
+
+```
+
+
+```{r}
+
+DoD_Epscor_Q_remove_mast$depth <- median(mast_WR$depth_cm)
+
+
+mastData <- DoD_Epscor_Q_remove_mast %>% select(DateTimeAK, RatingCurveQ, depth) %>% rename(datetimeAK = DateTimeAK)
+
+mastDO <- merged  %>%filter(site == "MAST") %>% select(datetimeAK, DO.obs.downstream, temp.water.downstream, DO.sat) 
+
+
+mastData <- full_join(mastData, mastDO, by = "datetimeAK")
+
+mastData$solar.time <- calc_solar_time(mastData$datetimeAK, -146.417931)
+
+#Modeled light 
+
+mastData$light <- calc_light(mastData$solar.time, 64.894040, -146.417931)
+
+
+```
+
+
+
+
+```{r}
+
+
+mastData <- mastData %>% rename(DO.obs = DO.obs.downstream, temp.water = temp.water.downstream, discharge = RatingCurveQ) %>% select(solar.time, DO.obs, DO.sat, temp.water, depth, discharge) 
+
+mastData$light <- calc_light(mastData$solar.time, 64.894040, -146.417931)
+
+
+mastData <- mastData %>% filter(solar.time>"2022-05-27 16:45:56" & solar.time< "2022-10-06 11:30:56")
+
+mastData %>% ggplot(aes(x=solar.time, y=DO.obs))+geom_miss_point()
+mastData %>% ggplot(aes(x=solar.time, y=temp.water))+geom_miss_point()
+mastData %>% ggplot(aes(x=solar.time, y=DO.sat))+geom_miss_point()
+mastData %>% ggplot(aes(x=solar.time, y=depth))+geom_miss_point()
+mastData %>% ggplot(aes(x=solar.time, y=discharge))+geom_miss_point()
+
+
+mastData.mm <- mastData %>% select(solar.time, temp.water, DO.obs, discharge, depth, light, DO.sat) %>%
+   group_by(solar.time, new2 = rleid(is.na(discharge))) %>% 
+   ungroup() %>% 
+   group_by(discharge,new2) %>% 
+   filter(n()<48) %>% 
+   select(-new2)
+
+mastData.mm %>% ggplot(aes(x=solar.time, y=discharge))+geom_miss_point()
+
+
+
+mastData.mm$DO.obs <- na_kalman(mastData.mm$DO.obs)
+mastData.mm$temp.water <- na_kalman(mastData.mm$temp.water)
+mastData.mm$DO.sat <- na_kalman(mastData.mm$DO.sat, type = "level")
+mastData.mm$discharge <- na_kalman(mastData.mm$discharge)
+# mastData.mm$depth <- na_kalman(mastData.mm$depth)
+
+
+
+
+
+
+```
+
+
+```{r}
+
+data.mast.mm.all <- mastData.mm
+
+#change Discharge to m3/s
+data.mast.mm.all$discharge <- data.mast.mm.all$discharge / 1000
+
+#cm to m
+data.mast.mm.all$depth <- data.mast.mm.all$depth / 100
+
+
+
+bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
+
+bayes_specs <- specs(bayes_name,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
+                     GPP_daily_lower = 0, ER_daily_upper = 0,
+                     
+)
+
+
+#Change light to modeled light
+data.mast.mm.all$solar.time <- as.POSIXct(data.mast.mm.all$solar.time, tz = "UTC")
+
+data.mast.mm.all <- data.mast.mm.all %>% ungroup()
+
+
+data.mast.mm.all <- data.mast.mm.all %>% group_by(solar.time) %>% mutate_each(funs(mean), -(1:5)) %>% distinct
+
+
+
+data.mast.mm.all <- data.mast.mm.all %>% select(solar.time, DO.obs, DO.sat, light, discharge, depth, temp.water)
+
+startTime <- as.POSIXct(Sys.time())
+mm.test.mast <- metab(bayes_specs, data=data.mast.mm.all)
+endTime <- as.POSIXct(Sys.time())
+# 
+difftime(endTime, startTime)
+save(mm.test.mast, file = here("Outputs", "mastford2019-Run_2023-Full.rerun.02.04.RData"))
+# 
+fit.mast <- get_fit(mm.test.mast)
+fit.daily <- fit.mast$daily
+write.csv(fit.daily, here("outputs", "mastford2019-Run_2023-Full.rerun.02.04.csv"))
+
+model_data <- get_data(mm.test.mast)
+
+
+
+
+
+gpp <- ggplot(data=fit.daily, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("mastford2022")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(fit.daily$GPP_mean))
+
+er <- ggplot(data = fit.daily, aes(x = date)) +geom_point(aes(y = ER_mean), color = "firebrick3") + geom_errorbar(aes(ymin=ER_mean-ER_sd, ymax=ER_mean+ER_sd), width=.2, position=position_dodge(0.05), color = "firebrick3")+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("ER (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme( axis.title.y = element_text(size = 20)) +ylim(min(fit.daily$ER_daily_mean), 0)
+
+k600 <- ggplot(data=fit.daily, aes(x=date, y=K600_daily_mean)) + geom_point(color = "orange") + geom_errorbar(aes(ymin=K600_daily_mean-K600_daily_sd, ymax=K600_daily_mean+K600_daily_sd), width=.2, position=position_dodge(0.05), color = "orange") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("K600 (", d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) 
+
+rhat <- ggplot(data=fit.daily, aes(x=date)) + geom_point(aes(y=GPP_Rhat, colour = "GPP")) + geom_point(aes(y=as.numeric(ER_Rhat), colour = "ER")) + geom_point(aes(y=K600_daily_Rhat, colour = "K600")) +
+  labs(y = "RHAT") + theme(legend.position="top") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ geom_hline(yintercept=1.01, color = "dark blue")+ geom_hline(yintercept=1.1, color = "dark red", linetype = "dashed")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme(axis.text.x=element_text(size=20))+theme( axis.title.y = element_text(size = 20))
+
+er_k <- ggplot(data=fit.daily, aes(x=ER_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq(size = 10)+labs(x = expression(paste("ER (g ", O[2] ," ", m^2, d^-1, ")")))+ labs(y = expression(paste("K600 (", d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.x=element_text(size=20))+theme( axis.title.x = element_text(size = 20)) +theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold"))
+
+gpp_k <- ggplot(data=fit.daily, aes(x=GPP_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq(size = 10)+labs(x = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ labs(y = expression(paste("K600 (", d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.x=element_text(size=20))+theme( axis.title.x = element_text(size = 20)) +theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold"))
+
+
+q.fig <- ggplot(data = model_data, aes(x = solar.time)) +geom_point(aes(y=discharge), color = "sienna4", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("Discharge ( ", m^3, s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(model_data$discharge))
+
+T.fig <- ggplot(data = model_data, aes(x = solar.time)) +geom_point(aes(y=temp.water), color = "slateblue4", size=0.4)+ theme(axis.title.x=element_blank() )+ labs(y = "Temperature (°C)")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme(axis.text.x=element_text(size=20))+theme( axis.title.y = element_text(size = 20))+ylim(-0.004, 20)
+
+
+
+mast.DO.pred <- predict_DO(mm.test.mast)
+mast.DO.pred <- na.omit(mast.DO.pred)
+lm(DO.obs~ DO.mod, data = mast.DO.pred)
+mast.DO.pred$SM.date <- as.Date(mast.DO.pred$solar.time - 4*60*60)
+mast.DO.pred$SM.date <- as.factor(mast.DO.pred$SM.date)
+fit_model <- function(x, y) summary(lm(x ~ y))$adj.r.squared
+test.run <- mast.DO.pred %>% group_by(SM.date) %>% summarise(adj.R2 = fit_model(DO.obs,DO.mod))
+mast.DO.pred <- full_join(mast.DO.pred, test.run)
+rsq <-  summary(lm(mast.DO.pred$DO.mod~mast.DO.pred$DO.obs))$r.squared
+
+p1 <- ggplot(mast.DO.pred, aes(x = solar.time)) + geom_point(aes(y=DO.obs, colour = "Observed DO"), color = "darkcyan") + geom_line(aes(y = DO.mod, colour= "Modeled DO"), color = "blue4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) + labs(colour="Green", y = "DO (mg/L)") +  theme(legend.position="none") + ggtitle("Observed (points) and Modeled (lines)")
+
+p2 <- ggplot(mast.DO.pred, aes(x = solar.time)) + geom_point(aes(y=adj.R2))
+
+
+library(grid)
+library(ggeffects)
+library(gridExtra)
+library(gtable)
+# If that doesnt do it, add grid
+# Make each of the plots
+
+# Two-panel figure: effect sizes
+panA <- ggplotGrob(gpp)
+panB <- ggplotGrob(er)
+panK600 <- ggplotGrob(k600)
+panC <- ggplotGrob(q.fig)
+panD <- ggplotGrob(T.fig)
+panE <- ggplotGrob(p1)
+panp2 <- ggplotGrob(p2)
+panF <- ggplotGrob(rhat)
+panG <- ggplotGrob(er_k)
+pangppK <- ggplotGrob(gpp_k)
+grid::grid.newpage()
+grid.draw(rbind(panA, panB,panK600, panC, panD,panE,panp2,panF, panG,pangppK,size="max"))
+fig2019 <- arrangeGrob(rbind(panA, panB,panK600, panC, panD,panE,panp2,panF,panG,pangppK, size="max"))
+ggsave(path = here("outputs"), file = "mast2022.pdf", fig2019, width = 30, height = 55, units = "in", limitsize = FALSE)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
 
 
 
