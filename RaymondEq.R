@@ -4625,4 +4625,235 @@ grid.arrange(K.plot1_stuart_2019,K.plot1_stuart_2020,K.plot1_stuart_2021,K.plot1
 
 
 
+############### mastodon 2021 ############ 
+
+
+#slope
+mast.slope <- (242.559372-234.027969)/1000
+
+
+#########
+
+
+mast.depth <- mastData.mm %>% select(datetimeAK, depth)
+
+mast.depth$date <- as.Date(mast.depth$datetimeAK)
+
+
+daily.mean.depth.mast <- mast.depth %>%
+  group_by(date) %>%
+  summarise_at(vars(depth), list(name = mean))
+############# Continuous Velocity ############
+
+
+
+# # mast 2021:
+
+
+
+mast_WR_21.Data <- mast_WR
+
+mast_WR_21.Data$datetimeAK <- mast_WR_21.Data$datetime
+
+# mast_WR_21.Data$datetimeAK <- as.POSIXct(paste(as.character(mast_WR_21.Data$Date), mast_WR_21.Data$Time), format="%y%m%d %H:%M")
+
+mast_WR_21.Data <- mast_WR_21.Data %>%
+  select(meanVel_m_s, datetimeAK)
+
+mast_V_21_WR <- ddply(na.omit(mast_WR_21.Data), .(datetimeAK), summarize, meanVelocity = mean(as.numeric(meanVel_m_s)))
+
+# mast_wr.lm <- lm(medianDepth~datetimeAK, mast_depth_21)
+
+
+mast_V_21_WR <- setDT(mast_V_21_WR)
+
+mast_V_21_WR <- mast_V_21_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+# mast.2021.pt <- mast.2021.pt %>%
+# dplyr::rename(datetimeAK = DateTime)
+
+
+
+
+
+# mast.2021.pt <- mast.2021.pt %>%
+#   mutate(across(c(AvgAbsV),
+#                 ~ifelse(datetimeAK >= "2021-08-26 02:00:00" & datetimeAK <= "2021-09-08 12:15:00", NA, .)))
+
+
+
+mast.2021.q.dt <- mastData.mm
+# mast.2021.q.dt <- mast.2021.q.dt %>%
+  # dplyr::rename(datetimeAK = DateTime)
+
+setDT(mast_V_21_WR)
+setDT(mast.2021.q.dt)
+
+mast.2021.q.dt$datetimeAK1 <- mast.2021.q.dt$datetimeAK
+
+setkey( mast.2021.q.dt, datetimeAK )
+setkey( mast_V_21_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round V point to nearest in data record
+rounded.dates_mast21 <- mast.2021.q.dt[ mast_V_21_WR, roll = "nearest" ]
+
+rounded.dates_mast21_WR_Q <- rounded.dates_mast21  %>% select(datetimeAK, discharge, meanVelocity)
+
+
+mast_pt_wr_graph <- ggplot(rounded.dates_mast21_WR_Q, aes(discharge, meanVelocity)) +
+  geom_point()
+# Add regression line
+mast_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("V (WR)")
+
+ggsave("plots/mast_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+mast21_V_mod <- lm(meanVelocity~discharge, data = rounded.dates_mast21_WR_Q)
+
+summary(mast21_V_mod)
+
+plot(meanVelocity~discharge, data = rounded.dates_mast21_WR_Q)
+# abline(mast21_V_mod)
+
+#extract slope of model and develop rating curve
+mast.2021.q.dt$RatingCurveV <- mast21_V_mod$coefficients[1]+(mast21_V_mod$coefficients[2])*mast.2021.q.dt$discharge
+
+
+
+
+mast.2021.q.dt$date <- as.Date(mast.2021.q.dt$datetimeAK)
+
+daily.mean.velocity.mast <- mast.2021.q.dt %>%
+  group_by(date) %>%
+  summarise_at(vars(RatingCurveV), list(name = mean))
+
+
+
+
+######### Daily Q ##########
+
+mast.2021.Q <- mastData.mm
+#discharge
+mast.2021.Q$date <- as.Date(mast.2021.Q$datetimeAK)
+
+
+mast.discharge <- na.omit(mast.2021.Q) %>%
+  group_by(date) %>%
+  summarise_at(vars(discharge), list(name = mean)) %>% rename(discharge = name)
+
+mast.discharge$discharge = mast.discharge$discharge/1000
+
+daily.mean.velocity.mast <- daily.mean.velocity.mast %>% rename(velocity = name)
+daily.mean.depth.mast <- daily.mean.depth.mast %>% rename(depth = name)
+
+
+
+data <- merge(daily.mean.velocity.mast,daily.mean.depth.mast, by = "date")
+data <- merge(data, mast.discharge, by = "date")
+
+#slope
+
+
+
+#Equations
+
+data$k600.1 <-  ((data$velocity * mast.slope)^(0.89)) * (data$depth^(0.54)) * 5037
+
+data$k600.3 <-  1162 * (mast.slope^(0.77)) * (data$velocity^(0.85))
+
+data$k600.4 <- ((data$velocity*mast.slope)^(0.76)) * 951.5
+
+data$k600.5 <- (data$velocity*mast.slope) * 2841 + 2.02
+
+data$k600.6 <- 929*((data$velocity*mast.slope)^(0.75)) * data$discharge^(0.011)
+
+data$k600.7 <- 4725*((data$velocity*mast.slope)^(0.86)) * (data$discharge^(-0.14)) *(data$depth^(0.66))
+
+
+
+
+metab.mastodon <- fit.daily
+data.mastodon <- model_data
+
+
+
+data.mastodon <- data.mastodon %>%
+  mutate(date = as.Date(as.POSIXct(solar.time, tz = "UTC"))) %>%
+  group_by(date) %>%
+  summarize(median_depth = median(depth))
+
+data.mastodon$date <- as.Date(as.character(data.mastodon$date))
+
+metab.mastodon <- merge(data.mastodon, metab.mastodon, by = "date")
+
+metab.mastodon$K600_daily_mean <- metab.mastodon$K600_daily_mean * (metab.mastodon$depth)
+
+SM.K <- metab.mastodon %>% select(date, K600_daily_mean)
+SM.K <- SM.K %>% rename(k600.SM = K600_daily_mean)
+
+SM.K$date <- as.Date(SM.K$date)
+
+data2 <- merge(data,SM.K, by = "date")
+
+
+# ALL YEARS
+K.plot1_mastodon_2021 <- data2 %>% 
+  select(date, starts_with('k600')) %>%
+  gather(type, k600.value, starts_with('k600')) %>%  ggplot(aes(x=date, y=k600.value, color=type)) + geom_line() + theme_bw() +
+  scale_color_discrete('variable') + labs(title = "K600, mastodon 2022. From Raymond Equations ", y = expression(paste(" K600 (m", d^-1, ")")))+ylim(0,100)
+K.plot1_mastodon_2021
+
+library(gridExtra)
+
+
+grid.arrange(K.plot1_mastodon_2019,K.plot1_mastodon_2020,K.plot1_mastodon_2021,K.plot1_poker_2019,K.plot1_poker_2020,K.plot1_poker_2021,K.plot1_vault_2019,K.plot1_vault_2020,K.plot1_vault_2021,K.plot1_french_2019,K.plot1_french_2020,K.plot1_french_2021,K.plot1_moose_2019,K.plot1_moose_2020,K.plot1_moose_2021, ncol = 3)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

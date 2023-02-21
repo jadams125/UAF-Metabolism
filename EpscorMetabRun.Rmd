@@ -266,7 +266,7 @@ Q_test <- QSummary.2022 %>%
   pivot_wider(names_from = Site, values_from = MeasuredQ_Ls)
 
 
-DoD_Q <- read.csv("/Users/jadams125/Documents/Github/DoD_Discharge/Predicted_Discharge/2022/Predicted_Q_2022_gapfill.csv")
+DoD_Q <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_Discharge/Predicted_Discharge/2022/Predicted_Q_2022_gapfill.csv")
 
 DoD_Q$DateTimeAK <- as.POSIXct(DoD_Q$DateTimeAK, tz = "America/Anchorage")
 
@@ -446,7 +446,7 @@ CrawData$light <- calc_light(CrawData$solar.time, 64.894040, -146.417931)
 ```{r}
 
 
-CrawData <- CrawData %>% rename(DO.obs = DO.obs.downstream, temp.water = temp.water.downstream, discharge = RatingCurveQ) %>% select(solar.time, DO.obs, DO.sat, temp.water, depth, discharge) 
+CrawData <- CrawData %>% rename(DO.obs = DO.obs.downstream, temp.water = temp.water.downstream, discharge = RatingCurveQ) %>% select(datetimeAK, solar.time, DO.obs, DO.sat, temp.water, depth, discharge) 
 
 CrawData$light <- calc_light(CrawData$solar.time, 64.894040, -146.417931)
 
@@ -460,7 +460,7 @@ CrawData %>% ggplot(aes(x=solar.time, y=depth))+geom_miss_point()
 CrawData %>% ggplot(aes(x=solar.time, y=discharge))+geom_miss_point()
 
 
-CrawData.mm <- CrawData %>% select(solar.time, temp.water, DO.obs, discharge, depth, light, DO.sat) %>%
+CrawData.mm <- CrawData %>% select(datetimeAK, solar.time, temp.water, DO.obs, discharge, depth, light, DO.sat) %>%
    group_by(solar.time, new2 = rleid(is.na(discharge))) %>% 
    ungroup() %>% 
    group_by(discharge,new2) %>% 
@@ -488,6 +488,8 @@ CrawData.mm$discharge <- na_kalman(CrawData.mm$discharge)
 ```{r}
 
 data.craw.mm.all <- CrawData.mm
+
+write.csv(data.craw.mm.all, here("outputs","clean.craw.2022.csv"))
 
 #change Discharge to m3/s
 data.craw.mm.all$discharge <- data.craw.mm.all$discharge / 1000
@@ -893,7 +895,7 @@ ShovData.mm$discharge <- na_kalman(ShovData.mm$discharge)
 data.shov.mm.all <- ShovData.mm
 
 
-write.csv(data.shov.mm.all, here("outputs","craw.comb.csv"))
+write.csv(data.shov.mm.all, here("outputs","clean.shov.2022.csv"))
 
 #change Discharge to m3/s
 data.shov.mm.all$discharge <- data.shov.mm.all$discharge / 1000
@@ -1091,6 +1093,84 @@ mast_WR <- mast_WR %>% mutate(meanVel_m_s = ifelse(is.na(Vel_m_s), mean(c(.$Vel_
 
 
 
+mast_WR_19.Data <- mast_WR %>% rename(datetimeAK = datetime)
+
+
+
+
+mast_WR_19.Data <- mast_WR_19.Data %>%
+  select(depth_cm, datetimeAK)
+
+
+
+
+
+mast_depth_19_WR <- ddply(na.omit(mast_WR_19.Data), .(datetimeAK), summarize, medianDepth = median(as.numeric(depth_cm)))
+
+# mast_wr.lm <- lm(medianDepth~datetimeAK, mast_depth_19)
+
+
+mast_depth_19_WR <- setDT(mast_depth_19_WR)
+
+mast_depth_19_WR <- mast_depth_19_WR %>%
+  dplyr::rename(datetimeAK = datetimeAK)
+
+
+
+
+
+
+# mast.2019.pt <- mast.2019.pt %>%
+#   mutate(across(c(AvgAbsDepth),
+#                 ~ifelse(datetimeAK >= "2019-08-26 02:00:00" & datetimeAK <= "2019-09-08 12:15:00", NA, .)))
+
+
+
+mast.2019.q.dt <- DoD_Epscor_Q_remove_mast
+mast.2019.q.dt <- mast.2019.q.dt %>%
+  dplyr::rename(datetimeAK = DateTimeAK)
+
+setDT(mast_depth_19_WR)
+setDT(mast.2019.q.dt)
+
+mast.2019.q.dt$datetimeAK1 <- mast.2019.q.dt$datetimeAK
+
+setkey( mast.2019.q.dt, datetimeAK )
+setkey( mast_depth_19_WR, datetimeAK )
+
+#WR was taken when EXO out of water. round depth point to nearest in data record
+rounded.dates_mast19 <- mast.2019.q.dt[ mast_depth_19_WR, roll = "nearest" ]
+
+rounded.dates_mast19_WR_Q <- rounded.dates_mast19 %>% rename(discharge = RatingCurveQ) %>% select(datetimeAK, discharge, medianDepth)
+
+#convert to meters
+rounded.dates_mast19_WR_Q$medianDepth <- rounded.dates_mast19_WR_Q$medianDepth /100
+
+mast_pt_wr_graph <- ggplot(rounded.dates_mast19_WR_Q, aes(discharge, medianDepth)) +
+  geom_point()
+# Add regression line
+mast_pt_wr_graph + geom_smooth(method = lm) + xlab("Discharge") +ylab ("Depth (WR)")
+
+ggsave("plots/mast_Q_wr_graph.png", width = 15, height = 10, units = "cm", scale = 1.3)
+
+
+mast19_depth_mod <- lm(medianDepth~discharge, data = rounded.dates_mast19_WR_Q)
+
+summary(mast19_depth_mod)
+
+plot(medianDepth~discharge, data = rounded.dates_mast19_WR_Q)
+# abline(mast19_depth_mod)
+
+#extract slope of model and develop rating curve
+mast.2019.q.dt$RatingCurveDepth <- mast19_depth_mod$coefficients[1]+(mast19_depth_mod$coefficients[2])*mast.2019.q.dt$Q
+
+
+
+
+#Cureve is bad, use median
+
+
+
 ```
 
 
@@ -1106,11 +1186,11 @@ mastDO <- merged  %>%filter(site == "MAST") %>% select(datetimeAK, DO.obs.downst
 
 mastData <- full_join(mastData, mastDO, by = "datetimeAK")
 
-mastData$solar.time <- calc_solar_time(mastData$datetimeAK, -146.417931)
+mastData$solar.time <- calc_solar_time(mastData$datetimeAK,  -146.397201)
 
 #Modeled light 
 
-mastData$light <- calc_light(mastData$solar.time, 64.894040, -146.417931)
+mastData$light <- calc_light(mastData$solar.time, 64.893390, -146.397201)
 
 
 ```
@@ -1121,12 +1201,26 @@ mastData$light <- calc_light(mastData$solar.time, 64.894040, -146.417931)
 ```{r}
 
 
-mastData <- mastData %>% rename(DO.obs = DO.obs.downstream, temp.water = temp.water.downstream, discharge = RatingCurveQ) %>% select(solar.time, DO.obs, DO.sat, temp.water, depth, discharge) 
-
-mastData$light <- calc_light(mastData$solar.time, 64.894040, -146.417931)
 
 
-mastData <- mastData %>% filter(solar.time>"2022-05-27 16:45:56" & solar.time< "2022-10-06 11:30:56")
+mastData <- mastData %>% rename(DO.obs = DO.obs.downstream, temp.water = temp.water.downstream, discharge = RatingCurveQ) %>% select(datetimeAK, solar.time, DO.obs, DO.sat, temp.water, depth, discharge, light) 
+
+
+
+mastData <- mastData %>% filter(as.character(solar.time)>"2022-05-27 15:01:01" & as.character( solar.time)< "2022-10-06 10:16:01")
+
+
+ts_2022.mast <- data.frame(solar.time = force_tz(as.POSIXct(seq(ymd_hms("2022-05-27 15:01:01"),ymd_hms("2022-10-06 10:16:01"), by = '15 mins')), tz = "UTC"))
+
+mastData <- full_join(mastData, ts_2022.mast, by = "solar.time")
+
+mastData <- mastData %>% select(datetimeAK, DO.obs, DO.sat, temp.water, depth, discharge, light)
+
+mastData$solar.time <- calc_solar_time(mastData$datetimeAK,  -146.39720)
+
+
+mastData <- mastData %>% filter(as.character(solar.time)>"2022-05-27 15:01:01" & as.character( solar.time)< "2022-10-06 10:16:01")
+
 
 mastData %>% ggplot(aes(x=solar.time, y=DO.obs))+geom_miss_point()
 mastData %>% ggplot(aes(x=solar.time, y=temp.water))+geom_miss_point()
@@ -1134,20 +1228,14 @@ mastData %>% ggplot(aes(x=solar.time, y=DO.sat))+geom_miss_point()
 mastData %>% ggplot(aes(x=solar.time, y=depth))+geom_miss_point()
 mastData %>% ggplot(aes(x=solar.time, y=discharge))+geom_miss_point()
 
-
-mastData.mm <- mastData %>% select(solar.time, temp.water, DO.obs, discharge, depth, light, DO.sat) %>%
-   group_by(solar.time, new2 = rleid(is.na(discharge))) %>% 
-   ungroup() %>% 
-   group_by(discharge,new2) %>% 
-   filter(n()<48) %>% 
-   select(-new2)
+mastData.mm <- mastData
 
 mastData.mm %>% ggplot(aes(x=solar.time, y=discharge))+geom_miss_point()
 
 
 
 mastData.mm$DO.obs <- na_kalman(mastData.mm$DO.obs)
-mastData.mm$temp.water <- na_kalman(mastData.mm$temp.water)
+mastData.mm$temp.water <- na_kalman(mastData.mm$temp.water, type = "level")
 mastData.mm$DO.sat <- na_kalman(mastData.mm$DO.sat, type = "level")
 mastData.mm$discharge <- na_kalman(mastData.mm$discharge)
 # mastData.mm$depth <- na_kalman(mastData.mm$depth)
@@ -1164,6 +1252,8 @@ mastData.mm$discharge <- na_kalman(mastData.mm$discharge)
 
 data.mast.mm.all <- mastData.mm
 
+write.csv(data.mast.mm.all, here("outputs","clean.mast.2022.csv"))
+
 #change Discharge to m3/s
 data.mast.mm.all$discharge <- data.mast.mm.all$discharge / 1000
 
@@ -1175,7 +1265,7 @@ data.mast.mm.all$depth <- data.mast.mm.all$depth / 100
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=5000, saved_steps=2000, n_cores=8,
+                     burnin_steps=2000, saved_steps=1000, n_cores=8,
                      GPP_daily_lower = 0, ER_daily_upper = 0,
                      
 )

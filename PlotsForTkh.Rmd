@@ -54,7 +54,7 @@ frch.metab$date <- as.POSIXct(frch.metab$date)
 
 
 
-gpp2019 <- ggplot(data=frch.metab, aes(x=(date), y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 15)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+ annotate("text", x= as.POSIXct("2019-09-11"), y=max(frch.metab$GPP_mean),label="2019")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ annotation_custom(grobTree(textGrob("2019", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2019 <- ggplot(data=frch.metab, aes(x=(date), y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 15)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+ annotate("text", x= as.POSIXct("2019-09-11"), y=max(frch.metab$GPP_mean),label="2019")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ annotation_custom(grobTree(textGrob("2019", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 
@@ -71,7 +71,6 @@ frch.comb$discharge  <- frch.comb$discharge
 
 
 q.fig2019 <-  frch.comb %>% filter(datetimeAK >= min(frch.metab$date)) %>% filter(datetimeAK <= max(frch.metab$date)) %>% ggplot(aes(x = as.POSIXct(solar.time))) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 5000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20)) +scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
-
 
 #L.fig <- frch.comb  %>% filter(datetimeAK >= min(frch.metab$date)) %>% filter(datetimeAK <= max(frch.metab$date)) %>% ggplot(aes(x = solar.time)) +geom_point(aes(y=light), color = "orange", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("PAR (umol ", m^-2, s^-1,")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(frch.comb$light))
 
@@ -93,7 +92,7 @@ frch.metab$date <- as.POSIXct(frch.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp2020 <- ggplot(data=frch.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 15) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2020", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2020 <- ggplot(data=frch.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 15) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2020", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 frch.comb <- read.csv(here("outputs", "frch.comb.csv"))
@@ -127,7 +126,7 @@ frch.metab$date <- as.POSIXct(frch.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp2021 <- ggplot(data=frch.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 15) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))+ annotation_custom(grobTree(textGrob("2021", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2021 <- ggplot(data=frch.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 15) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))+ annotation_custom(grobTree(textGrob("2021", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 
@@ -160,7 +159,7 @@ frch.metab$date <- as.POSIXct(frch.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp2022 <- ggplot(data=frch.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 15) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2022", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2022 <- ggplot(data=frch.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 15) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2022", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 frch.comb <- read.csv(here("outputs", "frch.comb.csv"))
@@ -210,7 +209,7 @@ ggsave(path = here("plots"), file = "frch.gpp.q.all.pdf", plottest, width = 11*1
 
 
 
-
+##### Q and and also tmep and DO
 
 ```{r}
 
@@ -226,7 +225,7 @@ moos.metab$date <- as.POSIXct(moos.metab$date)
 
 
 
-gpp2019 <- ggplot(data=moos.metab, aes(x=(date), y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 7)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+ annotate("text", x= as.POSIXct("2019-09-11"), y=max(moos.metab$GPP_mean),label="2019")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ annotation_custom(grobTree(textGrob("2019", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2019 <- ggplot(data=moos.metab, aes(x=(date), y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 7)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+ annotate("text", x= as.POSIXct("2019-09-11"), y=max(moos.metab$GPP_mean),label="2019")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ annotation_custom(grobTree(textGrob("2019", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 
@@ -236,11 +235,14 @@ gpp2019 <- ggplot(data=moos.metab, aes(x=(date), y=GPP_mean)) + geom_point(color
 
 
 
-moos.comb <- read.csv(here("outputs", "moos.comb.csv"))
+moos.comb <- read.csv(here("outputs", "clean.moos.2019.full.csv"))
 moos.comb$solar.time <- as.POSIXct(moos.comb$solar.time, tz = "UTC")
 
 moos.comb$discharge  <- moos.comb$discharge 
 
+DO.fig2019 <-  moos.comb %>% filter(datetimeAK >= min(moos.metab$date)) %>% filter(datetimeAK <= max(moos.metab$date)) %>% ggplot(aes(x = as.POSIXct(solar.time))) +geom_point(aes(y=DO.obs), color = "orange", size=0.4)+ labs(y = expression(paste("Dissolved Oxygen (mg ", L^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(axis.title.x=element_blank())+theme(text = element_text(size=20)) +scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
+
+Temp.fig2019 <-  moos.comb %>% filter(datetimeAK >= min(moos.metab$date)) %>% filter(datetimeAK <= max(moos.metab$date)) %>% ggplot(aes(x = as.POSIXct(solar.time))) +geom_point(aes(y=temp.water), color = "red", size=0.4)+ labs(y = expression(paste("Temperature (°C", ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(axis.title.x=element_blank())+theme(text = element_text(size=20)) +scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
 
 q.fig2019 <-  moos.comb %>% filter(datetimeAK >= min(moos.metab$date)) %>% filter(datetimeAK <= max(moos.metab$date)) %>% ggplot(aes(x = as.POSIXct(solar.time))) +geom_point(aes(y=discharge), color = "slateblue4", size=0.4)+ labs(y = expression(paste("Discharge (L ", s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, 9000)+theme(axis.title.x=element_blank())+theme(text = element_text(size=20)) +scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )
 
@@ -249,15 +251,20 @@ q.fig2019 <-  moos.comb %>% filter(datetimeAK >= min(moos.metab$date)) %>% filte
 
 
 panGPP <- ggplotGrob(gpp2019)
- 
+panDO <- ggplotGrob(DO.fig2019)
+panTemp <- ggplotGrob(Temp.fig2019)
 panQ <- ggplotGrob(q.fig2019)
+
+
 grid::grid.newpage()
-grid.draw(rbind(panGPP,  panQ,size="max"))
-fig2019 <- arrangeGrob(rbind(panGPP,  panQ,size="max"))
+grid.draw(rbind(panGPP, panDO, panQ,panTemp, size="max"))
+fig2019 <- arrangeGrob(rbind(panGPP, panDO, panQ,panTemp,size="max"))
 ggsave(path = here("plots"), file = "moos2019.gpp.q.pdf", fig2019, width = 12,  height = 6, units = "in", limitsize = FALSE)
 
 
 ```
+
+
 
 ```{r}
 moos.metab <- read.csv(here("outputs", "moose2020-Run_2023-Full.rerun.02.04.csv"))
@@ -265,7 +272,7 @@ moos.metab$date <- as.POSIXct(moos.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp2020 <- ggplot(data=moos.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 7) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2020", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2020 <- ggplot(data=moos.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 7) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2020", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 moos.comb <- read.csv(here("outputs", "moos.comb.csv"))
@@ -299,7 +306,7 @@ moos.metab$date <- as.POSIXct(moos.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp2021 <- ggplot(data=moos.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 7) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))+ annotation_custom(grobTree(textGrob("2021", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2021 <- ggplot(data=moos.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 7) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))+ annotation_custom(grobTree(textGrob("2021", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 
@@ -332,7 +339,7 @@ moos.metab$date <- as.POSIXct(moos.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp2022 <- ggplot(data=moos.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 7) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2022", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2022 <- ggplot(data=moos.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 7) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2022", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 moos.comb <- read.csv(here("outputs", "moos.comb.csv"))
@@ -397,7 +404,7 @@ vaul.metab$date <- as.POSIXct(vaul.metab$date)
 
 
 
-gpp2019 <- ggplot(data=vaul.metab, aes(x=(date), y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+ annotate("text", x= as.POSIXct("2019-09-11"), y=max(vaul.metab$GPP_mean),label="2019")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ annotation_custom(grobTree(textGrob("2019", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2019 <- ggplot(data=vaul.metab, aes(x=(date), y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+ annotate("text", x= as.POSIXct("2019-09-11"), y=max(vaul.metab$GPP_mean),label="2019")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ annotation_custom(grobTree(textGrob("2019", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 
@@ -436,7 +443,7 @@ vaul.metab$date <- as.POSIXct(vaul.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp2020 <- ggplot(data=vaul.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2020", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2020 <- ggplot(data=vaul.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2020", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 vaul.comb <- read.csv(here("outputs", "vaul.comb.csv"))
@@ -470,7 +477,7 @@ vaul.metab$date <- as.POSIXct(vaul.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp2021 <- ggplot(data=vaul.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))+ annotation_custom(grobTree(textGrob("2021", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2021 <- ggplot(data=vaul.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))+ annotation_custom(grobTree(textGrob("2021", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 
@@ -503,7 +510,7 @@ vaul.metab$date <- as.POSIXct(vaul.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp2022 <- ggplot(data=vaul.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2022", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2022 <- ggplot(data=vaul.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2022", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 vaul.comb <- read.csv(here("outputs", "vaul.comb.csv"))
@@ -564,7 +571,7 @@ poke.metab$date <- as.POSIXct(poke.metab$date)
 
 
 
-gpp2019 <- ggplot(data=poke.metab, aes(x=(date), y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+ annotate("text", x= as.POSIXct("2019-09-11"), y=max(poke.metab$GPP_mean),label="2019")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ annotation_custom(grobTree(textGrob("2019", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2019 <- ggplot(data=poke.metab, aes(x=(date), y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+ annotate("text", x= as.POSIXct("2019-09-11"), y=max(poke.metab$GPP_mean),label="2019")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ annotation_custom(grobTree(textGrob("2019", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 
@@ -603,7 +610,7 @@ poke.metab$date <- as.POSIXct(poke.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp2020 <- ggplot(data=poke.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2020", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2020 <- ggplot(data=poke.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2020", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 poke.comb <- read.csv(here("outputs", "poke.comb.csv"))
@@ -637,7 +644,7 @@ poke.metab$date <- as.POSIXct(poke.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp2021 <- ggplot(data=poke.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))+ annotation_custom(grobTree(textGrob("2021", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2021 <- ggplot(data=poke.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))+ annotation_custom(grobTree(textGrob("2021", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 
@@ -670,7 +677,7 @@ poke.metab$date <- as.POSIXct(poke.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp2022 <- ggplot(data=poke.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2022", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2022 <- ggplot(data=poke.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 4) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2022", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 poke.comb <- read.csv(here("outputs", "poke.comb.csv"))
@@ -732,7 +739,7 @@ strt.metab$date <- as.POSIXct(strt.metab$date)
 
 
 
-gpp2019 <- ggplot(data=strt.metab, aes(x=(date), y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 5)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+ annotate("text", x= as.POSIXct("2019-09-11"), y=max(strt.metab$GPP_mean),label="2019")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ annotation_custom(grobTree(textGrob("2019", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2019 <- ggplot(data=strt.metab, aes(x=(date), y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 5)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2019-05-25 00:00", "2019-10-15 00:00")))+ annotate("text", x= as.POSIXct("2019-09-11"), y=max(strt.metab$GPP_mean),label="2019")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ annotation_custom(grobTree(textGrob("2019", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 
@@ -771,7 +778,7 @@ strt.metab$date <- as.POSIXct(strt.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp2020 <- ggplot(data=strt.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 5) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2020", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2020 <- ggplot(data=strt.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 5) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2020-05-25 00:00", "2020-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2020", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 strt.comb <- read.csv(here("outputs", "strt.comb.csv"))
@@ -805,7 +812,7 @@ strt.metab$date <- as.POSIXct(strt.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp2021 <- ggplot(data=strt.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 5) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))+ annotation_custom(grobTree(textGrob("2021", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2021 <- ggplot(data=strt.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 5) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2021-05-25 00:00", "2021-10-15 00:00")))+ annotation_custom(grobTree(textGrob("2021", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 
@@ -838,7 +845,7 @@ strt.metab$date <- as.POSIXct(strt.metab$date)
 
 labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec')
 
-gpp2022 <- ggplot(data=strt.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 5) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2022", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
+gpp2022 <- ggplot(data=strt.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, 5) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+scale_x_datetime(limits = ymd_hm(c("2022-05-25 00:00", "2022-10-15 00:00")))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ annotation_custom(grobTree(textGrob("2022", x=0.8, hjust=0, y=0.8, vjust=0, gp=gpar(col="black", fontsize=30))))
 
 
 strt.comb <- read.csv(here("outputs", "strt.comb.csv"))
@@ -955,31 +962,32 @@ metab_all.short <- metab_all %>% select(date, GPP_mean, GPP_daily_se_mean, GPP_d
 write.csv(metab_all.short, here("outputs", "DoD_metab_TS.csv"))
 
 
+median(na.omit(metab_all$GPP_mean))
+mean(na.omit(metab_all$GPP_mean))
 
 
 library(ggpattern)
 
-plot2019 <- metab_all %>% filter(date<"2020-01-01"&date>"2019-01-01")%>%  ggplot(aes(x=site, y=GPP_mean)) + facet_wrap(~year, nrow = 2, dir = "v")+ geom_boxplot(aes(fill=as.factor(PF)),show.legend = FALSE) +
+plot2019 <- metab_all %>% filter(year=="2019")%>%  ggplot(aes(x=site, y=GPP_mean)) + facet_wrap(~year, nrow = 2, dir = "v")+ geom_boxplot(aes(fill=as.factor(PF)),show.legend = FALSE) +
   facet_grid(. ~ burn , space="free_x", scales="free_x", switch="x") +
   theme_classic() + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+
   theme(strip.placement = "outside",
         strip.background = element_rect(fill=NA, colour="grey50"),
-        panel.spacing.x=unit(0,"cm"))+ theme( strip.background = element_blank(),strip.text.x = element_blank() )+ylim(0,12)+ggtitle("2019")+theme(plot.title = element_text(hjust = 1))+ scale_fill_brewer(palette = "Dark2")
+        panel.spacing.x=unit(0,"cm"))+ theme( strip.background = element_blank(),strip.text.x = element_blank() )+ylim(0,12)+ggtitle("2019")+theme(plot.title = element_text(hjust = 1))+scale_fill_manual(values = c("#71A6D2", "#A13D2D"))+labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))
 
-plot2020 <- metab_all %>% filter(date<"2021-01-01"&date>"2020-01-01")%>%  ggplot(aes(x=site, y=GPP_mean)) + facet_wrap(~year, nrow = 2, dir = "v") + geom_boxplot(aes(fill=as.factor(PF)))+
+plot2020 <- metab_all %>% filter(year=="2020")%>%  ggplot(aes(x=site, y=GPP_mean)) + facet_wrap(~year, nrow = 2, dir = "v") + geom_boxplot(aes(fill=as.factor(PF)))+
   facet_grid(. ~ burn , space="free_x", scales="free_x", switch="x") +
   theme_classic() +
   theme(strip.placement = "outside",
         strip.background = element_rect(fill=NA, colour="grey50"),
-        panel.spacing.x=unit(0,"cm"))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ theme( strip.background = element_blank(),strip.text.x = element_blank() )+ylim(0,12)+ggtitle("2020")+theme(plot.title = element_text(hjust = 1))+ scale_fill_brewer(palette = "Dark2")
+        panel.spacing.x=unit(0,"cm"))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ theme( strip.background = element_blank(),strip.text.x = element_blank() )+ylim(0,12)+ggtitle("2020")+theme(plot.title = element_text(hjust = 1))+scale_fill_manual(values = c("#71A6D2", "#A13D2D"), labels=c('High Permafrost', 'Low Permafrost'))+  theme(legend.title=element_blank())+theme(axis.title.x=element_blank() )+  theme(legend.title=element_blank())+theme(legend.position = c(0.7, 0.7))
 
-plot2021 <- metab_all %>% filter(date<"2022-01-01"&date>"2021-01-01")%>%  ggplot(aes(x=site, y=GPP_mean)) + facet_wrap(~year, nrow = 2, dir = "v") + geom_boxplot(aes(fill=as.factor(PF)), show.legend = FALSE)+
+plot2021 <- metab_all %>% filter(year=="2021")%>%  ggplot(aes(x=site, y=GPP_mean)) + facet_wrap(~year, nrow = 2, dir = "v") + geom_boxplot(aes(fill=as.factor(PF)), show.legend = FALSE)+
   facet_grid(. ~ burn , space="free_x", scales="free_x", switch="x") +
   theme_classic() +
   theme(strip.placement = "outside",
         strip.background = element_rect(fill=NA, colour="grey50"),
-        panel.spacing.x=unit(0,"cm"))+ylim(0,12)+ggtitle("2021")+theme(plot.title = element_text(hjust = 1))+ scale_fill_brewer(palette = "Dark2")
-
+        panel.spacing.x=unit(0,"cm"))+ylim(0,12)+ggtitle("2021")+theme(plot.title = element_text(hjust = 1))+scale_fill_manual(values = c("#71A6D2", "#A13D2D"))+labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+theme(axis.title.x=element_blank() )
 
 poke.gpp <- rbind( read.csv(here("outputs", "poker2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2021-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2022-Run_2023-Full.rerun.02.04.csv")))
 
@@ -992,18 +1000,262 @@ poke.gpp$GPP_mean <- NA
 
 metab_all <- rbind(strt.gpp, vaul.gpp, poke.gpp, frch.gpp, moos.gpp)
 
-plot2022 <- metab_all %>% filter(date<"2023-01-01"&date>"2022-01-01")%>%  ggplot(aes(x=site, y=GPP_mean)) + facet_wrap(~year, nrow = 2, dir = "v") + geom_boxplot(aes(fill=as.factor(PF)))+
+write.csv(metab_all, here("outputs","metab.all.csv"))
+
+
+plot2022 <- metab_all %>% filter(year=="2022")%>%  ggplot(aes(x=site, y=GPP_mean)) + facet_wrap(~year, nrow = 2, dir = "v") +  geom_boxplot(aes(fill=as.factor(PF)), show.legend = FALSE)+
   facet_grid(. ~ burn , space="free_x", scales="free_x", switch="x") +
   theme_classic() +
   theme(strip.placement = "outside",
         strip.background = element_rect(fill=NA, colour="grey50"),
-        panel.spacing.x=unit(0,"cm"))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ylim(0,12)+ggtitle("2022")+theme(plot.title = element_text(hjust = 1))+ scale_fill_brewer(palette = "Dark2")
+        panel.spacing.x=unit(0,"cm"))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ylim(0,12)+ggtitle("2022")+theme(plot.title = element_text(hjust = 1))+scale_fill_manual(values = c("#71A6D2", "#A13D2D"))+theme(axis.title.x=element_blank() )
 
-
-wrap_plots()
 library("RColorBrewer") 
 library(patchwork)
 plot_layout(plot2019+plot2020+plot2021+plot2022, nrow=2, ncol = 2)
+
+pdf(here('plots',"GPP.plot.pdf"), height = 4.5*1.2, width = 5*1.2)
+plot_layout(plot2019+plot2020+plot2021+plot2022, nrow=2, ncol = 2)
+dev.off()
+
+
+
+
+```
+
+
+#Combine
+
+```{r}
+strt.er <- rbind( read.csv(here("outputs", "stuart2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "stuart2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "stuart2021-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "stuart2022-Run_2023-Full.rerun.02.04.csv")))
+strt.er$site = "STRT"
+strt.er$PF = "High"
+strt.er$burn = "Burned"
+strt.er$year <- format(as.Date(strt.er$date, format="%Y-%m-%d"),"%Y")
+
+
+
+
+vaul.er <- rbind( read.csv(here("outputs", "vault2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "vault2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "vault2021-2022-Run_2023-Full.rerun.02.04.csv")))
+vaul.er$site = "VAUL"
+vaul.er$PF = "High"
+vaul.er$burn = "Unburned"
+vaul.er$year <- format(as.Date(vaul.er$date, format="%Y-%m-%d"),"%Y")
+
+
+
+#Poker 2022 bad
+poke.er <- rbind( read.csv(here("outputs", "poker2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2021-Run_2023-Full.rerun.02.04.csv")))
+
+poke.er$site = "POKE"
+poke.er$PF = "Low"
+poke.er$burn = "Burned"
+poke.er$year <- format(as.Date(poke.er$date, format="%Y-%m-%d"),"%Y")
+
+
+
+frch.er <- rbind( read.csv(here("outputs", "french2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "french2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "french2021-Run_2023-Full.rerun.02.04.csv")),read.csv(here("outputs", "french2022-Run_2023-Full.rerun.02.04.csv")))
+frch.er$site = "FRCH"
+frch.er$PF = "Low"
+frch.er$burn = "Unburned"
+frch.er$year <- format(as.Date(frch.er$date, format="%Y-%m-%d"),"%Y")
+
+
+
+moos.er <- rbind(
+  read.csv(here("outputs", "moose2019-Run_2023-Full.rerun.02.04.csv")),
+  read.csv(here("outputs", "moose2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs","moose2021-Run_2023-Full.rerun.02.04.csv")),
+  read.csv(here("outputs", "moose2022-Run_2023-Full.rerun.02.04.csv"))
+  )
+moos.er$site = "MOOS"
+moos.er$PF = "Low"
+moos.er$burn = "Burned"
+moos.er$year <- format(as.Date(moos.er$date, format="%Y-%m-%d"),"%Y")
+
+
+
+#combine
+metab_all <- rbind(strt.er, vaul.er, poke.er, frch.er, moos.er) 
+
+
+metab_all.short <- metab_all %>% select(date, ER_mean, ER_daily_se_mean, ER_daily_sd, ER_Rhat, site)
+
+write.csv(metab_all.short, here("outputs", "DoD_metab_TS.csv"))
+
+
+
+
+library(ggpattern)
+
+plot2019 <- metab_all %>% filter(year=="2019")%>%  ggplot(aes(x=site, y=ER_mean)) + facet_wrap(~year, nrow = 2, dir = "v")+ geom_boxplot(aes(fill=as.factor(PF)),show.legend = FALSE) +
+  facet_grid(. ~ burn , space="free_x", scales="free_x", switch="x") +
+  theme_classic() + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+
+  theme(strip.placement = "outside",
+        strip.background = element_rect(fill=NA, colour="grey50"),
+        panel.spacing.x=unit(0,"cm"))+ theme( strip.background = element_blank(),strip.text.x = element_blank() )+ylim(-30,0)+ggtitle("2019")+theme(plot.title = element_text(hjust = 1))+scale_fill_manual(values = c("#71A6D2", "#A13D2D"))+labs(y = expression(paste("ER (g ", O[2] ," ", m^-2, d^-1, ")")))
+
+plot2020 <- metab_all %>% filter(year=="2020")%>%  ggplot(aes(x=site, y=ER_mean)) + facet_wrap(~year, nrow = 2, dir = "v") + geom_boxplot(aes(fill=as.factor(PF)),show.legend = FALSE)+
+  facet_grid(. ~ burn , space="free_x", scales="free_x", switch="x") +
+  theme_classic() +
+  theme(strip.placement = "outside",
+        strip.background = element_rect(fill=NA, colour="grey50"),
+        panel.spacing.x=unit(0,"cm"))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ theme( strip.background = element_blank(),strip.text.x = element_blank() )+ylim(-30,0)+ggtitle("2020")+theme(plot.title = element_text(hjust = 1))+scale_fill_manual(values = c("#71A6D2", "#A13D2D"), labels=c('High Permafrost', 'Low Permafrost'))
+
+plot2021 <- metab_all %>% filter(year=="2021")%>%  ggplot(aes(x=site, y=ER_mean)) + facet_wrap(~year, nrow = 2, dir = "v") + geom_boxplot(aes(fill=as.factor(PF)), show.legend = FALSE)+
+  facet_grid(. ~ burn , space="free_x", scales="free_x", switch="x") +
+  theme_classic() +
+  theme(strip.placement = "outside",
+        strip.background = element_rect(fill=NA, colour="grey50"),
+        panel.spacing.x=unit(0,"cm"))+ylim(-30,0)+ggtitle("2021")+theme(plot.title = element_text(hjust = 1))+scale_fill_manual(values = c("#71A6D2", "#A13D2D"))+labs(y = expression(paste("ER (g ", O[2] ," ", m^-2, d^-1, ")")))+theme(axis.title.x=element_blank() )
+
+poke.er <- rbind( read.csv(here("outputs", "poker2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2021-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2022-Run_2023-Full.rerun.02.04.csv")))
+
+poke.er$site = "POKE"
+poke.er$PF = "Low"
+poke.er$burn = "Burned"
+poke.er$year <- format(as.Date(poke.er$date, format="%Y-%m-%d"),"%Y")
+
+poke.er$ER_mean <- NA
+
+metab_all <- rbind(strt.er, vaul.er, poke.er, frch.er, moos.er)
+
+
+plot2022 <- metab_all %>% filter(year=="2022")%>%  ggplot(aes(x=site, y=ER_mean)) + facet_wrap(~year, nrow = 2, dir = "v") +  geom_boxplot(aes(fill=as.factor(PF)))+
+  facet_grid(. ~ burn , space="free_x", scales="free_x", switch="x") +
+  theme_classic() +
+  theme(strip.placement = "outside",
+        strip.background = element_rect(fill=NA, colour="grey50"),
+        panel.spacing.x=unit(0,"cm"))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ylim(-30,0)+ggtitle("2022")+theme(plot.title = element_text(hjust = 1))+scale_fill_manual(values = c("#71A6D2", "#A13D2D") , labels=c('High Permafrost', 'Low Permafrost'))+theme(axis.title.x=element_blank() )+  theme(legend.title=element_blank())+theme(legend.position = c(0.7, 0.2))
+
+
+library("RColorBrewer") 
+library(patchwork)
+plot_layout(plot2019+plot2020+plot2021+plot2022, nrow=2, ncol = 2)
+
+
+pdf(here('plots',"ER.plot.pdf"), height = 4.5*1.2, width = 5*1.2)
+plot_layout(plot2019+plot2020+plot2021+plot2022, nrow=2, ncol = 2)
+dev.off()
+
+
+
+
+```
+
+```{r}
+
+strt.nep <- rbind( read.csv(here("outputs", "stuart2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "stuart2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "stuart2021-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "stuart2022-Run_2023-Full.rerun.02.04.csv")))
+strt.nep$site = "STRT"
+strt.nep$PF = "High"
+strt.nep$burn = "Burned"
+strt.nep$year <- format(as.Date(strt.nep$date, format="%Y-%m-%d"),"%Y")
+
+
+
+
+vaul.nep <- rbind( read.csv(here("outputs", "vault2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "vault2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "vault2021-2022-Run_2023-Full.rerun.02.04.csv")))
+vaul.nep$site = "VAUL"
+vaul.nep$PF = "High"
+vaul.nep$burn = "Unburned"
+vaul.nep$year <- format(as.Date(vaul.nep$date, format="%Y-%m-%d"),"%Y")
+
+
+
+#poker 2022 bad
+poke.nep <- rbind( read.csv(here("outputs", "poker2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2021-Run_2023-Full.rerun.02.04.csv")))
+
+poke.nep$site = "POKE"
+poke.nep$PF = "Low"
+poke.nep$burn = "Burned"
+poke.nep$year <- format(as.Date(poke.nep$date, format="%Y-%m-%d"),"%Y")
+
+
+
+frch.nep <- rbind( read.csv(here("outputs", "french2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "french2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "french2021-Run_2023-Full.rerun.02.04.csv")),read.csv(here("outputs", "french2022-Run_2023-Full.rerun.02.04.csv")))
+frch.nep$site = "FRCH"
+frch.nep$PF = "Low"
+frch.nep$burn = "Unburned"
+frch.nep$year <- format(as.Date(frch.nep$date, format="%Y-%m-%d"),"%Y")
+
+
+
+moos.nep <- rbind(
+  read.csv(here("outputs", "moose2019-Run_2023-Full.rerun.02.04.csv")),
+  read.csv(here("outputs", "moose2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs","moose2021-Run_2023-Full.rerun.02.04.csv")),
+  read.csv(here("outputs", "moose2022-Run_2023-Full.rerun.02.04.csv"))
+  )
+moos.nep$site = "MOOS"
+moos.nep$PF = "Low"
+moos.nep$burn = "Burned"
+moos.nep$year <- format(as.Date(moos.nep$date, format="%Y-%m-%d"),"%Y")
+
+
+
+#combine
+metab_all <- rbind(strt.nep, vaul.nep, poke.nep, frch.nep, moos.nep) 
+
+
+metab_all$NEP_mean <- metab_all$GPP_mean+metab_all$ER_mean
+
+
+
+library(ggpattern)
+
+plot2019 <- metab_all %>% filter(year=="2019")%>%  ggplot(aes(x=site, y=NEP_mean)) + facet_wrap(~year, nrow = 2, dir = "v") +geom_hline(yintercept=0,linetype=2)+geom_boxplot(aes(fill=as.factor(PF)),show.legend = FALSE) +
+  facet_grid(. ~ burn , space="free_x", scales="free_x", switch="x") +
+  theme_classic() + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+
+  theme(strip.placement = "outside",
+        strip.background = element_rect(fill=NA, colour="grey50"),
+        panel.spacing.x=unit(0,"cm"))+ theme( strip.background = element_blank(),strip.text.x = element_blank() )+ylim(-25,10)+ggtitle("2019")+theme(plot.title = element_text(hjust = 1))+scale_fill_manual(values = c("#71A6D2", "#A13D2D"))+labs(y = expression(paste("NEP (g ", O[2] ," ", m^-2, d^-1, ")")))
+
+plot2020 <- metab_all %>% filter(year=="2020")%>%  ggplot(aes(x=site, y=NEP_mean)) + facet_wrap(~year, nrow = 2, dir = "v")  +geom_hline(yintercept=0,linetype=2)+geom_boxplot(aes(fill=as.factor(PF)))+
+  facet_grid(. ~ burn , space="free_x", scales="free_x", switch="x") +
+  theme_classic() +
+  theme(strip.placement = "outside",
+        strip.background = element_rect(fill=NA, colour="grey50"),
+        panel.spacing.x=unit(0,"cm"))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ theme( strip.background = element_blank(),strip.text.x = element_blank() )+ylim(-25,10)+ggtitle("2020")+theme(plot.title = element_text(hjust = 1))+scale_fill_manual(values = c("#71A6D2", "#A13D2D"), labels=c('High Permafrost', 'Low Permafrost'))+  theme(legend.title=element_blank())+theme(legend.position = c(0.7, 0.9))+ guides(color=guide_legend(override.aes=list(fill=NA)))
+
+plot2021 <- metab_all %>% filter(year=="2021")%>%  ggplot(aes(x=site, y=NEP_mean)) + facet_wrap(~year, nrow = 2, dir = "v")+geom_hline(yintercept=0,linetype=2) + geom_boxplot(aes(fill=as.factor(PF)), show.legend = FALSE)+
+  facet_grid(. ~ burn , space="free_x", scales="free_x", switch="x") +
+  theme_classic() +
+  theme(strip.placement = "outside",
+        strip.background = element_rect(fill=NA, colour="grey50"),
+        panel.spacing.x=unit(0,"cm"))+ylim(-25,10)+ggtitle("2021")+theme(plot.title = element_text(hjust = 1))+scale_fill_manual(values = c("#71A6D2", "#A13D2D"))+labs(y = expression(paste("NEP (g ", O[2] ," ", m^-2, d^-1, ")")))+theme(axis.title.x=element_blank() )
+
+poke.nep <- rbind( read.csv(here("outputs", "poker2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2021-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2022-Run_2023-Full.rerun.02.04.csv")))
+
+poke.nep$site = "POKE"
+poke.nep$PF = "Low"
+poke.nep$burn = "Burned"
+poke.nep$year <- format(as.Date(poke.nep$date, format="%Y-%m-%d"),"%Y")
+
+poke.nep$NEP_mean <- NA
+
+strt.nep$NEP_mean <- strt.nep$GPP_mean+strt.nep$ER_mean
+vaul.nep$NEP_mean <- vaul.nep$GPP_mean+vaul.nep$ER_mean
+moos.nep$NEP_mean <- moos.nep$GPP_mean+moos.nep$ER_mean
+frch.nep$NEP_mean <- frch.nep$GPP_mean+frch.nep$ER_mean
+
+
+metab_all <- rbind(strt.nep, vaul.nep, poke.nep, frch.nep, moos.nep)
+
+
+plot2022 <- metab_all %>% filter(year=="2022")%>%  ggplot(aes(x=site, y=NEP_mean)) + facet_wrap(~year, nrow = 2, dir = "v") +geom_hline(yintercept=0,linetype=2)+ geom_boxplot(aes(fill=as.factor(PF)), show.legend = FALSE)+
+  facet_grid(. ~ burn , space="free_x", scales="free_x", switch="x") +
+  theme_classic() +
+  theme(strip.placement = "outside",
+        strip.background = element_rect(fill=NA, colour="grey50"),
+        panel.spacing.x=unit(0,"cm"))+ theme(axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank() )+ylim(-25,10)+ggtitle("2022")+theme(plot.title = element_text(hjust = 1))+scale_fill_manual(values = c("#71A6D2", "#A13D2D"))+theme(axis.title.x=element_blank() )
+
+library(patchwork)
+NEP_plot <- plot_layout(plot2019+plot2020+plot2021+plot2022, nrow=2, ncol = 2)
+
+pdf(here('plots',"NEP.plot.pdf"), height = 4.5*1.2, width = 5*1.2)
+plot_layout(plot2019+plot2020+plot2021+plot2022, nrow=2, ncol = 2)
+dev.off()
+
+
+
 
 
 ```
@@ -1013,7 +1265,7 @@ plot_layout(plot2019+plot2020+plot2021+plot2022, nrow=2, ncol = 2)
 
 <!-- labels <- c(light='PAR\n(umol m^-2 s^-1)', discharge= 'm^3/sec') -->
 
-<!-- gpp <- ggplot(data=vaul.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("Vault Creek, 2022")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, max(vaul.metab$GPP_mean)) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) -->
+<!-- gpp <- ggplot(data=vaul.metab, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4")+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^-2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("Vault Creek, 2022")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 20, face = "bold")) +ylim(0, max(vaul.metab$GPP_mean)) + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) -->
 
 
 
@@ -1547,3 +1799,758 @@ light.data.full <- rbind(vaul.light, poke.light, strt.light, moos.light, frch.li
 write.csv(light.data.full, here("outputs","light.data.all.years.csv"))
 
 ```
+
+
+
+
+#Analysis prep
+```{r}
+
+
+# GPP_Poke <- metab_all %>% filter(site =="POKE")
+
+metab_all$year <- as.character (metab_all$year)
+metab_all$burn <- as.character(metab_all$burn)
+metab_all$PF <- as.character(metab_all$PF)
+
+metab_all.2019 <- metab_all %>% filter(year == "2019")
+
+boxplot(metab_all.2019$GPP_mean ~ metab_all.2019$burn + metab_all.2019$PF)
+
+interaction.plot(metab_all.2019$burn, metab_all.2019$PF, metab_all.2019$GPP_mean)
+
+
+
+library(lme4)
+
+#REML , Lmer
+
+test.mod <- lmer(data = metab_all, log(GPP_mean) ~ burn + PF + (1|year))
+
+summary(test.mod)
+
+
+
+
+
+```
+
+
+# ```{r}
+# 
+# Suna.data <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2019/processed_sensor_dat/SUNA.EXO.int.corr.lab_2019.csv")
+# 
+# 
+# 
+# Suna.data$datetimeAK <- as.POSIXct(Suna.data$datetimeAK, tz = "America/Anchorage")
+# 
+# Suna.data$date <- as.Date(Suna.data$datetimeAK)
+# 
+# avg_data.suna <- Suna.data %>% 
+#   group_by(date, Site) %>% 
+#   summarise(across(where(is.numeric), mean, na.rm = TRUE))
+# 
+# #moos 2019
+# 
+# moos.2019.suna <- avg_data.suna %>% select(date,Site, nitrateuM.mn) %>% filter(Site=="MOOS")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# moos.metab.19 <- metab_all %>% filter(format(date, format = "%Y")== "2019" & site == "MOOS")
+# 
+# 
+# metab_all.suna.moos.19 <- full_join(moos.metab.19,moos.2019.suna, by="date")
+# 
+# 
+# 
+# #strt 2019
+# 
+# strt.2019.suna <- avg_data.suna %>% select(date,Site, nitrateuM.mn) %>% filter(Site=="STRT")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# strt.metab.19 <- metab_all %>% filter(format(date, format = "%Y")== "2019" & site == "STRT")
+# 
+# 
+# metab_all.suna.strt.19 <- full_join(strt.metab.19,strt.2019.suna, by="date")
+# 
+# 
+# 
+# 
+# #frch 2019
+# 
+# frch.2019.suna <- avg_data.suna %>% select(date,Site, nitrateuM.mn) %>% filter(Site=="FRCH")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# frch.metab.19 <- metab_all %>% filter(format(date, format = "%Y")== "2019" & site == "FRCH")
+# 
+# 
+# metab_all.suna.frch.19 <- full_join(frch.metab.19,frch.2019.suna, by="date")
+# 
+# 
+# #VAUL 2019
+# 
+# VAUL.2019.suna <- avg_data.suna %>% select(date,Site, nitrateuM.mn) %>% filter(Site=="VAUL")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# VAUL.metab.19 <- metab_all %>% filter(format(date, format = "%Y")== "2019" & site == "VAUL")
+# 
+# 
+# metab_all.suna.VAUL.19 <- full_join(VAUL.metab.19,VAUL.2019.suna, by="date")
+# 
+# 
+# 
+# #POKE 2019
+# 
+# POKE.2019.suna <- avg_data.suna %>% select(date,Site, nitrateuM.mn) %>% filter(Site=="POKE")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# POKE.metab.19 <- metab_all %>% filter(format(date, format = "%Y")== "2019" & site == "POKE")
+# 
+# 
+# metab_all.suna.POKE.19 <- full_join(POKE.metab.19,POKE.2019.suna, by="date")
+# 
+# 
+# 
+# Gpp_no3_moos_19.plot <- metab_all.suna.moos.19 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.mn))+geom_point()+stat_poly_eq()+ggtitle("MOOS 19")
+# 
+# Gpp_no3_strt_19.plot <- metab_all.suna.strt.19 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.mn))+geom_point()+stat_poly_eq()+ggtitle("STRT 19")
+# 
+# 
+# Gpp_no3_frch_19.plot <- metab_all.suna.frch.19 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.mn))+geom_point()+stat_poly_eq()+ggtitle("FRCH 19")
+# 
+# 
+# Gpp_no3_vaul_19.plot <- metab_all.suna.VAUL.19 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.mn))+geom_point()+stat_poly_eq()+ggtitle("VAUL 19")
+# 
+# 
+# Gpp_no3_poke_19.plot <- metab_all.suna.POKE.19 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.mn))+geom_point()+stat_poly_eq()+ggtitle("POKE 19")
+# 
+# 
+# 
+# 
+# 
+# ```
+# 
+# 
+# ```{r}
+# 
+# Suna.data <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2020/processed_sensor_dat/SUNA.EXO.int.corr.lab_2020.csv")
+# 
+# 
+# 
+# Suna.data$datetimeAK <- as.POSIXct(Suna.data$datetimeAK, tz = "America/Anchorage")
+# 
+# Suna.data$date <- as.Date(Suna.data$datetimeAK)
+# 
+# avg_data.suna <- Suna.data %>% 
+#   group_by(date, Site) %>% 
+#   summarise(across(where(is.numeric), mean, na.rm = TRUE))
+# 
+# #moos 2020
+# 
+# moos.2020.suna <- avg_data.suna %>% select(date,Site, nitrateuM.adj.mn) %>% filter(Site=="MOOS")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# moos.metab.20 <- metab_all %>% filter(format(date, format = "%Y")== "2020" & site == "MOOS")
+# 
+# 
+# metab_all.suna.moos.20 <- full_join(moos.metab.20,moos.2020.suna, by="date")
+# 
+# metab_all.suna.moos.20 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.adj.mn))+geom_point()+stat_poly_eq()+ggtitle("MOOS 20")
+# 
+# #strt 2020
+# 
+# strt.2020.suna <- avg_data.suna %>% select(date,Site, nitrateuM.adj.mn) %>% filter(Site=="STRT")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# strt.metab.20 <- metab_all %>% filter(format(date, format = "%Y")== "2020" & site == "STRT")
+# 
+# 
+# metab_all.suna.strt.20 <- full_join(strt.metab.20,strt.2020.suna, by="date")
+# 
+# metab_all.suna.strt.20 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.adj.mn))+geom_point()+stat_poly_eq()+ggtitle("STRT 20")
+# 
+# 
+# 
+# 
+# #frch 2020
+# 
+# frch.2020.suna <- avg_data.suna %>% select(date,Site, nitrateuM.adj.mn) %>% filter(Site=="FRCH")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# frch.metab.20 <- metab_all %>% filter(format(date, format = "%Y")== "2020" & site == "FRCH")
+# 
+# 
+# metab_all.suna.frch.20 <- full_join(frch.metab.20,frch.2020.suna, by="date")
+# 
+# metab_all.suna.frch.20 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.adj.mn))+geom_point()+stat_poly_eq()+ggtitle("FRCH 20")
+# 
+# #VAUL 2020
+# 
+# VAUL.2020.suna <- avg_data.suna %>% select(date,Site, nitrateuM.adj.mn) %>% filter(Site=="VAUL")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# VAUL.metab.20 <- metab_all %>% filter(format(date, format = "%Y")== "2020" & site == "VAUL")
+# 
+# 
+# metab_all.suna.VAUL.20 <- full_join(VAUL.metab.20,VAUL.2020.suna, by="date")
+# 
+# metab_all.suna.VAUL.20 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.adj.mn))+geom_point()+stat_poly_eq()+ggtitle("VAUL 20")
+# 
+# 
+# #POKE 2020
+# 
+# POKE.2020.suna <- avg_data.suna %>% select(date,Site, nitrateuM.adj.mn) %>% filter(Site=="POKE")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# POKE.metab.20 <- metab_all %>% filter(format(date, format = "%Y")== "2020" & site == "POKE")
+# 
+# 
+# metab_all.suna.POKE.20 <- full_join(POKE.metab.20,POKE.2020.suna, by="date")
+# 
+# metab_all.suna.POKE.20 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.adj.mn))+geom_point()+stat_poly_eq()+ggtitle("POKE 20")
+# 
+# 
+# 
+# Gpp_no3_moos_20.plot <- metab_all.suna.moos.20 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.mn))+geom_point()+stat_poly_eq()+ggtitle("MOOS 20")
+# 
+# Gpp_no3_strt_20.plot <- metab_all.suna.strt.20 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.mn))+geom_point()+stat_poly_eq()+ggtitle("STRT 20")
+# 
+# 
+# Gpp_no3_frch_20.plot <- metab_all.suna.frch.20 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.mn))+geom_point()+stat_poly_eq()+ggtitle("FRCH 20")
+# 
+# 
+# Gpp_no3_vaul_20.plot <- metab_all.suna.VAUL.20 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.mn))+geom_point()+stat_poly_eq()+ggtitle("VAUL 20")
+# 
+# 
+# Gpp_no3_poke_20.plot <- metab_all.suna.POKE.20 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.mn))+geom_point()+stat_poly_eq()+ggtitle("POKE 20")
+# 
+# 
+# 
+# 
+# ```
+# 
+# 
+# ```{r}
+# 
+# Suna.data <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2021/processed_sensor_dat/SUNA.EXO.int.corr.lab_2021.csv")
+# 
+# 
+# 
+# Suna.data$datetimeAK <- as.POSIXct(Suna.data$datetimeAK, tz = "America/Anchorage")
+# 
+# Suna.data$date <- as.Date(Suna.data$datetimeAK)
+# 
+# avg_data.suna <- Suna.data %>% 
+#   group_by(date, Site) %>% 
+#   summarise(across(where(is.numeric), mean, na.rm = TRUE))
+# 
+# #moos 2021
+# 
+# moos.2021.suna <- avg_data.suna %>% select(date,Site, nitrateuM.adj.mn) %>% filter(Site=="MOOS")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# moos.metab.21 <- metab_all %>% filter(format(date, format = "%Y")== "2021" & site == "MOOS")
+# 
+# 
+# metab_all.suna.moos.21 <- full_join(moos.metab.21,moos.2021.suna, by="date")
+# 
+# metab_all.suna.moos.21 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.adj.mn))+geom_point()+stat_poly_eq()+ggtitle("MOOS 21")
+# 
+# #strt 2021
+# 
+# strt.2021.suna <- avg_data.suna %>% select(date,Site, nitrateuM.adj.mn) %>% filter(Site=="STRT")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# strt.metab.21 <- metab_all %>% filter(format(date, format = "%Y")== "2021" & site == "STRT")
+# 
+# 
+# metab_all.suna.strt.21 <- full_join(strt.metab.21,strt.2021.suna, by="date")
+# 
+# metab_all.suna.strt.21 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.adj.mn))+geom_point()+stat_poly_eq()+ggtitle("STRT 21")
+# 
+# 
+# 
+# 
+# #frch 2021
+# 
+# frch.2021.suna <- avg_data.suna %>% select(date,Site, nitrateuM.adj.mn) %>% filter(Site=="FRCH")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# frch.metab.21 <- metab_all %>% filter(format(date, format = "%Y")== "2021" & site == "FRCH")
+# 
+# 
+# metab_all.suna.frch.21 <- full_join(frch.metab.21,frch.2021.suna, by="date")
+# 
+# metab_all.suna.frch.21 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.adj.mn))+geom_point()+stat_poly_eq()+ggtitle("FRCH 21")
+# 
+# #VAUL 2021
+# 
+# VAUL.2021.suna <- avg_data.suna %>% select(date,Site, nitrateuM.adj.mn) %>% filter(Site=="VAUL")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# VAUL.metab.21 <- metab_all %>% filter(format(date, format = "%Y")== "2021" & site == "VAUL")
+# 
+# 
+# metab_all.suna.VAUL.21 <- full_join(VAUL.metab.21,VAUL.2021.suna, by="date")
+# 
+# metab_all.suna.VAUL.21 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.adj.mn))+geom_point()+stat_poly_eq()+ggtitle("VAUL 21")
+# 
+# 
+# #POKE 2021
+# 
+# POKE.2021.suna <- avg_data.suna %>% select(date,Site, nitrateuM.adj.mn) %>% filter(Site=="POKE")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# POKE.metab.21 <- metab_all %>% filter(format(date, format = "%Y")== "2021" & site == "POKE")
+# 
+# 
+# metab_all.suna.POKE.21 <- full_join(POKE.metab.21,POKE.2021.suna, by="date")
+# 
+# metab_all.suna.POKE.21 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.adj.mn))+geom_point()+stat_poly_eq()+ggtitle("POKE 21")
+# 
+# 
+# 
+# 
+# Gpp_no3_moos_21.plot <- metab_all.suna.moos.21 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.mn))+geom_point()+stat_poly_eq()+ggtitle("MOOS 21")
+# 
+# Gpp_no3_strt_21.plot <- metab_all.suna.strt.21 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.mn))+geom_point()+stat_poly_eq()+ggtitle("STRT 21")
+# 
+# 
+# Gpp_no3_frch_21.plot <- metab_all.suna.frch.21 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.mn))+geom_point()+stat_poly_eq()+ggtitle("FRCH 21")
+# 
+# 
+# Gpp_no3_vaul_21.plot <- metab_all.suna.VAUL.21 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.mn))+geom_point()+stat_poly_eq()+ggtitle("VAUL 21")
+# 
+# 
+# Gpp_no3_poke_21.plot <- metab_all.suna.POKE.21 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.mn))+geom_point()+stat_poly_eq()+ggtitle("POKE 21")
+# 
+# 
+# ```
+# 
+# 
+# 
+# 
+# ```{r}
+# 
+# Suna.data <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2022/processed_sensor_dat/SUNA.EXO.int.corr.lab_2022.csv")
+# 
+# 
+# 
+# Suna.data$datetimeAK <- as.POSIXct(Suna.data$datetimeAK, tz = "America/Anchorage")
+# 
+# Suna.data$date <- as.Date(Suna.data$datetimeAK)
+# 
+# avg_data.suna <- Suna.data %>% 
+#   group_by(date, Site) %>% 
+#   summarise(across(where(is.numeric), mean, na.rm = TRUE))
+# 
+# #moos 2022
+# 
+# moos.2022.suna <- avg_data.suna %>% select(date,Site, nitrateuM.adj.mn) %>% filter(Site=="MOOS")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# moos.metab.22 <- metab_all %>% filter(format(date, format = "%Y")== "2022" & site == "MOOS")
+# 
+# 
+# metab_all.suna.moos.22 <- full_join(moos.metab.22,moos.2022.suna, by="date")
+# 
+# metab_all.suna.moos.22 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.adj.mn))+geom_point()+stat_poly_eq()+ggtitle("MOOS 22")
+# 
+# #strt 2022
+# 
+# strt.2022.suna <- avg_data.suna %>% select(date,Site, nitrateuM.adj.mn) %>% filter(Site=="STRT")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# strt.metab.22 <- metab_all %>% filter(format(date, format = "%Y")== "2022" & site == "STRT")
+# 
+# 
+# metab_all.suna.strt.22 <- full_join(strt.metab.22,strt.2022.suna, by="date")
+# 
+# metab_all.suna.strt.22 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.adj.mn))+geom_point()+stat_poly_eq()+ggtitle("STRT 22")
+# 
+# 
+# 
+# 
+# #frch 2022
+# 
+# frch.2022.suna <- avg_data.suna %>% select(date,Site, nitrateuM.adj.mn) %>% filter(Site=="FRCH")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# frch.metab.22 <- metab_all %>% filter(format(date, format = "%Y")== "2022" & site == "FRCH")
+# 
+# 
+# metab_all.suna.frch.22 <- full_join(frch.metab.22,frch.2022.suna, by="date")
+# 
+# metab_all.suna.frch.22 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.adj.mn))+geom_point()+stat_poly_eq()+ggtitle("FRCH 22")
+# 
+# #VAUL 2022
+# 
+# VAUL.2022.suna <- avg_data.suna %>% select(date,Site, nitrateuM.adj.mn) %>% filter(Site=="VAUL")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# VAUL.metab.22 <- metab_all %>% filter(format(date, format = "%Y")== "2022" & site == "VAUL")
+# 
+# 
+# metab_all.suna.VAUL.22 <- full_join(VAUL.metab.22,VAUL.2022.suna, by="date")
+# 
+# metab_all.suna.VAUL.22 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.adj.mn))+geom_point()+stat_poly_eq()+ggtitle("VAUL 22")
+# 
+# 
+# 
+# Gpp_no3_moos_22.plot <- metab_all.suna.moos.22 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.adj.mn))+geom_point()+stat_poly_eq()+ggtitle("MOOS 22")
+# 
+# Gpp_no3_strt_22.plot <- metab_all.suna.strt.22 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.adj.mn))+geom_point()+stat_poly_eq()+ggtitle("STRT 22")
+# 
+# 
+# Gpp_no3_frch_22.plot <- metab_all.suna.frch.22 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.adj.mn))+geom_point()+stat_poly_eq()+ggtitle("FRCH 22")
+# 
+# 
+# Gpp_no3_vaul_22.plot <- metab_all.suna.VAUL.22 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.adj.mn))+geom_point()+stat_poly_eq()+ggtitle("VAUL 22")
+# 
+# 
+# Gpp_no3_poke_22.plot <- metab_all.suna.POKE.22 %>% ggplot(aes(x=GPP_mean, y=nitrateuM.adj.mn))+geom_point()+stat_poly_eq()+ggtitle("POKE 22")
+# 
+# 
+# ```
+# 
+# 
+# 
+# ```{r}
+# 
+# 
+# ggarrange(Gpp_no3_moos_19.plot ,Gpp_no3_strt_19.plot, Gpp_no3_frch_19.plot, Gpp_no3_vaul_19.plot, Gpp_no3_poke_19.plot, Gpp_no3_moos_20.plot, Gpp_no3_strt_20.plot, Gpp_no3_frch_20.plot, Gpp_no3_vaul_20.plot, Gpp_no3_poke_20.plot,  Gpp_no3_moos_21.plot, Gpp_no3_strt_21.plot,Gpp_no3_frch_21.plot,Gpp_no3_vaul_21.plot, Gpp_no3_poke_21.plot, Gpp_no3_moos_22.plot,Gpp_no3_strt_22.plot,Gpp_no3_frch_22.plot,Gpp_no3_vaul_22.plot)
+# 
+# 
+# 
+# ```
+# 
+# 
+# 
+# 
+# ```{r}
+# 
+# EXO.data <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2019/processed_sensor_dat/SUNA.EXO.int.corr.lab_2019.csv")
+# 
+# 
+# 
+# EXO.data$datetimeAK <- as.POSIXct(EXO.data$datetimeAK, tz = "America/Anchorage")
+# 
+# EXO.data$date <- as.Date(EXO.data$datetimeAK)
+# 
+# avg_data.EXO <- EXO.data %>% 
+#   group_by(date, Site) %>% 
+#   summarise(across(where(is.numeric), mean, na.rm = TRUE))
+# 
+# #moos 2019
+# 
+# moos.2019.EXO <- avg_data.EXO %>% select(date,Site, fDOM.QSU.mn) %>% filter(Site=="MOOS")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# moos.metab.19 <- metab_all %>% filter(format(date, format = "%Y")== "2019" & site == "MOOS")
+# 
+# 
+# metab_all.EXO.moos.19 <- full_join(moos.metab.19,moos.2019.EXO, by="date")
+# 
+# metab_all.EXO.moos.19 %>% ggplot(aes(x=ER_mean, y=fDOM.QSU.mn))+geom_point()+stat_poly_eq()+ggtitle("MOOS 19")
+# 
+# #strt 2019
+# 
+# strt.2019.EXO <- avg_data.EXO %>% select(date,Site, fDOM.QSU.mn) %>% filter(Site=="STRT")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# strt.metab.19 <- metab_all %>% filter(format(date, format = "%Y")== "2019" & site == "STRT")
+# 
+# 
+# metab_all.EXO.strt.19 <- full_join(strt.metab.19,strt.2019.EXO, by="date")
+# 
+# metab_all.EXO.strt.19 %>% ggplot(aes(x=ER_mean, y=fDOM.QSU.mn))+geom_point()+stat_poly_eq()+ggtitle("STRT 19")
+# 
+# 
+# 
+# 
+# #frch 2019
+# 
+# frch.2019.EXO <- avg_data.EXO %>% select(date,Site, fDOM.QSU.mn) %>% filter(Site=="FRCH")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# frch.metab.19 <- metab_all %>% filter(format(date, format = "%Y")== "2019" & site == "FRCH")
+# 
+# 
+# metab_all.EXO.frch.19 <- full_join(frch.metab.19,frch.2019.EXO, by="date")
+# 
+# metab_all.EXO.frch.19 %>% ggplot(aes(x=ER_mean, y=fDOM.QSU.mn))+geom_point()+stat_poly_eq()+ggtitle("FRCH 19")
+# 
+# #VAUL 2019
+# 
+# VAUL.2019.EXO <- avg_data.EXO %>% select(date,Site, fDOM.QSU.mn) %>% filter(Site=="VAUL")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# VAUL.metab.19 <- metab_all %>% filter(format(date, format = "%Y")== "2019" & site == "VAUL")
+# 
+# 
+# metab_all.EXO.VAUL.19 <- full_join(VAUL.metab.19,VAUL.2019.EXO, by="date")
+# 
+# metab_all.EXO.VAUL.19 %>% ggplot(aes(x=ER_mean, y=fDOM.QSU.mn))+geom_point()+stat_poly_eq()+ggtitle("VAUL 19")
+# 
+# 
+# #POKE 2019
+# 
+# POKE.2019.EXO <- avg_data.EXO %>% select(date,Site, fDOM.QSU.mn) %>% filter(Site=="POKE")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# POKE.metab.19 <- metab_all %>% filter(format(date, format = "%Y")== "2019" & site == "POKE")
+# 
+# 
+# metab_all.EXO.POKE.19 <- full_join(POKE.metab.19,POKE.2019.EXO, by="date")
+# 
+# metab_all.EXO.POKE.19 %>% ggplot(aes(x=ER_mean, y=fDOM.QSU.mn))+geom_point()+stat_poly_eq()+ggtitle("POKE 19")
+# 
+# 
+# 
+# 
+# 
+# ```
+# 
+# 
+# ```{r}
+# 
+# EXO.data <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2020/processed_sensor_dat/SUNA.EXO.int.corr.lab_2020.csv")
+# 
+# 
+# 
+# EXO.data$datetimeAK <- as.POSIXct(EXO.data$datetimeAK, tz = "America/Anchorage")
+# 
+# EXO.data$date <- as.Date(EXO.data$datetimeAK)
+# 
+# avg_data.EXO <- EXO.data %>% 
+#   group_by(date, Site) %>% 
+#   summarise(across(where(is.numeric), mean, na.rm = TRUE))
+# 
+# #moos 2020
+# 
+# moos.2020.EXO <- avg_data.EXO %>% select(date,Site, fDOM.QSU.mn) %>% filter(Site=="MOOS")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# moos.metab.20 <- metab_all %>% filter(format(date, format = "%Y")== "2020" & site == "MOOS")
+# 
+# 
+# metab_all.EXO.moos.20 <- full_join(moos.metab.20,moos.2020.EXO, by="date")
+# 
+# metab_all.EXO.moos.20 %>% ggplot(aes(x=ER_mean, y=fDOM.QSU.mn))+geom_point()+stat_poly_eq()+ggtitle("MOOS 20")
+# 
+# #strt 2020
+# 
+# strt.2020.EXO <- avg_data.EXO %>% select(date,Site, fDOM.QSU.mn) %>% filter(Site=="STRT")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# strt.metab.20 <- metab_all %>% filter(format(date, format = "%Y")== "2020" & site == "STRT")
+# 
+# 
+# metab_all.EXO.strt.20 <- full_join(strt.metab.20,strt.2020.EXO, by="date")
+# 
+# metab_all.EXO.strt.20 %>% ggplot(aes(x=ER_mean, y=fDOM.QSU.mn))+geom_point()+stat_poly_eq()+ggtitle("STRT 20")
+# 
+# 
+# 
+# 
+# #frch 2020
+# 
+# frch.2020.EXO <- avg_data.EXO %>% select(date,Site, fDOM.QSU.mn) %>% filter(Site=="FRCH")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# frch.metab.20 <- metab_all %>% filter(format(date, format = "%Y")== "2020" & site == "FRCH")
+# 
+# 
+# metab_all.EXO.frch.20 <- full_join(frch.metab.20,frch.2020.EXO, by="date")
+# 
+# metab_all.EXO.frch.20 %>% ggplot(aes(x=ER_mean, y=fDOM.QSU.mn))+geom_point()+stat_poly_eq()+ggtitle("FRCH 20")
+# 
+# #VAUL 2020
+# 
+# VAUL.2020.EXO <- avg_data.EXO %>% select(date,Site, fDOM.QSU.mn) %>% filter(Site=="VAUL")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# VAUL.metab.20 <- metab_all %>% filter(format(date, format = "%Y")== "2020" & site == "VAUL")
+# 
+# 
+# metab_all.EXO.VAUL.20 <- full_join(VAUL.metab.20,VAUL.2020.EXO, by="date")
+# 
+# metab_all.EXO.VAUL.20 %>% ggplot(aes(x=ER_mean, y=fDOM.QSU.mn))+geom_point()+stat_poly_eq()+ggtitle("VAUL 20")
+# 
+# 
+# #POKE 2020
+# 
+# POKE.2020.EXO <- avg_data.EXO %>% select(date,Site, fDOM.QSU.mn) %>% filter(Site=="POKE")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# POKE.metab.20 <- metab_all %>% filter(format(date, format = "%Y")== "2020" & site == "POKE")
+# 
+# 
+# metab_all.EXO.POKE.20 <- full_join(POKE.metab.20,POKE.2020.EXO, by="date")
+# 
+# metab_all.EXO.POKE.20 %>% ggplot(aes(x=ER_mean, y=fDOM.QSU.mn))+geom_point()+stat_poly_eq()+ggtitle("POKE 20")
+# 
+# 
+# 
+# 
+# 
+# ```
+# 
+# 
+# ```{r}
+# 
+# EXO.data <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2021/processed_sensor_dat/SUNA.EXO.int.corr.lab_2021.csv")
+# 
+# 
+# 
+# EXO.data$datetimeAK <- as.POSIXct(EXO.data$datetimeAK, tz = "America/Anchorage")
+# 
+# EXO.data$date <- as.Date(EXO.data$datetimeAK)
+# 
+# avg_data.EXO <- EXO.data %>% 
+#   group_by(date, Site) %>% 
+#   summarise(across(where(is.numeric), mean, na.rm = TRUE))
+# 
+# #moos 2021
+# 
+# moos.2021.EXO <- avg_data.EXO %>% select(date,Site, fDOM.QSU.mn) %>% filter(Site=="MOOS")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# moos.metab.21 <- metab_all %>% filter(format(date, format = "%Y")== "2021" & site == "MOOS")
+# 
+# 
+# metab_all.EXO.moos.21 <- full_join(moos.metab.21,moos.2021.EXO, by="date")
+# 
+# metab_all.EXO.moos.21 %>% ggplot(aes(x=ER_mean, y=fDOM.QSU.mn))+geom_point()+stat_poly_eq()+ggtitle("MOOS 21")
+# 
+# #strt 2021
+# 
+# strt.2021.EXO <- avg_data.EXO %>% select(date,Site, fDOM.QSU.mn) %>% filter(Site=="STRT")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# strt.metab.21 <- metab_all %>% filter(format(date, format = "%Y")== "2021" & site == "STRT")
+# 
+# 
+# metab_all.EXO.strt.21 <- full_join(strt.metab.21,strt.2021.EXO, by="date")
+# 
+# metab_all.EXO.strt.21 %>% ggplot(aes(x=ER_mean, y=fDOM.QSU.mn))+geom_point()+stat_poly_eq()+ggtitle("STRT 21")
+# 
+# 
+# 
+# 
+# #frch 2021
+# 
+# frch.2021.EXO <- avg_data.EXO %>% select(date,Site, fDOM.QSU.mn) %>% filter(Site=="FRCH")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# frch.metab.21 <- metab_all %>% filter(format(date, format = "%Y")== "2021" & site == "FRCH")
+# 
+# 
+# metab_all.EXO.frch.21 <- full_join(frch.metab.21,frch.2021.EXO, by="date")
+# 
+# metab_all.EXO.frch.21 %>% ggplot(aes(x=ER_mean, y=fDOM.QSU.mn))+geom_point()+stat_poly_eq()+ggtitle("FRCH 21")
+# 
+# #VAUL 2021
+# 
+# VAUL.2021.EXO <- avg_data.EXO %>% select(date,Site, fDOM.QSU.mn) %>% filter(Site=="VAUL")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# VAUL.metab.21 <- metab_all %>% filter(format(date, format = "%Y")== "2021" & site == "VAUL")
+# 
+# 
+# metab_all.EXO.VAUL.21 <- full_join(VAUL.metab.21,VAUL.2021.EXO, by="date")
+# 
+# metab_all.EXO.VAUL.21 %>% ggplot(aes(x=ER_mean, y=fDOM.QSU.mn))+geom_point()+stat_poly_eq()+ggtitle("VAUL 21")
+# 
+# 
+# #POKE 2021
+# 
+# POKE.2021.EXO <- avg_data.EXO %>% select(date,Site, fDOM.QSU.mn) %>% filter(Site=="POKE")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# POKE.metab.21 <- metab_all %>% filter(format(date, format = "%Y")== "2021" & site == "POKE")
+# 
+# 
+# metab_all.EXO.POKE.21 <- full_join(POKE.metab.21,POKE.2021.EXO, by="date")
+# 
+# metab_all.EXO.POKE.21 %>% ggplot(aes(x=ER_mean, y=fDOM.QSU.mn))+geom_point()+stat_poly_eq()+ggtitle("POKE 21")
+# 
+# 
+# 
+# 
+# 
+# ```
+# 
+# 
+# 
+# 
+# ```{r}
+# 
+# EXO.data <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2022/processed_sensor_dat/SUNA.EXO.int.corr.lab_2022.csv")
+# 
+# 
+# 
+# EXO.data$datetimeAK <- as.POSIXct(EXO.data$datetimeAK, tz = "America/Anchorage")
+# 
+# EXO.data$date <- as.Date(EXO.data$datetimeAK)
+# 
+# avg_data.EXO <- EXO.data %>% 
+#   group_by(date, Site) %>% 
+#   summarise(across(where(is.numeric), mean, na.rm = TRUE))
+# 
+# #moos 2022
+# 
+# moos.2022.EXO <- avg_data.EXO %>% select(date,Site, fDOM.QSU.mn) %>% filter(Site=="MOOS")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# moos.metab.22 <- metab_all %>% filter(format(date, format = "%Y")== "2022" & site == "MOOS")
+# 
+# 
+# metab_all.EXO.moos.22 <- full_join(moos.metab.22,moos.2022.EXO, by="date")
+# 
+# metab_all.EXO.moos.22 %>% ggplot(aes(x=ER_mean, y=fDOM.QSU.mn))+geom_point()+stat_poly_eq()+ggtitle("MOOS 22")
+# 
+# #strt 2022
+# 
+# strt.2022.EXO <- avg_data.EXO %>% select(date,Site, fDOM.QSU.mn) %>% filter(Site=="STRT")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# strt.metab.22 <- metab_all %>% filter(format(date, format = "%Y")== "2022" & site == "STRT")
+# 
+# 
+# metab_all.EXO.strt.22 <- full_join(strt.metab.22,strt.2022.EXO, by="date")
+# 
+# metab_all.EXO.strt.22 %>% ggplot(aes(x=ER_mean, y=fDOM.QSU.mn))+geom_point()+stat_poly_eq()+ggtitle("STRT 22")
+# 
+# 
+# 
+# 
+# #frch 2022
+# 
+# frch.2022.EXO <- avg_data.EXO %>% select(date,Site, fDOM.QSU.mn) %>% filter(Site=="FRCH")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# frch.metab.22 <- metab_all %>% filter(format(date, format = "%Y")== "2022" & site == "FRCH")
+# 
+# 
+# metab_all.EXO.frch.22 <- full_join(frch.metab.22,frch.2022.EXO, by="date")
+# 
+# metab_all.EXO.frch.22 %>% ggplot(aes(x=ER_mean, y=fDOM.QSU.mn))+geom_point()+stat_poly_eq()+ggtitle("FRCH 22")
+# 
+# #VAUL 2022
+# 
+# VAUL.2022.EXO <- avg_data.EXO %>% select(date,Site, fDOM.QSU.mn) %>% filter(Site=="VAUL")
+# 
+# metab_all$date <- as.Date(metab_all$date)
+# VAUL.metab.22 <- metab_all %>% filter(format(date, format = "%Y")== "2022" & site == "VAUL")
+# 
+# 
+# metab_all.EXO.VAUL.22 <- full_join(VAUL.metab.22,VAUL.2022.EXO, by="date")
+# 
+# metab_all.EXO.VAUL.22 %>% ggplot(aes(x=ER_mean, y=fDOM.QSU.mn))+geom_point()+stat_poly_eq()+ggtitle("VAUL 22")
+# 
+# 
+# 
+# 
+# ```
+
+

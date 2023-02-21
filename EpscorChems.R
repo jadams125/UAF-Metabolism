@@ -49,7 +49,7 @@ Samples_IN_EPSCoR <- Samples_IN %>% filter(Project == "EPSCoR") %>% rename(Sampl
 
 Samples_IN_EPSCoR$SampleID <- as.character(Samples_IN_EPSCoR$SampleID)
 
-TDP_Data_mean <- full_join(Samples_IN_EPSCoR,TDP_Data_mean, by = "SampleID")
+TDP_Data_mean <- full_join(Samples_IN_EPSCoR,TDP_ordered_mean, by = "SampleID")
 
 
 
