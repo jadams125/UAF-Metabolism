@@ -480,16 +480,18 @@ CrawData.mm$discharge <- na_kalman(CrawData.mm$discharge)
 
 
 
+data.craw.mm.all <- CrawData.mm
 
+write.csv(data.craw.mm.all, here("outputs","clean.craw.2022.csv"))
 
 ```
 
 
 ```{r}
 
-data.craw.mm.all <- CrawData.mm
 
-write.csv(data.craw.mm.all, here("outputs","clean.craw.2022.csv"))
+data.craw.mm.all <- read.csv(here("outputs","clean.craw.2022.csv"))
+
 
 #change Discharge to m3/s
 data.craw.mm.all$discharge <- data.craw.mm.all$discharge / 1000
@@ -498,12 +500,16 @@ data.craw.mm.all$discharge <- data.craw.mm.all$discharge / 1000
 data.craw.mm.all$depth <- data.craw.mm.all$depth / 100
 
 
+q.min<-log(min(data.craw.mm.all$discharge))
+q.max<-log(max(data.craw.mm.all$discharge))
+nodes<-c(seq(q.min, q.max, by=(q.max-q.min)/5))
+
 
 bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
 
 bayes_specs <- specs(bayes_name,
-                     burnin_steps=5000, saved_steps=2000, n_cores=8,
-                     GPP_daily_lower = 0, ER_daily_upper = 0,
+                     burnin_steps=2000, saved_steps=1000, n_cores=8,
+                     GPP_daily_lower = 0, ER_daily_upper = 0, K600_lnQ_nodes_centers = nodes
                      
 )
 
@@ -514,22 +520,21 @@ data.craw.mm.all$solar.time <- as.POSIXct(data.craw.mm.all$solar.time, tz = "UTC
 data.craw.mm.all <- data.craw.mm.all %>% ungroup()
 
 
-data.craw.mm.all <- data.craw.mm.all %>% group_by(solar.time) %>% mutate_each(funs(mean), -(1:5)) %>% distinct
-
-
 
 data.craw.mm.all <- data.craw.mm.all %>% select(solar.time, DO.obs, DO.sat, light, discharge, depth, temp.water)
+
+data.craw.mm.all <- data.craw.mm.all %>% group_by(solar.time) %>% mutate_each(funs(mean), -(1:5)) %>% distinct
 
 startTime <- as.POSIXct(Sys.time())
 mm.test.craw <- metab(bayes_specs, data=data.craw.mm.all)
 endTime <- as.POSIXct(Sys.time())
 # 
 difftime(endTime, startTime)
-save(mm.test.craw, file = here("Outputs", "crawford2019-Run_2023-Full.rerun.02.04.RData"))
+save(mm.test.craw, file = here("Outputs", "crawford2019-Run_2023-FC.02.22.RData"))
 # 
 fit.craw <- get_fit(mm.test.craw)
 fit.daily <- fit.craw$daily
-write.csv(fit.daily, here("outputs", "crawford2019-Run_2023-Full.rerun.02.04.csv"))
+write.csv(fit.daily, here("outputs", "crawford2019-Run_2023-FC.02.22.csv"))
 
 model_data <- get_data(mm.test.craw)
 
