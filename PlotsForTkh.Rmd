@@ -936,6 +936,7 @@ frch.gpp$year <- format(as.Date(frch.gpp$date, format="%Y-%m-%d"),"%Y")
 
 
 
+
 moos.gpp <- rbind(
   read.csv(here("outputs", "moose2019-Run_2023-Full.rerun.02.04.csv")),
   read.csv(here("outputs", "moose2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs","moose2021-Run_2023-Full.rerun.02.04.csv")),
@@ -948,8 +949,45 @@ moos.gpp$year <- format(as.Date(moos.gpp$date, format="%Y-%m-%d"),"%Y")
 
 
 
+craw.gpp <- read.csv(here("outputs", "crawford2019-Run_2023-FC.02.22.csv"))
+
+
+
+ts_craw <- data.frame(date = as.character(as.POSIXct(seq(ymd("2019-04-15"),ymd(max(craw.gpp$date)), by = '1 days'))))
+craw.gpp.ts <- full_join(craw.gpp, ts_craw, by = "date")
+craw.gpp.ts$site = "CRAW"
+craw.gpp.ts$PF = "High"
+craw.gpp.ts$burn = "Burned"
+craw.gpp.ts$year <- format(as.Date(craw.gpp.ts$date, format="%Y-%m-%d"),"%Y")
+
+
+
+mast.gpp <- read.csv(here("outputs", "mastodon2019-Run_2023-FC-rerun.02.02.csv"))
+
+
+ts_mast <- data.frame(date = as.character(as.POSIXct(seq(ymd("2019-04-15"),ymd(max(mast.gpp$date)), by = '1 days'))))
+mast.gpp.ts <- full_join(mast.gpp, ts_mast, by = "date")
+mast.gpp.ts$site = "MAST"
+mast.gpp.ts$PF = "High"
+mast.gpp.ts$burn = "Burned"
+mast.gpp.ts$year <- format(as.Date(mast.gpp.ts$date, format="%Y-%m-%d"),"%Y")
+
+
+
+
+shov.gpp <- read.csv(here("outputs", "shovel2019-Run_2023-FC.02.12.csv"))
+
+ts_shov <- data.frame(date = as.character(as.POSIXct(seq(ymd("2019-04-15"),ymd(max(shov.gpp$date)), by = '1 days'))))
+shov.gpp.ts <- full_join(shov.gpp, ts_shov, by = "date")
+shov.gpp.ts$site = "SHOV"
+shov.gpp.ts$PF = "High"
+shov.gpp.ts$burn = "Burned"
+shov.gpp.ts$year <- format(as.Date(shov.gpp.ts$date, format="%Y-%m-%d"),"%Y")
+
+
+
 #combine
-metab_all <- rbind(strt.gpp, vaul.gpp, poke.gpp, frch.gpp, moos.gpp) 
+metab_all <- rbind(strt.gpp, vaul.gpp, poke.gpp, frch.gpp, moos.gpp,craw.gpp.ts,mast.gpp.ts,shov.gpp.ts) 
 metab_all$DOY <- yday(as.POSIXct(metab_all$date))
 
 #highest minimum for all years 
@@ -1001,7 +1039,7 @@ poke.gpp$year <- format(as.Date(poke.gpp$date, format="%Y-%m-%d"),"%Y")
 
 poke.gpp$GPP_mean <- NA
 
-metab_all <- rbind(strt.gpp, vaul.gpp, poke.gpp, frch.gpp, moos.gpp)
+metab_all <- rbind(strt.gpp, vaul.gpp, poke.gpp, frch.gpp, moos.gpp,craw.gpp.ts,mast.gpp.ts,shov.gpp.ts) 
 
 write.csv(metab_all, here("outputs","metab.all.csv"))
 
@@ -1027,11 +1065,11 @@ library("RColorBrewer")
 library(patchwork)
 plot_layout(plot2019+plot2020+plot2021+plot2022, nrow=2, ncol = 2)
 
-pdf(here('plots',"GPP.plot.pdf"), height = 4.5*1.2, width = 5*1.2)
+pdf(here('plots',"GPP.plot.pdf"), height = 8*1.2, width = 8*1.2)
 plot_layout(plot2019+plot2020+plot2021+plot2022, nrow=2, ncol = 2)
 dev.off()
 
-pdf(("C:/Users/jacob/OneDrive - University of Alaska/GitHub/MetabolismStorage/Plots/GPP_Boxplots/GPP.plot.pdf"), height = 4.5*1.2, width = 5*1.2)
+pdf(("C:/Users/jacob/OneDrive - University of Alaska/GitHub/MetabolismStorage/Plots/GPP_Boxplots/GPP.plot.pdf"), height = 8*1.2, width = 8*1.2)
 plot_layout(plot2019+plot2020+plot2021+plot2022, nrow=2, ncol = 2)
 dev.off()
 
@@ -1089,10 +1127,45 @@ moos.er$burn = "Burned"
 moos.er$year <- format(as.Date(moos.er$date, format="%Y-%m-%d"),"%Y")
 
 
+craw.er <- read.csv(here("outputs", "crawford2019-Run_2023-FC.02.22.csv"))
+
+
+
+ts_craw <- data.frame(date = as.character(as.POSIXct(seq(ymd("2019-04-15"),ymd(max(craw.er$date)), by = '1 days'))))
+craw.er.ts <- full_join(craw.er, ts_craw, by = "date")
+craw.er.ts$site = "CRAW"
+craw.er.ts$PF = "High"
+craw.er.ts$burn = "Burned"
+craw.er.ts$year <- format(as.Date(craw.er.ts$date, format="%Y-%m-%d"),"%Y")
+
+
+
+mast.er <- read.csv(here("outputs", "mastodon2019-Run_2023-FC-rerun.02.02.csv"))
+
+
+ts_mast <- data.frame(date = as.character(as.POSIXct(seq(ymd("2019-04-15"),ymd(max(mast.er$date)), by = '1 days'))))
+mast.er.ts <- full_join(mast.er, ts_mast, by = "date")
+mast.er.ts$site = "MAST"
+mast.er.ts$PF = "High"
+mast.er.ts$burn = "Burned"
+mast.er.ts$year <- format(as.Date(mast.er.ts$date, format="%Y-%m-%d"),"%Y")
+
+
+
+
+shov.er <- read.csv(here("outputs", "shovel2019-Run_2023-FC.02.12.csv"))
+
+ts_shov <- data.frame(date = as.character(as.POSIXct(seq(ymd("2019-04-15"),ymd(max(shov.er$date)), by = '1 days'))))
+shov.er.ts <- full_join(shov.er, ts_shov, by = "date")
+shov.er.ts$site = "SHOV"
+shov.er.ts$PF = "High"
+shov.er.ts$burn = "Burned"
+shov.er.ts$year <- format(as.Date(shov.er.ts$date, format="%Y-%m-%d"),"%Y")
+
+
 
 #combine
-metab_all <- rbind(strt.er, vaul.er, poke.er, frch.er, moos.er) 
-
+metab_all <- rbind(strt.er, vaul.er, poke.er, frch.er, moos.er,craw.er.ts,mast.er.ts,shov.er.ts) 
 metab_all$DOY <- yday(as.POSIXct(metab_all$date))
 
 #highest minimum for all years 
@@ -1102,6 +1175,15 @@ metab_all.2021 <-metab_all %>% filter(year =="2021") %>% filter(DOY>= "163" & DO
 metab_all.2022 <-metab_all %>% filter(year =="2022") %>% filter(DOY>= "164" & DOY<="271")
 
 metab_all_stw <- rbind(metab_all.2019, metab_all.2020, metab_all.2021, metab_all.2022)
+
+
+
+
+metab.frch2 <- metab_all_stw %>% filter(site == "FRCH")
+metab.moos2 <- metab_all_stw %>% filter(site == "MOOS")
+metab.poke2 <- metab_all_stw %>% filter(site == "POKE")
+metab.vaul2 <- metab_all_stw %>% filter(site == "VAUL")
+metab.strt2 <- metab_all_stw %>% filter(site == "STRT")
 
 
 
@@ -1139,7 +1221,7 @@ poke.er$year <- format(as.Date(poke.er$date, format="%Y-%m-%d"),"%Y")
 poke.er$ER_mean <- NA
 
 #combine
-metab_all <- rbind(strt.er, vaul.er, poke.er, frch.er, moos.er) 
+metab_all <- rbind(strt.er, vaul.er, poke.er, frch.er, moos.er,craw.er.ts,mast.er.ts,shov.er.ts) 
 
 metab_all$DOY <- yday(as.POSIXct(metab_all$date))
 
@@ -1164,11 +1246,11 @@ library(patchwork)
 plot_layout(plot2019+plot2020+plot2021+plot2022, nrow=2, ncol = 2)
 
 
-pdf(here('plots',"ER.plot.pdf"), height = 4.5*1.2, width = 5*1.2)
+pdf(here('plots',"ER.plot.pdf"), height = 8*1.2, width = 8*1.2)
 plot_layout(plot2019+plot2020+plot2021+plot2022, nrow=2, ncol = 2)
 dev.off()
 
-pdf(("C:/Users/jacob/OneDrive - University of Alaska/GitHub/MetabolismStorage/Plots/ER_Boxplots/ER.plot.pdf"), height = 4.5*1.2, width = 5*1.2)
+pdf(("C:/Users/jacob/OneDrive - University of Alaska/GitHub/MetabolismStorage/Plots/ER_Boxplots/ER.plot.pdf"), height = 8*1.2, width = 8*1.2)
 plot_layout(plot2019+plot2020+plot2021+plot2022, nrow=2, ncol = 2)
 dev.off()
 
@@ -1224,8 +1306,45 @@ moos.nep$year <- format(as.Date(moos.nep$date, format="%Y-%m-%d"),"%Y")
 
 
 
+craw.nep <- read.csv(here("outputs", "crawford2019-Run_2023-FC.02.22.csv"))
+
+
+
+ts_craw <- data.frame(date = as.character(as.POSIXct(seq(ymd("2019-04-15"),ymd(max(craw.nep$date)), by = '1 days'))))
+craw.nep.ts <- full_join(craw.nep, ts_craw, by = "date")
+craw.nep.ts$site = "CRAW"
+craw.nep.ts$PF = "High"
+craw.nep.ts$burn = "Burned"
+craw.nep.ts$year <- format(as.Date(craw.nep.ts$date, format="%Y-%m-%d"),"%Y")
+
+
+
+mast.nep <- read.csv(here("outputs", "mastodon2019-Run_2023-FC-rerun.02.02.csv"))
+
+
+ts_mast <- data.frame(date = as.character(as.POSIXct(seq(ymd("2019-04-15"),ymd(max(mast.nep$date)), by = '1 days'))))
+mast.nep.ts <- full_join(mast.nep, ts_mast, by = "date")
+mast.nep.ts$site = "MAST"
+mast.nep.ts$PF = "High"
+mast.nep.ts$burn = "Burned"
+mast.nep.ts$year <- format(as.Date(mast.nep.ts$date, format="%Y-%m-%d"),"%Y")
+
+
+
+
+shov.nep <- read.csv(here("outputs", "shovel2019-Run_2023-FC.02.12.csv"))
+
+ts_shov <- data.frame(date = as.character(as.POSIXct(seq(ymd("2019-04-15"),ymd(max(shov.nep$date)), by = '1 days'))))
+shov.nep.ts <- full_join(shov.nep, ts_shov, by = "date")
+shov.nep.ts$site = "SHOV"
+shov.nep.ts$PF = "High"
+shov.nep.ts$burn = "Burned"
+shov.nep.ts$year <- format(as.Date(shov.nep.ts$date, format="%Y-%m-%d"),"%Y")
+
+
+
 #combine
-metab_all <- rbind(strt.nep, vaul.nep, poke.nep, frch.nep, moos.nep) 
+metab_all <- rbind(strt.nep, vaul.nep, poke.nep, frch.nep, moos.nep,craw.nep.ts,mast.nep.ts,shov.nep.ts) 
 
 
 metab_all$NEP_mean <- metab_all$GPP_mean+metab_all$ER_mean
@@ -1277,9 +1396,12 @@ strt.nep$NEP_mean <- strt.nep$GPP_mean+strt.nep$ER_mean
 vaul.nep$NEP_mean <- vaul.nep$GPP_mean+vaul.nep$ER_mean
 moos.nep$NEP_mean <- moos.nep$GPP_mean+moos.nep$ER_mean
 frch.nep$NEP_mean <- frch.nep$GPP_mean+frch.nep$ER_mean
+craw.nep.ts$NEP_mean <- craw.nep.ts$GPP_mean+craw.nep.ts$ER_mean
+mast.nep.ts$NEP_mean <- mast.nep.ts$GPP_mean+mast.nep.ts$ER_mean
+shov.nep.ts$NEP_mean <- shov.nep.ts$GPP_mean+shov.nep.ts$ER_mean
 
 
-metab_all <- rbind(strt.nep, vaul.nep, poke.nep, frch.nep, moos.nep)
+metab_all <- rbind(strt.nep, vaul.nep, poke.nep, frch.nep, moos.nep,craw.nep.ts,mast.nep.ts,shov.nep.ts) 
 
 
 metab_all$DOY <- yday(as.POSIXct(metab_all$date))
@@ -1303,11 +1425,11 @@ plot2022 <- metab_all_stw %>% filter(year=="2022")%>%  ggplot(aes(x=site, y=NEP_
 library(patchwork)
 NEP_plot <- plot_layout(plot2019+plot2020+plot2021+plot2022, nrow=2, ncol = 2)
 
-pdf(here('plots',"NEP.plot.pdf"), height = 4.5*1.2, width = 5*1.2)
+pdf(here('plots',"NEP.plot.pdf"), height = 8*1.2, width = 8*1.2)
 plot_layout(plot2019+plot2020+plot2021+plot2022, nrow=2, ncol = 2)
 dev.off()
 
-pdf(("C:/Users/jacob/OneDrive - University of Alaska/GitHub/MetabolismStorage/Plots/NEP_Boxplots/NEP.plot.pdf"), height = 4.5*1.2, width = 5*1.2)
+pdf(("C:/Users/jacob/OneDrive - University of Alaska/GitHub/MetabolismStorage/Plots/NEP_Boxplots/NEP.plot.pdf"), height = 8*1.2, width = 8*1.2)
 plot_layout(plot2019+plot2020+plot2021+plot2022, nrow=2, ncol = 2)
 dev.off()
 

@@ -87,9 +87,9 @@ eielson.atmo.2022$sea_level_pressure_kpa <- eielson.atmo.2022$sea_level_pressure
 
 NEON air pressure data
 ```{r}
-#NEON_air <-loadByProduct(dpID = "DP1.00004.001", site=c("BONA"),startdate="2022-05", enddate="2022-11")
-#NEON_bp <- NEON_air$BP_1min %>% filter(staPresFinalQF != 1)
-#write.csv(NEON_bp, "NEON_bp_2022.csv")
+# NEON_air <-loadByProduct(dpID = "DP1.00004.001", site=c("BONA"),startdate="2022-05", enddate="2022-11")
+# NEON_bp <- NEON_air$BP_1min %>% filter(staPresFinalQF != 1)
+# write.csv(NEON_bp, "NEON_bp_2022.csv")
 
 NEON_url <- "https://docs.google.com/spreadsheets/d/e/2PACX-1vRxjgfFQQidmFmjWZX1_7wo3g1tbrpyImxGz3jqGczte0wGOdIi8265-2Jbj2qXn7e9N1ymti3rQEnU/pub?output=csv"
 NEON_bp <- read.csv(url(NEON_url))
