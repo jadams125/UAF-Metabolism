@@ -5,8 +5,10 @@
   library(lubridate)
   library(unitted)
 
+# TR_ts2018.csv <- read.csv(here("Gerard_Code","TR_ts2018.csv"))
+
 #### Now we do Toolik River ####
-TR <- read_delim("TR_ts2018.csv",";", escape_double = FALSE, trim_ws = TRUE) %>% 
+TR <- read_delim(here("Gerard_Code", "TR_ts2018.csv"),";", escape_double = FALSE, trim_ws = TRUE) %>% 
   mutate(depth_m=channel_depth_cm/100, discharge=Discharge_L_s/1000) %>% 
   rename(DO.obs=DO_mgL, DO.sat=Dosat_mgL, local.time=`Alaska Standard Time`, 
                 temp.water=Temp_O2logger, light=Light_lux) 
