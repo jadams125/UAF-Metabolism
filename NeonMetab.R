@@ -687,6 +687,108 @@ ggsave(path = here("outputs"), file = "cari2020.pdf", fig2020, width = 30, heigh
 
 
 
+rm(list=ls())
+gc()
+
+
+
+
+
+
+
+
+######################### RUN THE MODEL ##########################
+
+#read in data, rename, and convert Q to m^3/s
+mm.cari.2021.data <- read.csv(here("outputs", "clean.cari.2021.full.csv")) %>% select(solar.time, DO.obs, DO.sat.EXO, temp.water, discharge, depth, light) %>% rename(DO.sat = DO.sat.EXO) %>% mutate(discharge = discharge/1000) %>% mutate(year=year(solar.time)) %>% filter(year == "2021") %>% select(-year)
+
+
+
+
+bayes_name <- mm_name(type='bayes', pool_K600='binned', err_obs_iid=TRUE, err_proc_iid=TRUE)
+
+bayes_specs <- specs(bayes_name,
+                     burnin_steps=5000, saved_steps=2000, n_cores=8,
+                     GPP_daily_lower = 0, ER_daily_upper = 0,
+                     
+)
+
+
+data.cari.mm.all <- mm.cari.2021.data
+#Change light to modeled light
+data.cari.mm.all$solar.time <- as.POSIXct(data.cari.mm.all$solar.time, tz = "UTC")
+
+
+startTime <- as.POSIXct(Sys.time())
+mm.test.cari <- metab(bayes_specs, data=data.cari.mm.all)
+endTime <- as.POSIXct(Sys.time())
+# 
+difftime(endTime, startTime)
+save(mm.test.cari, file = here("Outputs", "caribou2021-Run_2023-Full.03.08.RData"))
+# 
+fit.cari <- get_fit(mm.test.cari)
+fit.daily <- fit.cari$daily
+write.csv(fit.daily, here("outputs", "caribou2021-Run_2023-Full.03.08.csv"))
+
+model_data <- get_data(mm.test.cari)
+
+######### Plot
+library(ggpmisc)
+
+gpp <- ggplot(data=fit.daily, aes(x=date, y=GPP_mean)) + geom_point(color = "chartreuse4") + geom_errorbar(aes(ymin=GPP_mean-GPP_sd, ymax=GPP_mean+GPP_sd), width=.2, position=position_dodge(0.05), color = "chartreuse4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("GPP (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ ggtitle("caribou2021")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) +ylim(0, max(fit.daily$GPP_mean))
+
+er <- ggplot(data = fit.daily, aes(x = date)) +geom_point(aes(y = ER_mean), color = "firebrick3") + geom_errorbar(aes(ymin=ER_mean-ER_sd, ymax=ER_mean+ER_sd), width=.2, position=position_dodge(0.05), color = "firebrick3")+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("ER (g ", O[2] ," ", m^2, d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme( axis.title.y = element_text(size = 20)) +ylim(min(fit.daily$ER_daily_mean), 0)
+
+k600 <- ggplot(data=fit.daily, aes(x=date, y=K600_daily_mean)) + geom_point(color = "orange") + geom_errorbar(aes(ymin=K600_daily_mean-K600_daily_sd, ymax=K600_daily_mean+K600_daily_sd), width=.2, position=position_dodge(0.05), color = "orange") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("K600 (", d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) 
+
+rhat <- ggplot(data=fit.daily, aes(x=date)) + geom_point(aes(y=GPP_Rhat, colour = "GPP")) + geom_point(aes(y=as.numeric(ER_Rhat), colour = "ER")) + geom_point(aes(y=K600_daily_Rhat, colour = "K600")) +
+  labs(y = "RHAT") + theme(legend.position="top") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ geom_hline(yintercept=1.01, color = "dark blue")+ geom_hline(yintercept=1.1, color = "dark red", linetype = "dashed")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme(axis.text.x=element_text(size=20))+theme( axis.title.y = element_text(size = 20))
+
+er_k <- ggplot(data=fit.daily, aes(x=ER_mean, y=K600_daily_mean)) + geom_point()+ stat_poly_line() + stat_poly_eq(size = 10)+labs(x = expression(paste("ER (g ", O[2] ," ", m^2, d^-1, ")")))+ labs(y = expression(paste("K600 (", d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.x=element_text(size=20))+theme( axis.title.x = element_text(size = 20)) +theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold"))
+
+
+q.fig <- ggplot(data = model_data, aes(x = solar.time)) +geom_point(aes(y=discharge), color = "sienna4", size=0.4)+ theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() )+ labs(y = expression(paste("Discharge ( ", m^3, s^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+ylim(0, max(model_data$discharge))
+
+T.fig <- ggplot(data = model_data, aes(x = solar.time)) +geom_point(aes(y=temp.water), color = "slateblue4", size=0.4)+ theme(axis.title.x=element_blank() )+ labs(y = "Temperature (°C)")+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme(axis.text.y=element_text(size=20))+theme(axis.text.x=element_text(size=20))+theme( axis.title.y = element_text(size = 20))+ylim(-0.004, 20)
+
+
+
+cari.DO.pred <- predict_DO(mm.test.cari)
+cari.DO.pred <- na.omit(cari.DO.pred)
+lm(DO.obs~ DO.mod, data = cari.DO.pred)
+cari.DO.pred$SM.date <- as.Date(cari.DO.pred$solar.time - 4*60*60)
+cari.DO.pred$SM.date <- as.factor(cari.DO.pred$SM.date)
+fit_model <- function(x, y) summary(lm(x ~ y))$adj.r.squared
+test.run <- cari.DO.pred %>% group_by(SM.date) %>% summarise(adj.R2 = fit_model(DO.obs,DO.mod))
+cari.DO.pred <- full_join(cari.DO.pred, test.run)
+rsq <-  summary(lm(cari.DO.pred$DO.mod~cari.DO.pred$DO.obs))$r.squared
+
+p1 <- ggplot(cari.DO.pred, aes(x = solar.time)) + geom_point(aes(y=DO.obs, colour = "Observed DO"), color = "darkcyan") + geom_line(aes(y = DO.mod, colour= "Modeled DO"), color = "blue4") + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank() ) + labs(colour="Green", y = "DO (mg/L)") +  theme(legend.position="none") + ggtitle("Observed (points) and Modeled (lines)")
+
+p2 <- ggplot(cari.DO.pred, aes(x = solar.time)) + geom_point(aes(y=adj.R2))
+
+
+library(grid)
+library(ggeffects)
+library(gridExtra)
+library(gtable)
+# If that doesnt do it, add grid
+# Make each of the plots
+
+# Two-panel figure: effect sizes
+panA <- ggplotGrob(gpp)
+panB <- ggplotGrob(er)
+panK600 <- ggplotGrob(k600)
+panC <- ggplotGrob(q.fig)
+panD <- ggplotGrob(T.fig)
+panE <- ggplotGrob(p1)
+panp2 <- ggplotGrob(p2)
+panF <- ggplotGrob(rhat)
+panG <- ggplotGrob(er_k)
+grid::grid.newpage()
+grid.draw(rbind(panA, panB,panK600, panC, panD,panE,panp2,panF, panG,size="max"))
+fig2021 <- arrangeGrob(rbind(panA, panB,panK600, panC, panD,panE,panp2,panF,panG, size="max"))
+ggsave(path = here("outputs"), file = "cari2021.pdf", fig2021, width = 30, height = 55, units = "in", limitsize = FALSE)
 
 
 
