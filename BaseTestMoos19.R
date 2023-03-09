@@ -200,23 +200,23 @@ moos.fill2019 <- unique(moos.fill2019)
 
 #gap fill
 moos.fill2019 %>% ggplot(aes(x=datetimeAK, y=DO.meas))+geom_miss_point()
-moos.fill2019$DO.meas <- na_kalman(moos.fill2019$DO.meas, type = "level")
+moos.fill2019$DO.meas <- na_kalman(moos.fill2019$DO.meas, maxgap = 10)
 moos.fill2019 %>% ggplot(aes(x=datetimeAK, y=DO.meas))+geom_miss_point()
 
 
 
 
 moos.fill2019 %>% ggplot(aes(x=datetimeAK, y=I))+geom_miss_point()
-moos.fill2019$I <- na_kalman(moos.fill2019$I, type = "level")
+moos.fill2019$I <- na_kalman(moos.fill2019$I, type = "level",maxgap = 10)
 moos.fill2019 %>% ggplot(aes(x=datetimeAK, y=I))+geom_miss_point()
 
 
 moos.fill2019 %>% ggplot(aes(x=datetimeAK, y=tempC))+geom_miss_point()
-moos.fill2019$tempC <- na_kalman(moos.fill2019$tempC,  type = "level")
+moos.fill2019$tempC <- na_kalman(moos.fill2019$tempC,  type = "level",maxgap = 10)
 moos.fill2019 %>% ggplot(aes(x=datetimeAK, y=tempC))+geom_miss_point()
 
 moos.fill2019 %>% ggplot(aes(x=datetimeAK, y=atmo.pressure))+geom_miss_point()
-moos.fill2019$atmo.pressure <- na_kalman(moos.fill2019$atmo.pressure, type = "level")
+moos.fill2019$atmo.pressure <- na_kalman(moos.fill2019$atmo.pressure, type = "level",maxgap = 10)
 moos.fill2019 %>% ggplot(aes(x=datetimeAK, y=atmo.pressure))+geom_miss_point()
 
 moos.fill2019 %>% ggplot(aes(x=datetimeAK, y=salinity))+geom_miss_point()
@@ -231,7 +231,7 @@ moos.fill2019 <- moos.fill2019 %>% select(-datetimeAK)
 
 moos.fill2019 <- moos.fill2019 %>% select(-DOY)
 
-write.csv(moos.fill2019, here("base_test_storage","moos.2019.bayes.test.csv"),fileEncoding = "UTF-8", col.names = FALSE, row.names = FALSE)
+write.csv(moos.fill2019, here("base_test_storage_moos","moos.2019.bayes.test.csv"),fileEncoding = "UTF-8", col.names = FALSE, row.names = FALSE)
 
 
 moos.fill2019.look <- data.table::as.data.table(moos.fill2019) %>% mutate(Date = as.POSIXct(Date))
@@ -240,7 +240,7 @@ moos.fill2019.look <- data.table::as.data.table(moos.fill2019) %>% mutate(Date =
 
 
 
-testtest <- read.csv(here("base_test_storage","moos.2019.bayes.test.csv"))
+testtest <- read.csv(here("base_test_storage_moos","moos.2019.bayes.test.csv"))
 
 
 moos.bayes.link <-  here("base_test_storage")
@@ -255,7 +255,7 @@ n.burnin = n.iter * 0.5
 bayesmetab(moos.bayes.link, results.dir, interval )
 
 
-result1 <- read.csv(here("base_test","BASE_results_2023-02-28 150759.csv"))
+result1 <- read.csv(here("base_test","BASE_results_2023-03-01 145120.csv"))
 
 # convert to same units as SM, multiply by depth
 
@@ -309,10 +309,21 @@ K600 <- ggplot(data = metab.moos.2019, aes(x = as.POSIXct(Date))) +
 
 
 library(ggpmisc)
+library(ggpubr)
 
 
-metab.moos.2019 <- metab.moos.2019 %>% filter(Date != ("2019-08-16"))
-metab.moos.2019 %>% ggplot(aes(x=GPP_mean_SM, y=GPP_mean_BASE))+geom_point()+stat_poly_line()+stat_poly_eq()
-metab.moos.2019 %>% ggplot(aes(x=ER_mean_SM, y=ER_mean_BASE))+geom_point()+stat_poly_line()+stat_poly_eq()
+# metab.moos.2019 <- metab.moos.2019 %>% filter(Date != ("2019-08-16"))
+line1 <- metab.moos.2019 %>% ggplot(aes(x=GPP_mean_SM, y=GPP_mean_BASE))+geom_point()+stat_poly_line()+stat_poly_eq()
+line2 <- metab.moos.2019 %>% ggplot(aes(x=ER_mean_SM, y=ER_mean_BASE))+geom_point()+stat_poly_line()+stat_poly_eq()
 
-metab.moos.2019 %>% ggplot(aes(x=K600_mean_SM, y=K.mean))+geom_point()+stat_poly_line()+stat_poly_eq()
+line3 <- metab.moos.2019 %>% ggplot(aes(x=K600_mean_SM, y=K.mean))+geom_point()+stat_poly_line()+stat_poly_eq()
+
+
+
+ggarrange(gpp,er,K600,line1,line2,line3, ncol=1)
+
+
+library(grid)
+
+
+

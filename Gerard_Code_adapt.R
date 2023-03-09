@@ -2720,6 +2720,30 @@ strt.2022
 ggpubr::ggarrange(poke.2019,poke.2020,poke.2021,vaul.2019,vaul.2020,vaul.2021,vaul.2022,moos.2019,moos.2020,moos.2021,moos.2022,frch.2019,frch.2020,frch.2021,frch.2022, strt.2019,strt.2020,strt.2021,strt.2022)
 
 
+######################## Stream Metabolizer Method #############
+
+
+#poke.2019
+data.poke.mm.all <- read.csv(here("outputs", "clean.vaul.2019.full.csv"))
+
+data.poke.mm.all$solar.time <- as.POSIXct(data.poke.mm.all$solar.time, tz = "UTC")
+
+
+data.poke.mm.all$light <- calc_light(data.poke.mm.all$solar.time, 65.152855, -147.486655)
+
+
+data.poke.mm.all <- data.poke.mm.all %>% select(solar.time, DO.obs, DO.sat.EXO, depth, temp.water, light, discharge) %>% rename(DO.sat = DO.sat.EXO)
+
+testNight <- metab_night(data = data.poke.mm.all, specs = specs(mm_name("night")))
+
+fitNight <- streamMetabolizer::get_fit(testNight)
+
+
+k600 <- ggplot(data=fitNight, aes(x=date, y=K600.daily)) + geom_point(color = "orange") + geom_errorbar(aes(ymin=K600.daily-K600.daily.sd, ymax=K600.daily+K600.daily.sd), width=.2, position=position_dodge(0.05), color = "orange") + labs(y = expression(paste("K600 (", d^-1, ")")))+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())+ theme(panel.border = element_rect(colour = "black", fill=NA, size=2))+theme( axis.title.y = element_text(size = 20))+theme(axis.text.y=element_text(size=20))+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 40, face = "bold")) 
+k600
+
+
+
 
 
 
