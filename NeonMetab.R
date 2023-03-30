@@ -9,27 +9,37 @@ library(ggpubr)
 library(naniar)
 library(imputeTS)
 
-NEON_water <-loadByProduct(dpID = "DP1.20288.001", site=c("CARI"),startdate="2019-01", enddate="2022-12",check.size=F, package = "expanded")
+NEON_water <-loadByProduct(dpID = "DP1.20288.001", site=c("CARI"),startdate="2019-01", enddate="2022-12",check.size=F, package = "basic")
 
-NEON_water_data <- NEON_water$waq_instantaneous
+NEON_water_data <- NEON_water$waq_instantaneous %>% filter(horizontalPosition == "102") 
 
+#REMOVE QUALITY FLAGS 
+NEON_water_data <- NEON_water_data %>% filter(dissolvedOxygenFinalQF == "0" & seaLevelDOSatFinalQF == "0")
+
+
+# plot the data
+NEON_water_data %>% filter(startDateTime > "2019-07-01"&startDateTime <"2019-08-01") %>%  ggplot(aes(x=as.POSIXct(startDateTime, tz = "UTC"), y= dissolvedOxygen)) +geom_point()
 
 
 #water temp 
 NEON_water_temp <-loadByProduct(dpID = "DP1.20053.001", site=c("CARI"),startdate="2019-01", enddate="2022-12",check.size=F)
 
 
-NEON_water_temp <- NEON_water_temp$TSW_5min
+NEON_water_temp <- NEON_water_temp$TSW_5min %>% filter(horizontalPosition == "102" & finalQF == '0') 
 
 NEON_water_temp$startDateTime <- as.POSIXct(NEON_water_temp$startDateTime, tz = "UTC")
 
+# plot the data
+NEON_water_temp %>% filter(startDateTime > "2019-07-01"&startDateTime <"2019-08-01") %>%  ggplot(aes(x=as.POSIXct(startDateTime, tz = "UTC"), y= surfWaterTempMean)) +geom_point()
 
 
 # Chems DP1.20093.001
 
 NEON_water_chems <-loadByProduct(dpID = "DP1.20093.001", site=c("CARI"),startdate="2019-01", enddate="2022-12",check.size=F)
 
-chems_data <- NEON_water_chems$swc_externalLabDataByAnalyte
+chems_data <- NEON_water_chems$swc_externalLabDataByAnalyte 
+
+chems_data <- chems_data %>% filter(shipmentWarmQF == "0")
 
 chems_data$startDate <- as.POSIXct(chems_data$startDate, tz = "UTC")
 
@@ -61,9 +71,14 @@ chems_DOC_wide_mn <- chems_data_DOC_small %>% pivot_wider(names_from = analyte, 
 
 NEON_water_SUNA <-loadByProduct(dpID = "DP1.20033.001", site=c("CARI"),startdate="2019-01", enddate="2022-12",check.size=F)
 
-NEON_SUNA_DATA <- NEON_water_SUNA$NSW_15_minute
+NEON_SUNA_DATA <- NEON_water_SUNA$NSW_15_minute%>% filter(horizontalPosition == "102" &finalQF == "0")
 
 NEON_SUNA_DATA$startDateTime <- as.POSIXct(NEON_SUNA_DATA$startDateTime, tz = "UTC")
+
+
+
+# plot the data
+NEON_SUNA_DATA %>% filter(startDateTime > "2019-07-01"&startDateTime <"2019-08-01") %>%  ggplot(aes(x=as.POSIXct(startDateTime, tz = "UTC"), y= surfWaterNitrateMean)) +geom_point()
 
 
 # 
@@ -82,7 +97,9 @@ NEON_SUNA_DATA$startDateTime <- as.POSIXct(NEON_SUNA_DATA$startDateTime, tz = "U
 NEON_Q <-loadByProduct(dpID = "DP4.00130.001", site=c("CARI"),startdate="2019-01", enddate="2022-12",check.size=F,package="expanded")
 
 
-NEON_Q_cont <- NEON_Q$csd_continuousDischarge
+NEON_Q_cont <- NEON_Q$csd_continuousDischarge%>% filter(stationHorizontalID == "102" | stationHorizontalID == "132"& endDate <"2022-01-01")
+
+
 
 NEON_Q_cont$endDate <- as.POSIXct(NEON_Q_cont$endDate, tz = "UTC")
 
@@ -96,16 +113,21 @@ NEON_Q_15$endDate <-  strptime(as.character(NEON_Q_15$endDate),"%Y-%m-%d %H:%M:%
 NEON_Q_15$DateTimeUTC <- as.POSIXct(NEON_Q_15$endDate, tz = "UTC")
 
 
+# plot the data
+NEON_Q_15 %>% filter(endDate > "2019-07-01"&endDate <"2019-08-01") %>%  ggplot(aes(x=as.POSIXct(endDate, tz = "UTC"), y= withParaUncQMedian)) +geom_point()
+
+# plot the data
+NEON_Q_15 %>% filter(endDate > "2019-07-01"&endDate <"2019-08-01") %>%  ggplot(aes(x=as.POSIXct(endDate, tz = "UTC"), y= equivalentStage)) +geom_point()
 
 
 
-
+#########
 
 
 NEON_water_data_small <- NEON_water_data %>% select(startDateTime, dissolvedOxygen, seaLevelDissolvedOxygenSat, localDissolvedOxygenSat, turbidity, fDOM, )
 
 
-NEON_Water_15 <- NEON_water_data_small %>%
+NEON_Water_15 <- NEON_water_data_small  %>% filter(startDateTime>"2019-05-07 16:59:30") %>% 
   group_by(startDateTime = cut(startDateTime, breaks="15 min")) %>%
   summarize(dissolvedOxygen= mean(dissolvedOxygen), seaLevelDissolvedOxygenSat 
 =mean(seaLevelDissolvedOxygenSat), localDissolvedOxygenSat = mean(localDissolvedOxygenSat), turbidity = mean(turbidity), fDOM = mean(fDOM)
@@ -181,7 +203,7 @@ cari.comb$DOY <- as.character(as.factor(yday(cari.comb$solar.time)))
 # 
 # cari.comb <- rbind(cari.comb.2019,cari.comb.2020,cari.comb.2021,cari.comb.2022) 
 
-cari.comb <- cari.comb %>% mutate(month = month(cari.comb$solar.time)) %>% filter(month >= "3")
+# cari.comb <- cari.comb %>% mutate(month = month(cari.comb$solar.time)) %>% filter(month >= "3")
 
 cari.comb <- cari.comb %>% select(-c(DOY,year))
 

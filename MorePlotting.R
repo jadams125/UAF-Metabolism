@@ -1,3 +1,9 @@
+
+
+
+
+
+
 #sites in the literature 
 library(ggpubr)
 library(anytime)
@@ -28,6 +34,137 @@ library(ggtext)
 
 library(here)
 
+
+strt.gpp <- rbind( read.csv(here("outputs", "stuart2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "stuart2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "stuart2021-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "stuart2022-Run_2023-Full.rerun.02.04.csv")))
+strt.gpp$site = "STRT"
+strt.gpp$PF = "High"
+strt.gpp$burn = "Burned"
+strt.gpp$year <- format(as.Date(strt.gpp$date, format="%Y-%m-%d"),"%Y")
+
+
+
+
+vaul.gpp <- rbind( read.csv(here("outputs", "vault2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "vault2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "vault2021-2022-Run_2023-Full.rerun.02.04.csv")))
+vaul.gpp$site = "VAUL"
+vaul.gpp$PF = "High"
+vaul.gpp$burn = "Unburned"
+vaul.gpp$year <- format(as.Date(vaul.gpp$date, format="%Y-%m-%d"),"%Y")
+
+
+
+#Poker 2022 bad
+poke.gpp <- rbind( read.csv(here("outputs", "poker2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "poker2021-Run_2023-Full.rerun.02.04.csv")))
+
+poke.gpp$site = "POKE"
+poke.gpp$PF = "Low"
+poke.gpp$burn = "Burned"
+poke.gpp$year <- format(as.Date(poke.gpp$date, format="%Y-%m-%d"),"%Y")
+
+
+
+frch.gpp <- rbind( read.csv(here("outputs", "french2019-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "french2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs", "french2021-Run_2023-Full.rerun.02.04.csv")),read.csv(here("outputs", "french2022-Run_2023-Full.rerun.02.04.csv")))
+frch.gpp$site = "FRCH"
+frch.gpp$PF = "Low"
+frch.gpp$burn = "Unburned"
+frch.gpp$year <- format(as.Date(frch.gpp$date, format="%Y-%m-%d"),"%Y")
+
+
+
+
+moos.gpp <- rbind(
+  read.csv(here("outputs", "moose2019-Run_2023-Full.rerun.02.04.csv")),
+  read.csv(here("outputs", "moose2020-Run_2023-Full.rerun.02.04.csv")), read.csv(here("outputs","moose2021-Run_2023-Full.rerun.02.04.csv")),
+  read.csv(here("outputs", "moose2022-Run_2023-Full.rerun.02.04.csv"))
+)
+moos.gpp$site = "MOOS"
+moos.gpp$PF = "Low"
+moos.gpp$burn = "Burned"
+moos.gpp$year <- format(as.Date(moos.gpp$date, format="%Y-%m-%d"),"%Y")
+
+
+
+cari.gpp <- rbind( read.csv(here("outputs", "caribou2019-Run_2023-Full.03.08.csv")), read.csv(here("outputs", "caribou2020-Run_2023-Full.03.08.csv")), read.csv(here("outputs", "caribou2021-Run_2023-Full.03.08.csv")))
+
+ts_cari <- data.frame(date = as.character(as.POSIXct(seq(ymd("2019-04-15"),ymd(max(moos.gpp$date)), by = '1 days'))))
+cari.gpp.ts <- full_join(cari.gpp, ts_cari, by = "date")
+
+cari.gpp.ts$site = "CARI"
+cari.gpp.ts$PF = "Low"
+cari.gpp.ts$burn = "Unburned"
+cari.gpp.ts$year <- format(as.Date(cari.gpp.ts$date, format="%Y-%m-%d"),"%Y")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+craw.gpp <- read.csv(here("outputs", "crawford2019-Run_2023-FC.02.22.csv"))
+
+
+
+ts_craw <- data.frame(date = as.character(as.POSIXct(seq(ymd("2019-04-15"),ymd(max(craw.gpp$date)), by = '1 days'))))
+craw.gpp.ts <- full_join(craw.gpp, ts_craw, by = "date")
+craw.gpp.ts$site = "CRAW"
+craw.gpp.ts$PF = "High"
+craw.gpp.ts$burn = "Burned"
+craw.gpp.ts$year <- format(as.Date(craw.gpp.ts$date, format="%Y-%m-%d"),"%Y")
+
+
+
+mast.gpp <- read.csv(here("outputs", "mastodon2019-Run_2023-FC-rerun.02.02.csv"))
+
+
+ts_mast <- data.frame(date = as.character(as.POSIXct(seq(ymd("2019-04-15"),ymd(max(mast.gpp$date)), by = '1 days'))))
+mast.gpp.ts <- full_join(mast.gpp, ts_mast, by = "date")
+mast.gpp.ts$site = "MAST"
+mast.gpp.ts$PF = "High"
+mast.gpp.ts$burn = "Burned"
+mast.gpp.ts$year <- format(as.Date(mast.gpp.ts$date, format="%Y-%m-%d"),"%Y")
+
+
+
+
+shov.gpp <- read.csv(here("outputs", "shovel2019-Run_2023-FC.02.12.csv"))
+
+ts_shov <- data.frame(date = as.character(as.POSIXct(seq(ymd("2019-04-15"),ymd(max(shov.gpp$date)), by = '1 days'))))
+shov.gpp.ts <- full_join(shov.gpp, ts_shov, by = "date")
+shov.gpp.ts$site = "SHOV"
+shov.gpp.ts$PF = "High"
+shov.gpp.ts$burn = "Burned"
+shov.gpp.ts$year <- format(as.Date(shov.gpp.ts$date, format="%Y-%m-%d"),"%Y")
+
+
+
+#combine
+metab_all <- rbind(strt.gpp, vaul.gpp, poke.gpp, frch.gpp, moos.gpp,cari.gpp.ts,craw.gpp.ts,mast.gpp.ts,shov.gpp.ts)
+
+metab_all$DOY <- yday(as.POSIXct(metab_all$date))
+
+#highest minimum for all years 
+metab_all.2019 <-metab_all %>% filter(year =="2019") %>% filter(DOY>= "167" & DOY<="274")
+metab_all.2020 <-metab_all %>% filter(year =="2020") %>% filter(DOY>= "169" & DOY<="276")
+metab_all.2021 <-metab_all %>% filter(year =="2021") %>% filter(DOY>= "163" & DOY<="270")
+metab_all.2022 <-metab_all %>% filter(year =="2022") %>% filter(DOY>= "164" & DOY<="271")
+
+metab_all_stw <- rbind(metab_all.2019, metab_all.2020, metab_all.2021, metab_all.2022)
+
+
+
+write.csv(metab_all_stw, here("outputs", "metab.all.csv"))
+write.csv(metab_all_stw, here("outputs", "DoD_metab_TS.csv"))
+
+
+
+#########################################################################################################
 
 metab_all <- read.csv(here("outputs","DoD_metab_TS.csv"))
 
@@ -81,9 +218,17 @@ clean.strt.2021 <- read.csv(here("outputs","clean.strt.2021.full.csv")) %>% muta
 clean.strt.2022 <- read.csv(here("outputs","clean.strt.2022.full.csv")) %>% mutate(site = "STRT") %>% mutate(DOY = yday(as.POSIXct(solar.time)) ) %>%  mutate(year = year(solar.time) ) %>% mutate(date = as.Date(solar.time)) %>% select(datetimeAK, solar.time, site, year, date, DO.obs, DO.sat.EXO, temp.water, depth, discharge)
 
 
+clean.cari.2019 <- read.csv(here("outputs","clean.cari.2019.full.csv")) %>% mutate(site = "CARI") %>% mutate(DOY = yday(as.POSIXct(solar.time)) ) %>%  mutate(year = year(solar.time) ) %>% mutate(date = as.Date(solar.time))%>% select(datetimeAK, solar.time, site, year, date, DO.obs, DO.sat.EXO, temp.water, depth, discharge)
+
+clean.cari.2020 <- read.csv(here("outputs","clean.cari.2020.full.csv")) %>% mutate(site = "CARI") %>% mutate(DOY = yday(as.POSIXct(solar.time)) ) %>%  mutate(year = year(solar.time) ) %>% mutate(date = as.Date(solar.time))%>% select(datetimeAK, solar.time, site, year, date, DO.obs, DO.sat.EXO, temp.water, depth, discharge)
+
+clean.cari.2021 <- read.csv(here("outputs","clean.cari.2021.full.csv")) %>% mutate(site = "CARI") %>% mutate(DOY = yday(as.POSIXct(solar.time)) ) %>%  mutate(year = year(solar.time) ) %>% mutate(date = as.Date(solar.time))%>% select(datetimeAK, solar.time, site, year, date, DO.obs, DO.sat.EXO, temp.water, depth, discharge)
 
 
-DoD.data.all <- rbind(clean.frch.2019,clean.frch.2020,clean.frch.2021,clean.frch.2022,clean.moos.2019,clean.moos.2020,clean.moos.2021,clean.moos.2022, clean.poke.2019,clean.poke.2020,clean.poke.2021,clean.poke.2022,clean.vaul.2019,clean.vaul.2020,clean.vaul.2021,clean.vaul.2022,clean.strt.2019,clean.strt.2020,clean.strt.2021,clean.strt.2022) %>% rename(DO.sat = DO.sat.EXO)
+
+
+
+DoD.data.all <- rbind(clean.frch.2019,clean.frch.2020,clean.frch.2021,clean.frch.2022,clean.moos.2019,clean.moos.2020,clean.moos.2021,clean.moos.2022, clean.poke.2019,clean.poke.2020,clean.poke.2021,clean.poke.2022,clean.vaul.2019,clean.vaul.2020,clean.vaul.2021,clean.vaul.2022,clean.strt.2019,clean.strt.2020,clean.strt.2021,clean.strt.2022,clean.cari.2019,clean.cari.2020,clean.cari.2021) %>% rename(DO.sat = DO.sat.EXO)
 
 
 DoD.data.all <- as.data.frame(DoD.data.all) %>% mutate (date = as.character(date), site = as.character(site), year = as.numeric(year))
@@ -91,13 +236,13 @@ DoD.data.all <- as.data.frame(DoD.data.all) %>% mutate (date = as.character(date
 
 
 ### Add in Other data ###
-suna_exo_2019 <- read.csv("C:/Users/jadams125/Documents/GitHub/DoD_2019/processed_sensor_dat/SUNA.EXO.int.corr.lab_2019.csv")
+suna_exo_2019 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2019/processed_sensor_dat/SUNA.EXO.int.corr.lab_2019.csv")
 
-suna_exo_2020 <- read.csv("C:/Users/jadams125/Documents/GitHub/DoD_2020/processed_sensor_dat/SUNA.EXO.int.corr.lab_2020.csv")
+suna_exo_2020 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2020/processed_sensor_dat/SUNA.EXO.int.corr.lab_2020.csv")
 
-suna_exo_2021 <- read.csv("C:/Users/jadams125/Documents/GitHub/DoD_2021/processed_sensor_dat/SUNA.EXO.int.corr.lab_2021.csv")
+suna_exo_2021 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2021/processed_sensor_dat/SUNA.EXO.int.corr.lab_2021.csv")
 
-suna_exo_2022 <- read.csv("C:/Users/jadams125/Documents/GitHub/DoD_2022/processed_sensor_dat/SUNA.EXO.int.corr.lab_2022.csv")
+suna_exo_2022 <- read.csv("C:/Users/jacob/OneDrive - University of Alaska/GitHub/DoD_2022/processed_sensor_dat/SUNA.EXO.int.corr.lab_2022.csv")
 
 
 
@@ -131,11 +276,132 @@ DoD.data.all.mean <- DoD.data.all %>% select( site, year, date, DO.obs, DO.sat, 
 
 DoD_ALL <- full_join(DoD.data.all.mean, Suna.Exo.Select.All.mean, by = c("date", "site"))
 
-metab_all.short <- metab_all %>% mutate(date = as.Date(date)) %>% select(date, site, GPP_daily_mean, ER_mean, K600_daily_mean)
+metab_all.short <- metab_all %>% mutate(date = as.Date(date)) %>% select(date, site, GPP_daily_mean, ER_mean, K600_daily_mean, burn, PF)
+
 
 
 DoD_ALL_metab <- full_join(DoD_ALL, metab_all.short, by = c("date", "site"))
 
+
+DoD_ALL_metab$nitrateuM.adj.mn[is.nan(as.numeric(DoD_ALL_metab$nitrateuM.adj.mn))] <- NA
+
+library(tidyr)
+DoD_ALL_metab.test <- DoD_ALL_metab %>% drop_na(GPP_daily_mean)
+
+
+
+
+
+#USE SUNA FOR NITRATE 
+library(neonUtilities)
+NEON_water_SUNA <-loadByProduct(dpID = "DP1.20033.001", site=c("CARI"),startdate="2019-01", enddate="2022-12",check.size=F)
+
+NEON_SUNA_DATA <- NEON_water_SUNA$NSW_15_minute%>% filter(horizontalPosition == "102" &finalQF == "0")
+
+NEON_SUNA_DATA$startDateTime <- as.POSIXct(NEON_SUNA_DATA$startDateTime, tz = "UTC")
+
+
+
+NEON_SUNA_DATA_short <- NEON_SUNA_DATA %>% rename(nitrateuM.adj.mn = surfWaterNitrateMean) %>% select(startDateTime, nitrateuM.adj.mn)
+
+NEON_SUNA_DATA_short$DateTimeUTC <- as.POSIXct(NEON_SUNA_DATA_short$startDateTime, tz = "UTC")
+
+NEON_SUNA_DATA_short$datetimeAK <- with_tz(NEON_SUNA_DATA_short$DateTimeUTC, tz = "America/Anchorage")
+
+
+NEON_SUNA_DATA_short$site = "CARI"
+
+###########
+
+
+#Pull in turbdity, fdom data
+NEON_water <-loadByProduct(dpID = "DP1.20288.001", site=c("CARI"),startdate="2019-01", enddate="2022-12",check.size=F, package = "basic")
+
+NEON_water_data <- NEON_water$waq_instantaneous %>% filter(horizontalPosition == "102") 
+
+#REMOVE QUALITY FLAGS 
+NEON_water_data <- NEON_water_data %>% filter(turbidityFinalQF == "0"| fDOMFinalQF == "0")
+
+NEON_water_data_short <- NEON_water_data %>% select(startDateTime,turbidity, fDOM) %>% rename(Turbidity.FNU.mn.adj = turbidity, fDOM.QSU.int = fDOM)
+
+NEON_water_data_short$DateTimeUTC <- as.POSIXct(NEON_water_data_short$startDateTime, tz = "UTC")
+
+NEON_water_data_short$site = "CARI"
+
+NEON_water_data_short$datetimeAK <- with_tz(NEON_water_data_short$DateTimeUTC, tz = "America/Anchorage")
+
+NEON_water_data_short <- NEON_water_data_short %>% filter( datetimeAK > "2019-05-07 16:59:30")
+
+NEON_water_data_short_15 <- NEON_water_data_short %>%
+  group_by(datetimeAK = cut(datetimeAK, breaks="15 min")) %>%
+  summarize(Turbidity.FNU.mn.adj = mean(Turbidity.FNU.mn.adj), fDOM.QSU.int = mean(fDOM.QSU.int))
+
+NEON_water_data_short_15$datetimeAK <- as.POSIXct(NEON_water_data_short_15$datetimeAK, tz = "America/Anchorage")
+
+
+CARI_extra <- full_join(NEON_water_data_short_15,NEON_SUNA_DATA_short, by = "datetimeAK") %>% select(site, datetimeAK, Turbidity.FNU.mn.adj,nitrateuM.adj.mn,fDOM.QSU.int) 
+
+
+#####
+
+# mean daily
+
+CARI_extra <- CARI_extra %>% arrange(ymd_hms(CARI_extra$datetimeAK))
+
+
+CARI_extra$date = as.character(as.Date(as.character(CARI_extra$datetimeAK)))
+CARI_extra$year <- year(CARI_extra$date)
+CARI_extra$site <- "CARI"
+
+ts_2019.cari <- data.frame(datetimeAK = force_tz(as.POSIXct(seq(ymd_hm("2019-05-06 16:00"),ymd_hm("2022-12-31 14:45"), by = '15 mins')), tz = "America/Anchorage"))
+CARI_extra <- full_join(CARI_extra, ts_2019.cari, by = "datetimeAK")
+
+CARI_extra <- CARI_extra %>% arrange(ymd_hms(CARI_extra$datetimeAK))
+
+
+CARI_extra$Turbidity.FNU.mn.adj <-  na_kalman(CARI_extra$Turbidity.FNU.mn.adj, maxgap = 48)
+CARI_extra$nitrateuM.adj.mn <-  na_kalman(CARI_extra$nitrateuM.adj.mn, maxgap = 48)
+CARI_extra$fDOM.QSU.int <-  na_kalman(CARI_extra$fDOM.QSU.int, maxgap = 48)
+
+
+CARI_extra.mean <- CARI_extra %>% select( site, date, year, Turbidity.FNU.mn.adj, nitrateuM.adj.mn, fDOM.QSU.int) %>% 
+  group_by(date,site) %>%
+  summarise(across(-year, mean, na.rm = TRUE)) %>% mutate(date = as.Date(date))
+
+
+#######
+
+
+
+
+Neon_added <- full_join(DoD_ALL_metab.test,CARI_extra.mean, by = c("date","site") )
+
+
+Neon_added <- Neon_added %>% 
+  mutate(Turbidity.FNU.mn.adj.x = coalesce(Turbidity.FNU.mn.adj.x,  Turbidity.FNU.mn.adj.y)) %>% 
+  mutate(nitrateuM.adj.mn.x = coalesce(nitrateuM.adj.mn.x,nitrateuM.adj.mn.y)) %>% 
+  mutate(fDOM.QSU.int.x = coalesce(fDOM.QSU.int.x,fDOM.QSU.int.y)) %>% 
+  rename(Turbidity.FNU.mn.adj = Turbidity.FNU.mn.adj.x) %>% 
+  rename(nitrateuM.adj.mn = nitrateuM.adj.mn.x) %>% 
+  rename(fDOM.QSU.int = fDOM.QSU.int.x) %>% 
+  select(-c(Turbidity.FNU.mn.adj.y, nitrateuM.adj.mn.y, fDOM.QSU.int.y))
+
+
+
+write.csv(Neon_added, here("outputs","dod.daily.means.with.cari.csv"))
+
+
+
+
+
+
+######
+
+
+
+metab_all <- Neon_added %>% mutate(year = year(date), DOY = yday(date))
+
+metab_all$Turbidity.FNU.mn.adj[is.nan(as.numeric(metab_all$Turbidity.FNU.mn.adj))] <- NA
 
 
 library(dplyr)
@@ -143,7 +409,7 @@ metab_all.min <- group_by(metab_all, year, site)
 df.min <- summarise(metab_all.min, min.DOY = min(DOY))
 
 
-max(df.minYear$DOY)
+max(df.min$DOY)
 
 
 metab_all.max <- group_by(metab_all, year, site)
@@ -157,6 +423,8 @@ metab_all.2021 <-metab_all %>% filter(year =="2021") %>% filter(DOY>= "163" & DO
 metab_all.2022 <-metab_all %>% filter(year =="2022") %>% filter(DOY>= "164" & DOY<="271")
 
 metab_all_stw <- rbind(metab_all.2019, metab_all.2020, metab_all.2021, metab_all.2022)
+
+metab_all_stw$GPP_mean <- metab_all_stw$GPP_daily_mean
 
 
 summary(na.omit(metab_all_stw$GPP_mean))
